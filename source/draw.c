@@ -5,29 +5,19 @@
 #include "matrix.h"
 #include "engine.h"
 #include "plot.h"
+#include "utils.h"
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-static u32 zb_left[240*400];
-static u32 zb_right[240*400];
-
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
-
-// in utils.s
-void fill_framebuffer(void * dst, u32 color, u32 bottom_screen); // color = 31 _BGR 0
-
-void clear_screen_buffers(void)
+void clear_buffers(int r, int g, int b)
 {
 	u8 * fb_left = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 	u8 * fb_right = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
 	
-	fill_framebuffer(fb_left, 0x00FFFFFF, GFX_TOP);
-	fill_framebuffer(fb_right, 0x00FFFFFF, GFX_TOP);
-
-	fill_framebuffer(zb_left, 0xFFFFFFFF, GFX_TOP);
-	fill_framebuffer(zb_right, 0xFFFFFFFF, GFX_TOP);
+	u32 val = (b<<16)|(g<<8)|(r);
+	fill_framebuffer(fb_left, val, GFX_TOP);
+	fill_framebuffer(fb_right, val, GFX_TOP);
 }
 
 void flush_screen_buffers(void)
@@ -41,7 +31,6 @@ void flush_screen_buffers(void)
 //---------------------------------------------------------------------------------------
 
 static u8 * curr_buf;
-static u32 * curr_buf_z;
 
 static u32 currcolor_r, currcolor_g, currcolor_b;
 static u32 saved_r = 255, saved_g = 255, saved_b = 255;
@@ -51,12 +40,10 @@ void set_current_buffer(int right)
 	if(right)
 	{
 		curr_buf = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
-		curr_buf_z = zb_right;
 	}
 	else
 	{
 		curr_buf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-		curr_buf_z = zb_left;
 	}
 }
 
@@ -70,11 +57,11 @@ void set_current_color(u32 r, u32 g, u32 b)
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-static e_primitive_type currmode = P_DOTS;
+static e_primitive_type currmode = P_TRIANGLES;
 static u32 vtx_count = 0;
 #define MAX_VERTICES_IN_A_PRIMITIVE (4)
 static v4 vtx_array[MAX_VERTICES_IN_A_PRIMITIVE];
-static const u32 primitive_num_vertices[P_PRIMITIVE_NUMBER] = {1,2,3,4,3,4};
+static const u32 primitive_num_vertices[P_PRIMITIVE_NUMBER] = {2,3,4,2,3,4};
 static u32 curr_max_vertices;
 
 void polygon_begin(e_primitive_type type)
@@ -87,55 +74,25 @@ void polygon_begin(e_primitive_type type)
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-static void _draw_dot(void)
+//In polygon.c
+void polygon_list_add_line(v4 * a, v4 * b, int _r, int _g, int _b);
+void polygon_list_add_triangle(v4 * a, v4 * b, v4 * c, int _r, int _g, int _b);
+void polygon_list_add_quad(v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b);
+
+void _draw_line(int x1, int y1, int x2, int y2, int r, int g, int b)
 {
-	u32 x = vtx_array[0][0];
-	u32 y = vtx_array[0][1];
-	u32 w = vtx_array[0][3];
-	
-	if((x >= 400) || (y >= 240)) return;
-	
-	u32 * curr_w = &(curr_buf_z[240*x+y]);
-	if(*curr_w > w)
-	{
-		*curr_w = w;
-		
-		u8 * p = &(curr_buf[(240*x+y)*3]);
-		*p++ = currcolor_b;
-		*p++ = currcolor_g;
-		*p = currcolor_r;
-	}
+	LineEx(curr_buf,3,x1,y1,x2,y2,r,g,b);
 }
 
-static void _draw_line(void)
+void _draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
 {
-	Line(curr_buf,curr_buf_z, 400,240,
-		vtx_array[0][0],vtx_array[0][1],vtx_array[0][3],
-		vtx_array[1][0],vtx_array[1][1],vtx_array[1][3],
-		currcolor_r,currcolor_g,currcolor_b);
+	TriFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
 }
 
-static inline void _draw_triangle(void)
+void _draw_quad(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
 {
-	TriFill(curr_buf,curr_buf_z,400,240, 
-		vtx_array[0][0],vtx_array[0][1],vtx_array[0][3],
-		vtx_array[1][0],vtx_array[1][1],vtx_array[1][3],
-		vtx_array[2][0],vtx_array[2][1],vtx_array[2][3],
-		currcolor_r,currcolor_g,currcolor_b);
-}
-
-static inline void _draw_quad(void)
-{
-	TriFill(curr_buf,curr_buf_z,400,240, 
-		vtx_array[0][0],vtx_array[0][1],vtx_array[0][3],
-		vtx_array[1][0],vtx_array[1][1],vtx_array[1][3],
-		vtx_array[2][0],vtx_array[2][1],vtx_array[2][3],
-		currcolor_r,currcolor_g,currcolor_b);
-	TriFill(curr_buf,curr_buf_z,400,240, 
-		vtx_array[0][0],vtx_array[0][1],vtx_array[0][3],
-		vtx_array[2][0],vtx_array[2][1],vtx_array[2][3],
-		vtx_array[3][0],vtx_array[3][1],vtx_array[3][3],
-		currcolor_r,currcolor_g,currcolor_b);
+	TriFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
+	TriFill(curr_buf,x1,y1,x3,y3,x4,y4,r,g,b);
 }
 
 //---------------------------------------------
@@ -162,31 +119,53 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 	{
 		switch(currmode)
 		{
-			case P_DOTS: 
-				_draw_dot();
-				vtx_count = 0;
-				break;
 			case P_LINES:
-				_draw_line();
+				polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
 				vtx_count = 0;
 				break;
+				
 			case P_TRIANGLES:
-				_draw_triangle();
+				polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
 				vtx_count = 0;
 				break;
+				
 			case P_QUADS:
-				_draw_quad();
+				polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
 				vtx_count = 0;
 				break;
+			
+			case P_LINE_STRIP:
+				polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
+				vtx_array[0][0] = vtx_array[1][0];
+				vtx_array[0][1] = vtx_array[1][1];
+				vtx_array[0][3] = vtx_array[1][3];
+				
+				vtx_count = 1;
+				break;
+				
 			case P_TRIANGLE_STRIP:
-				_draw_triangle();
+				polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
 				vtx_array[0][0] = vtx_array[2][0];
 				vtx_array[0][1] = vtx_array[2][1];
 				vtx_array[0][3] = vtx_array[2][3];
+				
 				vtx_count = 2;
 				break;
+				
 			case P_QUAD_STRIP:
-				_draw_quad();
+				polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
 				vtx_array[0][0] = vtx_array[3][0];
 				vtx_array[0][1] = vtx_array[3][1];
 				vtx_array[0][3] = vtx_array[3][3];
@@ -194,8 +173,10 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 				vtx_array[1][0] = vtx_array[2][0];
 				vtx_array[1][1] = vtx_array[2][1];
 				vtx_array[1][3] = vtx_array[2][3];
+				
 				vtx_count = 2;
 				break;
+				
 			default:
 				vtx_count = 0;
 				break;
@@ -210,12 +191,13 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 static v4 light_dir[MAX_LIGHT_SOURCES];
 static v4 light_color[MAX_LIGHT_SOURCES];
 static u32 light_enabled = 0;
+static int amb_r = 0, amb_g = 0, amb_b = 0;
 
 void polygon_normal(s32 x, s32 y, s32 z)
 {
 	v4 l = { x, y, z, 0};
 	
-	int fr = 0, fg = 0, fb = 0; // add factors
+	int fr = amb_r, fg = amb_g, fb = amb_b; // add factors
 	
 	int i;
 	for(i = 0; i < MAX_LIGHT_SOURCES; i++) if(light_enabled & LIGHT_N(i))
@@ -238,6 +220,14 @@ void polygon_normal(s32 x, s32 y, s32 z)
 	int b = (saved_b * fb) / 256;
 	
 	currcolor_r = r; currcolor_g = g; currcolor_b = b;
+}
+
+
+void light_set_ambient_color(int r, int g, int b)
+{
+	amb_r = r;
+	amb_g = g;
+	amb_b = b;
 }
 
 void light_set_color(int index, int r, int g, int b)

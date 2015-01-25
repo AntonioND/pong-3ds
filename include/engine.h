@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "plot.h"
 #include "draw.h"
+#include "polygon.h"
 
 void proyection_matrix_set(m44 * m);
 

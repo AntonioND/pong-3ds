@@ -5,61 +5,9 @@
 #include <stdlib.h>
 
 #include "engine.h"
+#include "utils.h"
 
-#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) 
-
-//----------------------------------------------------------------------------------
-
-#define TICKS_PER_SEC (268123480)
-
-int frame_count;
-u64 last_ticks = 0;
-int _FPS;
-
-static void FPS_IncreaseCount(void)
-{
-	frame_count ++;
-}
-
-static void FPS_UpdateValue(void)
-{
-	if(svcGetSystemTick() >= last_ticks + TICKS_PER_SEC)
-	{
-		last_ticks = svcGetSystemTick();
-		_FPS = frame_count;
-		frame_count = 0;	
-	}
-}
-
-static int FPS_Get(void)
-{
-	return _FPS;
-}
-
-//----------------------------------------------------------------------------------
-
-//Xorshift RNGs, by George Marsaglia (The Florida State University)
-
-#define FAST_RAND_MAX (0x7FFF)
-
-static uint64_t x=123456789,y=362436069,z=521288629,w=88675123;
-
-static inline uint64_t xor128(void)
-{
-    uint64_t t;
-    t=(x^(x<<11)); x=y; y=z; z=w;
-    return ( w=(w^(w>>19))^(t^(t>>8)) );
-}
-
-inline void fast_srand(uint64_t seed)
-{
-    x = seed; // Some way to seed the RNG is needed, even in the paper is not specified...
-}
-
-inline uint32_t fast_rand(void)
-{
-    return xor128()&FAST_RAND_MAX;
-}
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -81,16 +29,61 @@ _ball_t ball;
 
 void draw_scenario(int r, int g, int b)
 {
+	// Surface...
+	
 	set_current_color(r,g,b);
-
-	polygon_begin(P_QUAD_STRIP);
+	
+	polygon_begin(P_QUADS);
 	
 	polygon_normal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(10.5)); 			
-	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(-0.5)); 			
-	polygon_vertex(float2fx(7),float2fx(-1),float2fx(-0.5)); 			
-	polygon_vertex(float2fx(7),float2fx(-1),float2fx(10.5)); 
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(10.5));
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(10.5));
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(-0.5));
+	
+	polygon_list_flush(0);
+	
+	// Lines...
+	
+	set_current_color(r/2,g/2,b/2);
+	
+	polygon_normal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+	
+	polygon_begin(P_LINES);
+	
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(-0.5));
+	
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(10.5));
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(10.5)); 
+	
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(5.0)); 	
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(5.0));
+	
+	polygon_list_flush(0);
+	
+	// Borders ...
+	
+	set_current_color(r,g,b);
+	
+	polygon_begin(P_QUADS);
+	
+	polygon_normal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+	
+	polygon_vertex(float2fx(-7),float2fx(1),float2fx(-0.5));
+	polygon_vertex(float2fx(-7),float2fx(1),float2fx(10.5));
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(10.5));
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
+	
+	polygon_normal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(-0.5));
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(10.5));
+	polygon_vertex(float2fx(7),float2fx(1),float2fx(10.5));
+	polygon_vertex(float2fx(7),float2fx(1),float2fx(-0.5));
+	
+	polygon_list_flush(1);
 }
 
 void draw_ball(int r, int g, int b)
@@ -186,17 +179,17 @@ void DrawScene()
 	modelview_matrix_multiply(&m);
 	
 	{
-		lights_enable(LIGHT_N(0)|LIGHT_N(1));
-		light_set_color(0, 255,255,255);
-		light_set_color(1, 255,255,255);
-		light_set_dir(0, float2fx(0.6),float2fx(-0.6),float2fx(0.6));
-		light_set_dir(1, float2fx(-0.6),float2fx(-0.6),float2fx(0.6));
+		light_set_ambient_color(64,64,64);
+		
+		lights_enable(LIGHT_N(0)/*|LIGHT_N(1)*/);
+		light_set_color(0, 192,192,192);
+		//light_set_color(1, 192,192,192);
+		//light_set_dir(0, float2fx(-0.57),float2fx(-0.57),float2fx(0.57)); // 1/sqrt(3)
+		light_set_dir(0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
 		
 		//---------------------------------------------------
 		//                 Draw scenario
 		//---------------------------------------------------
-		
-		//There is no zbuffer, so let's draw the models from farthest to nearest.
 		
 		// Camera rotation effect...
 		m44_create_rotation_y(&m,pad.x);
@@ -243,6 +236,14 @@ void DrawScene()
 		m44_create_translation(&m,pad.x,0,0);
 		modelview_matrix_multiply(&m);
 		
+		/*
+		int keys = hidKeysHeld();
+		if(keys & KEY_A) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
+		if(keys & KEY_B) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
+		if(keys & KEY_L) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
+		if(keys & KEY_R) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
+		*/
+		
 		draw_pad(0,255,0);
 		
 		modelview_matrix_pop();
@@ -270,7 +271,9 @@ void DrawLeft(void)
 	proyection_matrix_set(&r);
 	
 	set_current_buffer(GFX_LEFT);
+	polygon_list_clear();
 	DrawScene();
+	polygon_list_flush(1);
 }
 
 void DrawRight(void)
@@ -287,14 +290,16 @@ void DrawRight(void)
 	proyection_matrix_set(&r);
 	
 	set_current_buffer(GFX_RIGHT);
+	polygon_list_clear();
 	DrawScene();
+	polygon_list_flush(1);
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 
 int main(int argc, char **argv)
 {
+	aptInit();
 	gfxInitDefault();
 	gfxSet3D(true); //OMG 3D!!!!1!!!
 	consoleInit(GFX_BOTTOM, NULL); //Initialize console on bottom screen.
@@ -305,8 +310,21 @@ int main(int argc, char **argv)
 	//The bottom screen has 30 rows and 40 columns
 	printf("\x1b[0;16HPong 3DS");
 	printf("\x1b[2;14Hby AntonioND");
-
-	printf("\x1b[29;10HPress Start to exit.");
+	printf("\x1b[28;5HSELECT: Screenshot.");
+	printf("\x1b[29;5HSTART:  Exit.");
+	
+	{
+		aptOpenSession();
+		u32 i, percent;
+		for(i = 100; i > 1; i--)
+		{
+			APT_SetAppCpuTimeLimit(NULL,i);
+			APT_GetAppCpuTimeLimit(NULL, &percent);
+			if(i == percent) break;
+		}
+		aptCloseSession();
+		printf("\x1b[15;5HCPU limit: %d%%",(int)percent);
+	}
 	
 	fast_srand(svcGetSystemTick());
 	
@@ -322,22 +340,27 @@ int main(int argc, char **argv)
 	ball.vz = (int2fx(1)>>3) + (fast_rand() & ((int2fx(1)>>3)-1));
 	ball.vz = fast_rand() & 1 ? ball.vz : -ball.vz;
 	
+	Timing_Start();
+	
 	// Main loop
 	while(aptMainLoop())
 	{
-		FPS_UpdateValue();
+		Timing_StartFrame();
+		
 		hidScanInput();
 		
 		int keys = hidKeysHeld();
 		if(keys & KEY_START) break; // break in order to return to hbmenu
 		
-		clear_screen_buffers();
+		
+		clear_buffers(0,0,0);
 		
 		DrawLeft();
 		DrawRight();
 		
 		printf("\x1b[8;5H3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
-		printf("\x1b[10;5HFPS: %d  ",FPS_Get());
+		printf("\x1b[10;5HFPS: %d  ",Timing_GetFPS());
+		printf("\x1b[11;5HCPU: %.2f%%   ",Timing_GetCPUUsage());
 		
 		{
 			//---------------------------------------------------
@@ -451,14 +474,17 @@ int main(int argc, char **argv)
 			//---------------------------------------------------
 		}
 		
-		FPS_IncreaseCount();
-		
 		flush_screen_buffers();
+		
+		if(keys & KEY_SELECT) save_screenshot(); // AFTER DRAWING SCREENS!!
+		
+		Timing_EndFrame();
 		
 		gspWaitForVBlank();
 	}
 
 	gfxExit();
+	aptExit();
 	return 0;
 }
 

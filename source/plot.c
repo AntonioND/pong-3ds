@@ -28,46 +28,44 @@ static inline void swapints(int * a, int * b)
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
 
-static inline void _plot(u8 * buf, u32 * zbuf, u32 pitch, u32 height, u32 x, u32 y, u32 w, int r, int g, int b)
+static inline void _plot_unsafe(u8 * buf, u32 x, u32 y, int r, int g, int b)
 {
-	if((x >= pitch) || (y >= height)) return;
+	//if((x >= 400) || (y >= 240)) return;
 
-	u8 * p = &(buf[(height*x+y)*3]);
+	u8 * p = &(buf[(240*x+y)*3]);
 	*p++ = b; *p++ = g; *p = r;
 	
 }
 
-static inline void __horline(u8 * buf, u32 * zbuf, u32 pitch, int height,
-							u32 x, int y1, int y2, u32 w1, u32 w2,
-							int r, int g, int b)
+static inline void __vertline(u8 * buf, u32 x, int y1, int y2, int r, int g, int b)
 {
 	//make the X coordinate unsigned to avoid the < 0 comparison
-	if(x >= pitch) return;
+	if(x >= 400) return;
 	
 	if(y1 < 0)
 	{
 		if(y2 < 0) return;
 		y1 = 0;
 	}
-	else if(y1 >= height)
+	else if(y1 >= 240)
 	{
-		if(y2 >= height) return;
-		y1 = height-1;
+		if(y2 >= 240) return;
+		y1 = 240-1;
 	}
 	else
 	{
 		if(y2 < 0) y2 = 0;
-		else if(y2 >= height) y2 = height-1;
+		else if(y2 >= 240) y2 = 240-1;
 	}
 	
 	if(y1 < y2)
 	{
-		u8 * p = &(buf[(height*x+y1)*3]);
+		u8 * p = &(buf[(240*x+y1)*3]);
 		for( ;y1<y2; y1++) { *p++ = b; *p++ = g; *p++ = r; }
 	}
 	else
 	{
-		u8 * p = &(buf[(height*x+y2)*3]);
+		u8 * p = &(buf[(240*x+y2)*3]);
 		for( ;y2<y1; y2++) { *p++ = b; *p++ = g; *p++ = r; }
 	}
 }
@@ -75,10 +73,7 @@ static inline void __horline(u8 * buf, u32 * zbuf, u32 pitch, int height,
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
 
-void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
-			int x1, int y1, u32 w1,
-			int x2, int y2, u32 w2,
-			int r, int g, int b)
+void _LineUnsafe(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
 	int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
 
@@ -93,9 +88,9 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 	px = x1;
 	py = y1;
 
-	_plot(buf,zbuf,400,240,px,py,0,r,g,b);
+	_plot_unsafe(buf,px,py,r,g,b);
 	
-	if(dxabs>=dyabs) /* the line is more horizontal than vertical */
+	if(dxabs>=dyabs) // the line is more horizontal than vertical
 	{
 		for(i=0;i<dxabs;i++)
 		{
@@ -106,10 +101,10 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 				py+=sdy;
 			}
 			px+=sdx;
-			_plot(buf,zbuf,400,240,px,py,0,r,g,b);
+			_plot_unsafe(buf,px,py,r,g,b);
 		}
 	}
-	else /* the line is more vertical than horizontal */
+	else // the line is more vertical than horizontal
 	{
 		for(i=0;i<dyabs;i++)
 		{
@@ -120,13 +115,13 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 				px+=sdx;
 			}
 			py+=sdy;
-			_plot(buf,zbuf,400,240,px,py,0,r,g,b);
+			_plot_unsafe(buf,px,py,r,g,b);
 		}
 	}
 }
 
 //--------------------------------------------------------------------
-/*
+
 //http://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland
 
 #define RIGHT  (8)
@@ -136,14 +131,14 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 
 //Compute the bit code for a point (x, y) using the clip rectangle
 //bounded diagonally by (xmin, ymin), and (xmax, ymax)
-static inline int __ComputeOutCode(int32_t pitch, int32_t height, int32_t x, int32_t y)
+static inline int __ComputeOutCode(int32_t x, int32_t y)
 {
 	int code = 0;
 
-	if(y >= height) code |= TOP;             //above the clip window
+	if(y >= 240) code |= TOP;             //above the clip window
 	else if(y < 0) code |= BOTTOM;     //below the clip window
 
-	if(x >= pitch) code |= RIGHT;           //to the right of clip window
+	if(x >= 400) code |= RIGHT;           //to the right of clip window
 	else if(x < 0) code |= LEFT;       //to the left of clip window
 
 	return code;
@@ -152,10 +147,7 @@ static inline int __ComputeOutCode(int32_t pitch, int32_t height, int32_t x, int
 //Cohen–Sutherland clipping algorithm clips a line from
 //P1 = (x1, y1) to P2 = (x2, y2) against a rectangle with
 //diagonal from (xmin, ymin) to (xmax, ymax).
-void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
-			int x1, int y1, u32 w1,
-			int x2, int y2, u32 w2,
-			int r, int g, int b)
+void Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
 	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
 	int outcode1, outcode2, outcodeOut;
@@ -167,8 +159,8 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 	float fy2 = y2;
 
 	//compute outcodes
-	outcode1 = __ComputeOutCode(pitch, height, fx1, fy1);
-	outcode2 = __ComputeOutCode(pitch, height, fx2, fy2);
+	outcode1 = __ComputeOutCode(fx1, fy1);
+	outcode2 = __ComputeOutCode(fx2, fy2);
 
 	while(1)
 	{
@@ -191,8 +183,8 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 			//use formulas y = y0 + slope * (x - x0), x = x0 + (1/slope)* (y - y0)
 			if(outcodeOut & TOP) //point is above the clip rectangle
 			{
-				x = fx1 + ( ( (fx2 - fx1) * ( ((float)(height-1)) - fy1 ) ) / (fy2 - fy1) );
-				y = ((float)(height-1));
+				x = fx1 + ( ( (fx2 - fx1) * ( ((float)(240-1)) - fy1 ) ) / (fy2 - fy1) );
+				y = ((float)(240-1));
 			}
 			else if(outcodeOut & BOTTOM) //point is below the clip rectangle
 			{
@@ -201,8 +193,8 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 			}
 			else if(outcodeOut & RIGHT) //point is to the right of clip rectangle
 			{
-			    y = fy1 + ( ( (fy2 - fy1) * ( ((float)(pitch-1)) - fx1 ) ) / (fx2 - fx1) );
-				x = ((float)(pitch-1));
+			    y = fy1 + ( ( (fy2 - fy1) * ( ((float)(400-1)) - fx1 ) ) / (fx2 - fx1) );
+				x = ((float)(400-1));
 			}
 			else //if(outcodeOut & LEFT) //point is to the left of clip rectangle
 			{
@@ -215,26 +207,23 @@ void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
 			{
 				fx1 = x;
 				fy1 = y;
-				outcode1 = __ComputeOutCode(pitch, height, fx1, fy1);
+				outcode1 = __ComputeOutCode(fx1, fy1);
 			}
 			else
 			{
 				fx2 = x;
 				fy2 = y;
-				outcode2 = __ComputeOutCode(pitch, height, fx2, fy2);
+				outcode2 = __ComputeOutCode(fx2, fy2);
 			}
 		}
 	}
 
-	if(accept) _Line(buf,zbuf,pitch,height, fx1,fy1,0, fx2,fy2,0, r,g,b);
+	if(accept) _LineUnsafe(buf, fx1,fy1, fx2,fy2, r,g,b);
 }
-*/
+
 //--------------------------------------------------------------------
 
-void LineEx(u8 * buf, u32 * zbuf, u32 pitch, u32 height, int line_width,
-			int x1, int y1, u32 w1,
-			int x2, int y2, u32 w2,
-			int r, int g, int b)
+void LineEx(u8 * buf, int line_width, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
     line_width --;
 
@@ -243,16 +232,12 @@ void LineEx(u8 * buf, u32 * zbuf, u32 pitch, u32 height, int line_width,
 
     for(i = -hw; i <= -hw+line_width; i++)
         for(j = -hw; j <= -hw+line_width; j++)
-            Line(buf,zbuf,pitch,height,x1+i,y1+j,w1,x2+i,y2+j,w2,r,g,b);
+            Line(buf,x1+i,y1+j,x2+i,y2+j,r,g,b);
 }
 
 //--------------------------------------------------------------------
 
-void TriFill(u8 * buf, u32 * zbuf, uint32_t pitch, uint32_t height,
-			int x1, int y1, u32 w1,
-			int x2, int y2, u32 w2,
-			int x3, int y3, u32 w3,
-			int r, int g, int b)
+void TriFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
 {
 	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3);
 	
@@ -269,10 +254,10 @@ void TriFill(u8 * buf, u32 * zbuf, uint32_t pitch, uint32_t height,
 	int sy = y1; int ey = y1;
 	
 	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1)
-		__horline(buf,zbuf,pitch,height, sx,fx2int(sy),fx2int(ey),0,0, r,g,b);
+		__vertline(buf, sx,fx2int(sy),fx2int(ey), r,g,b);
 	ey = y2;
 	for( ;sx<=x3; sx++,sy+=dy2,ey+=dy3)
-		__horline(buf,zbuf,pitch,height, sx,fx2int(sy),fx2int(ey),0,0, r,g,b);
+		__vertline(buf, sx,fx2int(sy),fx2int(ey), r,g,b);
 }
 
 //--------------------------------------------------------------------------------------------------
