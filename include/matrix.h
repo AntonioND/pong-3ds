@@ -13,6 +13,12 @@ typedef s32 v4[4];
 #define V4SET(v,a0,a1,a2) { v[0]=(a0); v[1]=(a1); v[2]=(a2); }
 #define ptr_V4SET(v,a0,a1,a2) { (*v)[0]=(a0); (*v)[1]=(a1); (*v)[2]=(a2); }
 
+static inline s32 v4_dot_product(v4 * v1, v4 * v2)
+{
+	return fxmul(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul(ptr_V4(v1,1),ptr_V4(v2,1)) + 
+           fxmul(ptr_V4(v1,2),ptr_V4(v2,2)) + fxmul(ptr_V4(v1,3),ptr_V4(v2,3));
+}
+
 void v4_cross_product(v4 * v1, v4 * v2, v4 * res);
 
 //----------------------------------------------------------------------------

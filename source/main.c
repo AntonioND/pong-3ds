@@ -8,6 +8,33 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) 
 
+//----------------------------------------------------------------------------------
+
+#define TICKS_PER_SEC (268123480)
+
+int frame_count;
+u64 last_ticks = 0;
+int _FPS;
+
+static void FPS_IncreaseCount(void)
+{
+	frame_count ++;
+}
+
+static void FPS_UpdateValue(void)
+{
+	if(svcGetSystemTick() >= last_ticks + TICKS_PER_SEC)
+	{
+		last_ticks = svcGetSystemTick();
+		_FPS = frame_count;
+		frame_count = 0;	
+	}
+}
+
+static int FPS_Get(void)
+{
+	return _FPS;
+}
 
 //----------------------------------------------------------------------------------
 
@@ -54,81 +81,92 @@ _ball_t ball;
 
 void draw_scenario(int r, int g, int b)
 {
-	set_primitive_type(P_QUADS);
-	
 	set_current_color(r,g,b);
+
+	polygon_begin(P_QUAD_STRIP);
 	
-	vertex(float2fx(-7),float2fx(-1),float2fx(10.5)); 			
-	vertex(float2fx(-7),float2fx(-1),float2fx(-0.5)); 			
-	vertex(float2fx(7),float2fx(-1),float2fx(-0.5)); 			
-	vertex(float2fx(7),float2fx(-1),float2fx(10.5)); 
+	polygon_normal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	set_primitive_type(P_LINES);
-	
-	vertex(float2fx(-7),float2fx(-1),float2fx(5.0)); 			
-	vertex(float2fx(7),float2fx(-1),float2fx(5.0));
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(10.5)); 			
+	polygon_vertex(float2fx(-7),float2fx(-1),float2fx(-0.5)); 			
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(-0.5)); 			
+	polygon_vertex(float2fx(7),float2fx(-1),float2fx(10.5)); 
 }
 
 void draw_ball(int r, int g, int b)
 {
-	set_primitive_type(P_QUADS);
-	
 	set_current_color(r,g,b);
 	
-	vertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
-	vertex(float2fx(-0.75),float2fx(-1),float2fx(0.75)); 		
-	vertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75)); 
-	vertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+	polygon_begin(P_QUAD_STRIP);
 	
-	vertex(float2fx(0.75),float2fx(-1),float2fx(-0.75)); 			
-	vertex(float2fx(0.75),float2fx(-1),float2fx(0.75)); 			
-	vertex(float2fx(0.75),float2fx(0.5),float2fx(0.75)); 			
-	vertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75)); 
+	polygon_normal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	set_primitive_type(P_LINES);
+	polygon_vertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
+	polygon_vertex(float2fx(-0.75),float2fx(-1),float2fx(0.75));
+	polygon_vertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75)); 
+	polygon_vertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+
+	polygon_normal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+
+	polygon_vertex(float2fx(0.75),float2fx(0.5),float2fx(0.75)); 			
+	polygon_vertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75));
 	
-	vertex(float2fx(0.75),float2fx(-1),float2fx(-0.75)); 
-	vertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
+	polygon_begin(P_QUAD_STRIP);
+
+	polygon_normal(float2fx(0.0),float2fx(0.0),float2fx(-1.0));
 	
-	vertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75)); 
-	vertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+	polygon_vertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
+	polygon_vertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+	polygon_vertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75));
+	polygon_vertex(float2fx(0.75),float2fx(-1),float2fx(-0.75));
+
+	polygon_normal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+
+	polygon_vertex(float2fx(0.75),float2fx(0.5),float2fx(0.75));
+	polygon_vertex(float2fx(0.75),float2fx(-1),float2fx(0.75));
 	
-	vertex(float2fx(0.75),float2fx(0.5),float2fx(0.75)); 
-	vertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75));
-	
-	vertex(float2fx(0.75),float2fx(-1),float2fx(0.75)); 
-	vertex(float2fx(-0.75),float2fx(-1),float2fx(0.75));
+	polygon_normal(float2fx(0.0),float2fx(0.0),float2fx(1.0));
+
+	polygon_vertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75));
+	polygon_vertex(float2fx(-0.75),float2fx(-1),float2fx(0.75));
 }
 
 void draw_pad(int r, int g, int b)
 {
-	set_primitive_type(P_QUADS);
-	
 	set_current_color(r,g,b);
 	
-	vertex(float2fx(-2),float2fx(-1),float2fx(-0.5)); 
-	vertex(float2fx(-2),float2fx(-1),float2fx(0.5)); 	
-	vertex(float2fx(-2),float2fx(1),float2fx(0.5)); 
-	vertex(float2fx(-2),float2fx(1),float2fx(-0.5)); 
+	polygon_begin(P_QUAD_STRIP);
 	
-	vertex(float2fx(2),float2fx(-1),float2fx(-0.5)); 
-	vertex(float2fx(2),float2fx(-1),float2fx(0.5)); 
-	vertex(float2fx(2),float2fx(1),float2fx(0.5)); 
-	vertex(float2fx(2),float2fx(1),float2fx(-0.5)); 
+	polygon_normal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	set_primitive_type(P_LINES);
+	polygon_vertex(float2fx(-2),float2fx(-1),float2fx(-0.5));
+	polygon_vertex(float2fx(-2),float2fx(-1),float2fx(0.5));
+	polygon_vertex(float2fx(-2),float2fx(1),float2fx(0.5)); 
+	polygon_vertex(float2fx(-2),float2fx(1),float2fx(-0.5));
 	
-	vertex(float2fx(2),float2fx(-1),float2fx(-0.5)); 
-	vertex(float2fx(-2),float2fx(-1),float2fx(-0.5));
+	polygon_normal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	vertex(float2fx(2),float2fx(1),float2fx(-0.5)); 
-	vertex(float2fx(-2),float2fx(1),float2fx(-0.5));
+	polygon_vertex(float2fx(2),float2fx(1),float2fx(0.5)); 			
+	polygon_vertex(float2fx(2),float2fx(1),float2fx(-0.5));
 	
-	vertex(float2fx(2),float2fx(1),float2fx(0.5)); 
-	vertex(float2fx(-2),float2fx(1),float2fx(0.5));
+	polygon_begin(P_QUAD_STRIP);
 	
-	vertex(float2fx(2),float2fx(-1),float2fx(0.5)); 
-	vertex(float2fx(-2),float2fx(-1),float2fx(0.5));
+	polygon_normal(float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	polygon_vertex(float2fx(-2),float2fx(-1),float2fx(-0.5));
+	polygon_vertex(float2fx(-2),float2fx(1),float2fx(-0.5));
+	polygon_vertex(float2fx(2),float2fx(1),float2fx(-0.5));
+	polygon_vertex(float2fx(2),float2fx(-1),float2fx(-0.5));
+	
+	polygon_normal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+
+	polygon_vertex(float2fx(2),float2fx(1),float2fx(0.5));
+	polygon_vertex(float2fx(2),float2fx(-1),float2fx(0.5));
+	
+	polygon_normal(float2fx(0.0),float2fx(0.0),float2fx(1.0));
+
+	polygon_vertex(float2fx(-2),float2fx(1),float2fx(0.5));
+	polygon_vertex(float2fx(-2),float2fx(-1),float2fx(0.5));
 }
 
 static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
@@ -148,6 +186,12 @@ void DrawScene()
 	modelview_matrix_multiply(&m);
 	
 	{
+		lights_enable(LIGHT_N(0)|LIGHT_N(1));
+		light_set_color(0, 255,255,255);
+		light_set_color(1, 255,255,255);
+		light_set_dir(0, float2fx(0.6),float2fx(-0.6),float2fx(0.6));
+		light_set_dir(1, float2fx(-0.6),float2fx(-0.6),float2fx(0.6));
+		
 		//---------------------------------------------------
 		//                 Draw scenario
 		//---------------------------------------------------
@@ -186,7 +230,7 @@ void DrawScene()
 		m44_create_translation(&m,ball.x,0,ball.z);
 		modelview_matrix_multiply(&m);
 		
-		draw_ball(0,0,0);
+		draw_ball(128,128,128);
 		
 		modelview_matrix_pop();
 		
@@ -225,7 +269,7 @@ void DrawLeft(void)
 	m44_multiply(&p,&t,&r);
 	proyection_matrix_set(&r);
 	
-	set_current_buffer(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL));
+	set_current_buffer(GFX_LEFT);
 	DrawScene();
 }
 
@@ -242,7 +286,7 @@ void DrawRight(void)
 	m44_multiply(&p,&t,&r);
 	proyection_matrix_set(&r);
 	
-	set_current_buffer(gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL));
+	set_current_buffer(GFX_RIGHT);
 	DrawScene();
 }
 
@@ -281,6 +325,7 @@ int main(int argc, char **argv)
 	// Main loop
 	while(aptMainLoop())
 	{
+		FPS_UpdateValue();
 		hidScanInput();
 		
 		int keys = hidKeysHeld();
@@ -292,6 +337,7 @@ int main(int argc, char **argv)
 		DrawRight();
 		
 		printf("\x1b[8;5H3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
+		printf("\x1b[10;5HFPS: %d  ",FPS_Get());
 		
 		{
 			//---------------------------------------------------
@@ -404,6 +450,8 @@ int main(int argc, char **argv)
 			//
 			//---------------------------------------------------
 		}
+		
+		FPS_IncreaseCount();
 		
 		flush_screen_buffers();
 		

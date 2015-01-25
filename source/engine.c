@@ -9,22 +9,22 @@ u32 global_updated = 0;
 
 void proyection_matrix_set(m44 * m)
 {
-	memcpy((void*)&PROJECTION,(const void *)m,sizeof(m44));
+	memcpy((void*)&PROJECTION,(const void*)m,sizeof(m44));
 	global_updated = 0;
 }
 
 void modelview_matrix_set(m44 * m)
 {
-	memcpy((void*)&MODELVIEW,(const void *)m,sizeof(m44));
+	memcpy((void*)&MODELVIEW,(const void*)m,sizeof(m44));
 	global_updated = 0;
 }
 
-m44 matrix_stack[16];
+m44 matrix_stack[8];
 s32 matrix_stack_ptr = 0;
 
 void modelview_matrix_push(void)
 {
-	//if(matrix_stack_ptr > 15) while(1);
+	//if(matrix_stack_ptr >= 8) while(1);
 	m44_copy(&MODELVIEW,&(matrix_stack[matrix_stack_ptr]));
 	matrix_stack_ptr++;
 }

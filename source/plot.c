@@ -1,18 +1,10 @@
 
 #include <3ds.h>
 
-//--------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------
+#include "math.h"
 
-static inline void _plot(u8 * buf, u32 pitch, u32 height, u32 x, u32 y, int r, int g, int b)
-{
-	u8 * p = &(buf[(height*x+y)*3]);
-	*p = b; p++;
-	*p = g; p++;
-	*p = r;
-}
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 
 static inline int abs(int x)
 {
@@ -26,36 +18,95 @@ static inline int sgn(int x)
 	return 0;
 }
 
-void _Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r, int g, int b)
+static inline void swapints(int * a, int * b)
+{
+	int t = *a;
+	*a = *b;
+	*b = t;
+}
+
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+
+static inline void _plot(u8 * buf, u32 * zbuf, u32 pitch, u32 height, u32 x, u32 y, u32 w, int r, int g, int b)
+{
+	if((x >= pitch) || (y >= height)) return;
+
+	u8 * p = &(buf[(height*x+y)*3]);
+	*p++ = b; *p++ = g; *p = r;
+	
+}
+
+static inline void __horline(u8 * buf, u32 * zbuf, u32 pitch, int height,
+							u32 x, int y1, int y2, u32 w1, u32 w2,
+							int r, int g, int b)
+{
+	//make the X coordinate unsigned to avoid the < 0 comparison
+	if(x >= pitch) return;
+	
+	if(y1 < 0)
+	{
+		if(y2 < 0) return;
+		y1 = 0;
+	}
+	else if(y1 >= height)
+	{
+		if(y2 >= height) return;
+		y1 = height-1;
+	}
+	else
+	{
+		if(y2 < 0) y2 = 0;
+		else if(y2 >= height) y2 = height-1;
+	}
+	
+	if(y1 < y2)
+	{
+		u8 * p = &(buf[(height*x+y1)*3]);
+		for( ;y1<y2; y1++) { *p++ = b; *p++ = g; *p++ = r; }
+	}
+	else
+	{
+		u8 * p = &(buf[(height*x+y2)*3]);
+		for( ;y2<y1; y2++) { *p++ = b; *p++ = g; *p++ = r; }
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+
+void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
+			int x1, int y1, u32 w1,
+			int x2, int y2, u32 w2,
+			int r, int g, int b)
 {
 	int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
 
-	dx=x2-x1;      /* the horizontal distance of the line */
-	dy=y2-y1;      /* the vertical distance of the line */
-	dxabs=abs(dx);
-	dyabs=abs(dy);
-	sdx=sgn(dx);
-	sdy=sgn(dy);
-	x=dyabs>>1;
-	y=dxabs>>1;
-	px=x1;
-	py=y1;
+	dx = x2-x1; // horizontal distance
+	dy = y2-y1; // vertical distance
+	dxabs = abs(dx);
+	dyabs = abs(dy);
+	sdx = sgn(dx);
+	sdy = sgn(dy);
+	x = dyabs>>1;
+	y = dxabs>>1;
+	px = x1;
+	py = y1;
 
-	_plot(buf,400,240,px,py,r,g,b);
+	_plot(buf,zbuf,400,240,px,py,0,r,g,b);
 	
-
-	if (dxabs>=dyabs) /* the line is more horizontal than vertical */
+	if(dxabs>=dyabs) /* the line is more horizontal than vertical */
 	{
 		for(i=0;i<dxabs;i++)
 		{
 			y+=dyabs;
-			if (y>=dxabs)
+			if(y>=dxabs)
 			{
 				y-=dxabs;
 				py+=sdy;
 			}
 			px+=sdx;
-			_plot(buf,400,240,px,py,r,g,b);
+			_plot(buf,zbuf,400,240,px,py,0,r,g,b);
 		}
 	}
 	else /* the line is more vertical than horizontal */
@@ -63,19 +114,19 @@ void _Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int 
 		for(i=0;i<dyabs;i++)
 		{
 			x+=dxabs;
-			if (x>=dyabs)
+			if(x>=dyabs)
 			{
 				x-=dyabs;
 				px+=sdx;
 			}
 			py+=sdy;
-			_plot(buf,400,240,px,py,r,g,b);
+			_plot(buf,zbuf,400,240,px,py,0,r,g,b);
 		}
 	}
 }
 
 //--------------------------------------------------------------------
-
+/*
 //http://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland
 
 #define RIGHT  (8)
@@ -101,7 +152,10 @@ static inline int __ComputeOutCode(int32_t pitch, int32_t height, int32_t x, int
 //Cohen–Sutherland clipping algorithm clips a line from
 //P1 = (x1, y1) to P2 = (x2, y2) against a rectangle with
 //diagonal from (xmin, ymin) to (xmax, ymax).
-void Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r, int g, int b)
+void Line(u8 * buf, u32 * zbuf, u32 pitch, u32 height,
+			int x1, int y1, u32 w1,
+			int x2, int y2, u32 w2,
+			int r, int g, int b)
 {
 	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
 	int outcode1, outcode2, outcodeOut;
@@ -143,7 +197,7 @@ void Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r
 			else if(outcodeOut & BOTTOM) //point is below the clip rectangle
 			{
 			    x = fx1 + ( ( (fx2 - fx1) * ( 0.0f - fy1 ) ) / (fy2 - fy1) );
-                y = 0.0f;
+				y = 0.0f;
 			}
 			else if(outcodeOut & RIGHT) //point is to the right of clip rectangle
 			{
@@ -152,7 +206,7 @@ void Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r
 			}
 			else //if(outcodeOut & LEFT) //point is to the left of clip rectangle
 			{
-			    y = fy1 + ( ( (fy2 - fy1) * ( 0.0f - fx1 ) ) / (fx2 - fx1) );
+				y = fy1 + ( ( (fy2 - fy1) * ( 0.0f - fx1 ) ) / (fx2 - fx1) );
 				x = 0.0f;
 			}
 			//Now we move outside point to intersection point to clip
@@ -172,12 +226,15 @@ void Line(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r
 		}
 	}
 
-	if(accept) _Line(buf,pitch,height, fx1,fy1,fx2,fy2,r,g,b);
+	if(accept) _Line(buf,zbuf,pitch,height, fx1,fy1,0, fx2,fy2,0, r,g,b);
 }
-
+*/
 //--------------------------------------------------------------------
 
-void LineEx(u8 * buf, u32 pitch, u32 height, int line_width, int x1, int y1, int x2, int y2, int r, int g, int b)
+void LineEx(u8 * buf, u32 * zbuf, u32 pitch, u32 height, int line_width,
+			int x1, int y1, u32 w1,
+			int x2, int y2, u32 w2,
+			int r, int g, int b)
 {
     line_width --;
 
@@ -186,52 +243,36 @@ void LineEx(u8 * buf, u32 pitch, u32 height, int line_width, int x1, int y1, int
 
     for(i = -hw; i <= -hw+line_width; i++)
         for(j = -hw; j <= -hw+line_width; j++)
-            Line(buf,pitch,height,x1+i,y1+j,x2+i,y2+j,r,g,b);
+            Line(buf,zbuf,pitch,height,x1+i,y1+j,w1,x2+i,y2+j,w2,r,g,b);
 }
 
-void Rect(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r, int g, int b)
+//--------------------------------------------------------------------
+
+void TriFill(u8 * buf, u32 * zbuf, uint32_t pitch, uint32_t height,
+			int x1, int y1, u32 w1,
+			int x2, int y2, u32 w2,
+			int x3, int y3, u32 w3,
+			int r, int g, int b)
 {
-    Line(buf,pitch,height,x1,y1,x1,y2,r,g,b);
-    Line(buf,pitch,height,x1,y2,x2,y2,r,g,b);
-    Line(buf,pitch,height,x1,y1,x2,y1,r,g,b);
-    Line(buf,pitch,height,x2,y1,x2,y2,r,g,b);
-}
-
-void RectFill(u8 * buf, u32 pitch, u32 height, int x1, int y1, int x2, int y2, int r, int g, int b)
-{
-    if(y2 < y1)
-    {
-        int temp = y2;
-        y2 = y1;
-        y1 = temp;
-    }
-
-    int j;
-    for(j = y1; j <= y2; j++)
-        Line(buf,pitch,height,x1,j,x2,j,r,g,b);
-}
-
-void RectEx(u8 * buf, uint32_t pitch, uint32_t height, int line_width, int x1, int y1, int x2, int y2, int r, int g, int b)
-{
-    if(y2 < y1)
-    {
-        int temp = y2;
-        y2 = y1;
-        y1 = temp;
-    }
-
-    if(x2 < x1)
-    {
-        int temp = x2;
-        x2 = x1;
-        x1 = temp;
-    }
-
-    line_width --;
-
-    int i;
-    for(i = 0; i <= line_width; i++)
-        Rect(buf,pitch,height,x1+i,y1+i,x2-i,y2-i,r,g,b);
+	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3);
+	
+	// x1 < x2 < x3
+	if(x1 > x2) { swapints(&x1,&x2); swapints(&y1,&y2); }
+	if(x2 > x3) { swapints(&x2,&x3); swapints(&y2,&y3); if(x1 > x2) { swapints(&x1,&x2); swapints(&y1,&y2); } }
+	
+	int dy1, dy2, dy3;
+	if(x2 != x1) dy1=fxdiv(y2-y1,int2fx(x2-x1)); else dy1=0;
+	if(x3 != x1) dy2=fxdiv(y3-y1,int2fx(x3-x1)); else dy2=0;
+	if(x3 != x2) dy3=fxdiv(y3-y2,int2fx(x3-x2)); else dy3=0;
+	
+	int sx = x1;
+	int sy = y1; int ey = y1;
+	
+	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1)
+		__horline(buf,zbuf,pitch,height, sx,fx2int(sy),fx2int(ey),0,0, r,g,b);
+	ey = y2;
+	for( ;sx<=x3; sx++,sy+=dy2,ey+=dy3)
+		__horline(buf,zbuf,pitch,height, sx,fx2int(sy),fx2int(ey),0,0, r,g,b);
 }
 
 //--------------------------------------------------------------------------------------------------
