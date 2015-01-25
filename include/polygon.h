@@ -2,9 +2,13 @@
 #ifndef __POLYGON__
 #define __POLYGON__
 
-void polygon_list_clear(void);
+//--------------------------------------------------------------------------------------------------
 
-void polygon_list_flush(int perform_z_sort);
+void S3D_PolygonListClear(void);
+
+void S3D_PolygonListFlush(int perform_z_sort);
+
+//--------------------------------------------------------------------------------------------------
 
 #endif //__POLYGON__
 

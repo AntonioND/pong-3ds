@@ -1,54 +1,64 @@
 
-#include <stdlib.h>
-#include <string.h>
+//----------------------------------------------------------------------------
 
 #include "engine.h"
 
-m44 PROJECTION, MODELVIEW, GLOBAL;
-u32 global_updated = 0;
+//----------------------------------------------------------------------------
 
-void proyection_matrix_set(m44 * m)
+m44 S3D_GLOBAL_MATRIX; // global variable
+
+static m44 PROJECTION, MODELVIEW;
+static u32 global_updated = 0;
+
+static m44 matrix_stack[8];
+static s32 matrix_stack_ptr = 0;
+
+//----------------------------------------------------------------------------
+
+void S3D_ProyectionMatrixSet(m44 * m)
 {
-	memcpy((void*)&PROJECTION,(const void*)m,sizeof(m44));
+	m44_Copy(m,&PROJECTION);
 	global_updated = 0;
 }
 
-void modelview_matrix_set(m44 * m)
+//----------------------------------------------------------------------------
+
+void S3D_ModelviewMatrixSet(m44 * m)
 {
-	memcpy((void*)&MODELVIEW,(const void*)m,sizeof(m44));
+	m44_Copy(m,&MODELVIEW);
 	global_updated = 0;
 }
 
-m44 matrix_stack[8];
-s32 matrix_stack_ptr = 0;
-
-void modelview_matrix_push(void)
+void S3D_ModelviewMatrixPush(void)
 {
 	//if(matrix_stack_ptr >= 8) while(1);
-	m44_copy(&MODELVIEW,&(matrix_stack[matrix_stack_ptr]));
+	m44_Copy(&MODELVIEW,&(matrix_stack[matrix_stack_ptr]));
 	matrix_stack_ptr++;
 }
 
-void modelview_matrix_pop(void)
+void S3D_ModelviewMatrixPop(void)
 {
 	//if(matrix_stack_ptr < 0) while(1);
 	matrix_stack_ptr--;
-	m44_copy(&(matrix_stack[matrix_stack_ptr]),&MODELVIEW);
+	m44_Copy(&(matrix_stack[matrix_stack_ptr]),&MODELVIEW);
 	global_updated = 0;
 }
 
-void modelview_matrix_multiply(m44 * m)
+void S3D_ModelviewMatrixMultiply(m44 * m)
 {
 	m44 temp;
-	m44_copy(&MODELVIEW,&temp);
-	m44_multiply(&temp,m,&MODELVIEW);
+	m44_Copy(&MODELVIEW,&temp);
+	m44_Multiply(&temp,m,&MODELVIEW);
 	global_updated = 0;
 }
 
+//----------------------------------------------------------------------------
 
-void __global_matrix_update(void)
+inline void _s3d_global_matrix_update(void)
 {
+	if(global_updated) return;
 	global_updated = 1;
-	m44_multiply(&PROJECTION,&MODELVIEW,&GLOBAL);
+	m44_Multiply(&PROJECTION,&MODELVIEW,&S3D_GLOBAL_MATRIX);
 }
 
+//----------------------------------------------------------------------------

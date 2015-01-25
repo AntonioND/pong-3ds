@@ -2,7 +2,58 @@
 #ifndef __MATRIX__
 #define __MATRIX__
 
-#include "math.h"
+//----------------------------------------------------------------------------
+
+#include <3ds.h>
+
+//----------------------------------------------------------------------------
+
+//This fixed point part is based on "tonc_math.h"
+
+#define SIN_LUT_SIZE 512
+
+extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
+
+// Look-up a sine value (2·PI = 0x10000)
+// \param theta Angle in [0,FFFFh] range
+// \return .12f sine value
+static inline s32 lu_sin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]; }
+
+// Look-up a cosine value (2·PI = 0x10000)
+// \param theta Angle in [0,FFFFh] range
+// \return .12f cosine value
+static inline s32 lu_cos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]; }
+
+#define FIX_SHIFT       8
+#define FIX_SCALE       ( 1<<FIX_SHIFT		)
+#define FIX_SCALEF      ( (float)FIX_SCALE	)
+
+// Convert an integer to fixed-point
+static inline s32 int2fx(int d) { return d<<FIX_SHIFT; }
+
+// Convert a float to fixed-point
+static inline s32 float2fx(float f) { return (s32)(f*FIX_SCALEF); }
+
+// Convert a FIXED point value to an unsigned integer (orly?).
+static inline u32 fx2uint(s32 fx) { return fx>>FIX_SHIFT; }
+
+// Convert a FIXED point value to an signed integer.
+static inline int fx2int(s32 fx) { return fx/FIX_SCALE; }
+
+// Convert a fixed point value to floating point.
+static inline float fx2float(s32 fx) { return fx/FIX_SCALEF; }
+
+// Multiply two fixed point values
+static inline s32 fxmul(s32 fa, s32 fb) { return (fa*fb)>>FIX_SHIFT; }
+
+// Divide two fixed point values.
+static inline s32 fxdiv(s32 fa, s32 fb) { return ((fa)*FIX_SCALE)/(fb); }
+
+// Multiply two fixed point values using 64bit math.
+static inline s32 fxmul64(s32 fa, s32 fb) { return (((s64)fa)*fb)>>FIX_SHIFT; }
+
+// Divide two fixed point values using 64bit math.
+static inline s32 fxdiv64(s32 fa, s32 fb) { return ( ((s64)fa)<<FIX_SHIFT)/(fb); }
 
 //----------------------------------------------------------------------------
 
@@ -13,13 +64,13 @@ typedef s32 v4[4];
 #define V4SET(v,a0,a1,a2) { v[0]=(a0); v[1]=(a1); v[2]=(a2); }
 #define ptr_V4SET(v,a0,a1,a2) { (*v)[0]=(a0); (*v)[1]=(a1); (*v)[2]=(a2); }
 
-static inline s32 v4_dot_product(v4 * v1, v4 * v2)
+static inline s32 v4_DotProduct(v4 * v1, v4 * v2)
 {
 	return fxmul(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul(ptr_V4(v1,1),ptr_V4(v2,1)) + 
            fxmul(ptr_V4(v1,2),ptr_V4(v2,2)) + fxmul(ptr_V4(v1,3),ptr_V4(v2,3));
 }
 
-void v4_cross_product(v4 * v1, v4 * v2, v4 * res);
+void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res);
 
 //----------------------------------------------------------------------------
 
@@ -38,31 +89,33 @@ typedef s32 m44[16];
 					(*m)[8]=(a20); (*m)[9]=(a21); (*m)[10]=(a22); (*m)[11]=(a23); \
 					(*m)[12]=(a30); (*m)[13]=(a31); (*m)[14]=(a32); (*m)[15]=(a33);   }
 
-void m44_copy(m44 * src, m44 * dest);
+void m44_Copy(m44 * src, m44 * dest);
 
-void m44_identity(m44 * m);
-void m44_add(m44 * m1, m44 * m2, m44 * dest);
-void m44_multiply(m44 * m1, m44 * m2, m44 * dest);
-
-//----------------------------------------------------------------------------
-
-void m44_v4_multiply(m44 * m, v4 * v, v4 * dest);
+void m44_SetIdentity(m44 * m);
+void m44_Add(m44 * m1, m44 * m2, m44 * dest);
+void m44_Multiply(m44 * m1, m44 * m2, m44 * dest);
 
 //----------------------------------------------------------------------------
 
-void m44_create_ortho(m44 * m,u32 width, u32 height);
-void m44_create_perspective(m44 * m,u32 width, u32 height, s32 znear);
-void m44_create_frustum(m44 * m, int left, int right, int bottom, int top, int znear, int zfar);
+void m44_v4_Multiply(m44 * m, v4 * v, v4 * dest);
 
 //----------------------------------------------------------------------------
 
-void m44_create_rotation_x(m44 * m, s32 angle);
-void m44_create_rotation_y(m44 * m, s32 angle);
-void m44_create_rotation_z(m44 * m, s32 angle);
-void m44_create_rotation_axis(m44 * m, s32 angle, s32 x, s32 y, s32 z); //axis must be normalized
+void m44_CreateOrtho(m44 * m,u32 width, u32 height);
+void m44_CreatePerspective(m44 * m,u32 width, u32 height, s32 znear);
+void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int znear, int zfar);
 
-void m44_create_scale(m44 * m, s32 x, s32 y, s32 z);
+//----------------------------------------------------------------------------
 
-void m44_create_translation(m44 * m, s32 x, s32 y, s32 z);
+void m44_CreateRotationX(m44 * m, s32 angle);
+void m44_CreateRotationY(m44 * m, s32 angle);
+void m44_CreateRotationZ(m44 * m, s32 angle);
+void m44_CreateRotationAxis(m44 * m, s32 angle, s32 x, s32 y, s32 z); //axis must be normalized
+
+void m44_CreateScale(m44 * m, s32 x, s32 y, s32 z);
+
+void m44_CreateTranslation(m44 * m, s32 x, s32 y, s32 z);
+
+//----------------------------------------------------------------------------
 
 #endif //__MATRIX__

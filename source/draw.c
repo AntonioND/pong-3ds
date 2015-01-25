@@ -1,41 +1,32 @@
 
+//--------------------------------------------------------------------------------------------------
+
 #include <3ds.h>
 #include <string.h>
 
 #include "matrix.h"
 #include "engine.h"
-#include "plot.h"
-#include "utils.h"
+#include "draw.h"
 
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 
-void clear_buffers(int r, int g, int b)
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
+
+void S3D_FramebuffersClearTopScreen(int r, int g, int b)
 {
-	u8 * fb_left = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	u8 * fb_right = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
-	
 	u32 val = (b<<16)|(g<<8)|(r);
-	fill_framebuffer(fb_left, val, GFX_TOP);
-	fill_framebuffer(fb_right, val, GFX_TOP);
+	
+	u8 * fb_left = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	S3D_FramebufferFill(fb_left, val, GFX_TOP);
+	
+	if(CONFIG_3D_SLIDERSTATE == 0.0f) return;
+	u8 * fb_right = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
+	S3D_FramebufferFill(fb_right, val, GFX_TOP);
 }
-
-void flush_screen_buffers(void)
-{
-	// Flush and swap framebuffers
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-}
-
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
 
 static u8 * curr_buf;
 
-static u32 currcolor_r, currcolor_g, currcolor_b;
-static u32 saved_r = 255, saved_g = 255, saved_b = 255;
-
-void set_current_buffer(int right)
+void S3D_BufferSetScreen(int right)
 {
 	if(right)
 	{
@@ -47,68 +38,384 @@ void set_current_buffer(int right)
 	}
 }
 
-void set_current_color(u32 r, u32 g, u32 b)
+//---------------------------------------------------------------------------------------
+
+
+static inline int abs(int x)
+{
+	return x < 0 ? -x : x;
+}
+
+static inline int sgn(int x)
+{
+	if(x < 0) return -1;
+	if(x > 0) return 1;
+	return 0;
+}
+
+static inline void swapints(int * a, int * b)
+{
+	int t = *a;
+	*a = *b;
+	*b = t;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+static inline void _s3d_plot_unsafe(u8 * buf, u32 x, u32 y, int r, int g, int b)
+{
+	u8 * p = &(buf[(240*x+y)*3]);
+	*p++ = b; *p++ = g; *p = r;
+}
+
+static inline void _s3d_vertical_line(u8 * buf, u32 x, int y1, int y2, int r, int g, int b)
+{
+	//make the X coordinate unsigned to avoid the < 0 comparison
+	if(x >= 400) return;
+	
+	if(y1 < 0)
+	{
+		if(y2 < 0) return;
+		y1 = 0;
+	}
+	else if(y1 >= 240)
+	{
+		if(y2 >= 240) return;
+		y1 = 240-1;
+	}
+	else
+	{
+		if(y2 < 0) y2 = 0;
+		else if(y2 >= 240) y2 = 240-1;
+	}
+	
+	if(y1 < y2)
+	{
+		u8 * p = &(buf[(240*x+y1)*3]);
+		for( ;y1<y2; y1++) { *p++ = b; *p++ = g; *p++ = r; }
+	}
+	else
+	{
+		u8 * p = &(buf[(240*x+y2)*3]);
+		for( ;y2<y1; y2++) { *p++ = b; *p++ = g; *p++ = r; }
+	}
+}
+
+void _s3d_line_unsafe(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
+{
+	int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
+
+	dx = x2-x1; // horizontal distance
+	dy = y2-y1; // vertical distance
+	dxabs = abs(dx);
+	dyabs = abs(dy);
+	sdx = sgn(dx);
+	sdy = sgn(dy);
+	x = dyabs>>1;
+	y = dxabs>>1;
+	px = x1;
+	py = y1;
+
+	_s3d_plot_unsafe(buf,px,py,r,g,b);
+	
+	if(dxabs>=dyabs) // the line is more horizontal than vertical
+	{
+		for(i=0;i<dxabs;i++)
+		{
+			y+=dyabs;
+			if(y>=dxabs)
+			{
+				y-=dxabs;
+				py+=sdy;
+			}
+			px+=sdx;
+			_s3d_plot_unsafe(buf,px,py,r,g,b);
+		}
+	}
+	else // the line is more vertical than horizontal
+	{
+		for(i=0;i<dyabs;i++)
+		{
+			x+=dxabs;
+			if(x>=dyabs)
+			{
+				x-=dyabs;
+				px+=sdx;
+			}
+			py+=sdy;
+			_s3d_plot_unsafe(buf,px,py,r,g,b);
+		}
+	}
+}
+
+//----------------------
+
+//http://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland
+
+#define RIGHT  (8)
+#define TOP    (4)
+#define LEFT   (2)
+#define BOTTOM (1)
+
+//Compute the bit code for a point (x, y) using the clip rectangle
+//bounded diagonally by (xmin, ymin), and (xmax, ymax)
+static inline int _s3d_compute_out_code(int32_t x, int32_t y)
+{
+	int code = 0;
+
+	if(y >= 240) code |= TOP;             //above the clip window
+	else if(y < 0) code |= BOTTOM;     //below the clip window
+
+	if(x >= 400) code |= RIGHT;           //to the right of clip window
+	else if(x < 0) code |= LEFT;       //to the left of clip window
+
+	return code;
+}
+
+//Cohen–Sutherland clipping algorithm clips a line from
+//P1 = (x1, y1) to P2 = (x2, y2) against a rectangle with
+//diagonal from (xmin, ymin) to (xmax, ymax).
+void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
+{
+	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
+	int outcode1, outcode2, outcodeOut;
+	int accept = 0;
+
+	float fx1 = x1;
+	float fy1 = y1;
+	float fx2 = x2;
+	float fy2 = y2;
+
+	//compute outcodes
+	outcode1 = _s3d_compute_out_code(fx1, fy1);
+	outcode2 = _s3d_compute_out_code(fx2, fy2);
+
+	while(1)
+	{
+		if((outcode1|outcode2) == 0) //logical or is 0. Trivially accept and get out of loop
+		{
+			accept = 1; break;
+		}
+		else if(outcode1 & outcode2) //logical and is not 0. Trivially reject and get out of loop
+        {
+			break;
+		}
+		else
+		{
+			//failed both tests, so calculate the line segment to clip
+			//from an outside point to an intersection with clip edge
+			float x, y;
+			//At least one endpoint is outside the clip rectangle; pick it.
+			outcodeOut = outcode1 ? outcode1 : outcode2;
+			//Now find the intersection point;
+			//use formulas y = y0 + slope * (x - x0), x = x0 + (1/slope)* (y - y0)
+			if(outcodeOut & TOP) //point is above the clip rectangle
+			{
+				x = fx1 + ( ( (fx2 - fx1) * ( ((float)(240-1)) - fy1 ) ) / (fy2 - fy1) );
+				y = ((float)(240-1));
+			}
+			else if(outcodeOut & BOTTOM) //point is below the clip rectangle
+			{
+			    x = fx1 + ( ( (fx2 - fx1) * ( 0.0f - fy1 ) ) / (fy2 - fy1) );
+				y = 0.0f;
+			}
+			else if(outcodeOut & RIGHT) //point is to the right of clip rectangle
+			{
+			    y = fy1 + ( ( (fy2 - fy1) * ( ((float)(400-1)) - fx1 ) ) / (fx2 - fx1) );
+				x = ((float)(400-1));
+			}
+			else //if(outcodeOut & LEFT) //point is to the left of clip rectangle
+			{
+				y = fy1 + ( ( (fy2 - fy1) * ( 0.0f - fx1 ) ) / (fx2 - fx1) );
+				x = 0.0f;
+			}
+			//Now we move outside point to intersection point to clip
+			//and get ready for next pass.
+			if(outcodeOut == outcode1)
+			{
+				fx1 = x;
+				fy1 = y;
+				outcode1 = _s3d_compute_out_code(fx1, fy1);
+			}
+			else
+			{
+				fx2 = x;
+				fy2 = y;
+				outcode2 = _s3d_compute_out_code(fx2, fy2);
+			}
+		}
+	}
+
+	if(accept) _s3d_line_unsafe(buf, fx1,fy1, fx2,fy2, r,g,b);
+}
+
+//----------------------
+
+void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int r, int g, int b)
+{
+    thickness --;
+
+    int i,j;
+    int hw = thickness/2;
+
+    for(i = -hw; i <= -hw+thickness; i++)
+        for(j = -hw; j <= -hw+thickness; j++)
+            S3D_2D_Line(buf,x1+i,y1+j,x2+i,y2+j,r,g,b);
+}
+
+//----------------------
+
+void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
+{
+	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3);
+	
+	// x1 < x2 < x3
+	if(x1 > x2) { swapints(&x1,&x2); swapints(&y1,&y2); }
+	if(x2 > x3) { swapints(&x2,&x3); swapints(&y2,&y3); if(x1 > x2) { swapints(&x1,&x2); swapints(&y1,&y2); } }
+	
+	int dy1, dy2, dy3;
+	if(x2 != x1) dy1=fxdiv(y2-y1,int2fx(x2-x1)); else dy1=0;
+	if(x3 != x1) dy2=fxdiv(y3-y1,int2fx(x3-x1)); else dy2=0;
+	if(x3 != x2) dy3=fxdiv(y3-y2,int2fx(x3-x2)); else dy3=0;
+	
+	int sx = x1;
+	int sy = y1; int ey = y1;
+	
+	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1)
+		_s3d_vertical_line(buf, sx,fx2int(sy),fx2int(ey), r,g,b);
+	ey = y2;
+	for( ;sx<=x3; sx++,sy+=dy2,ey+=dy3)
+		_s3d_vertical_line(buf, sx,fx2int(sy),fx2int(ey), r,g,b);
+}
+
+//---------------------------------------------------------------------------------------
+
+static u32 currcolor_r, currcolor_g, currcolor_b;
+static u32 saved_r = 255, saved_g = 255, saved_b = 255;
+
+#define MAX_LIGHT_SOURCES (2) // no more than 32
+static v4 light_dir[MAX_LIGHT_SOURCES];
+static v4 light_color[MAX_LIGHT_SOURCES];
+static u32 light_enabled = 0;
+static int amb_r = 0, amb_g = 0, amb_b = 0;
+
+//---------------------------------------------
+
+void S3D_PolygonColor(u32 r, u32 g, u32 b)
 {
 	currcolor_r = saved_r = r;
 	currcolor_g = saved_g = g;
 	currcolor_b = saved_b = b;
 }
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------
+
+void S3D_PolygonNormal(s32 x, s32 y, s32 z)
+{
+	v4 l = { x, y, z, 0};
+	
+	int fr = amb_r, fg = amb_g, fb = amb_b; // add factors
+	
+	int i;
+	for(i = 0; i < MAX_LIGHT_SOURCES; i++) if(light_enabled & S3D_LIGHT_N(i))
+	{
+		s32 factor = -v4_DotProduct(&l,&(light_dir[i])); // change sign because light goes AGAINST a normal
+		if(factor > 0)
+		{
+			fr += fxmul(factor,light_color[i][0]);
+			fg += fxmul(factor,light_color[i][1]);
+			fb += fxmul(factor,light_color[i][2]);
+		}
+	}
+	
+	if(fr > 255) fr = 255;
+	if(fg > 255) fg = 255;
+	if(fb > 255) fb = 255;
+	
+	int r = (saved_r * fr) / 256;
+	int g = (saved_g * fg) / 256;
+	int b = (saved_b * fb) / 256;
+	
+	currcolor_r = r; currcolor_g = g; currcolor_b = b;
+}
+
+//---------------------------------------------
+
+void S3D_LightAmbientColorSet(int r, int g, int b)
+{
+	amb_r = r; amb_g = g; amb_b = b;
+}
+
+void S3D_LightDirectionalColorSet(int index, int r, int g, int b)
+{
+	light_color[index][0] = r; light_color[index][1] = g; light_color[index][2] = b;
+}
+
+void S3D_LightDirectionalVectorSet(int index, s32 x, s32 y, s32 z)
+{
+	light_dir[index][0] = x; light_dir[index][1] = y; light_dir[index][2] = z;
+}
+
+void S3D_LightEnable(u32 enable_mask)
+{
+	light_enabled = enable_mask;
+}
+
 //---------------------------------------------------------------------------------------
 
-static e_primitive_type currmode = P_TRIANGLES;
+static s3d_primitive currmode = S3D_TRIANGLES;
 static u32 vtx_count = 0;
 #define MAX_VERTICES_IN_A_PRIMITIVE (4)
 static v4 vtx_array[MAX_VERTICES_IN_A_PRIMITIVE];
-static const u32 primitive_num_vertices[P_PRIMITIVE_NUMBER] = {2,3,4,2,3,4};
+static const u32 primitive_num_vertices[S3D_PRIMITIVE_NUMBER] = {2,3,4,2,3,4};
 static u32 curr_max_vertices;
 
-void polygon_begin(e_primitive_type type)
+void S3D_PolygonBegin(s3d_primitive type)
 {
 	currmode = type;
 	vtx_count = 0;
 	curr_max_vertices = primitive_num_vertices[currmode];
 }
 
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
+//---------------------------------------------
 
-//In polygon.c
-void polygon_list_add_line(v4 * a, v4 * b, int _r, int _g, int _b);
-void polygon_list_add_triangle(v4 * a, v4 * b, v4 * c, int _r, int _g, int _b);
-void polygon_list_add_quad(v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b);
+#define LINE_THICKNESS (3)
 
-void _draw_line(int x1, int y1, int x2, int y2, int r, int g, int b)
+void _s3d_draw_line(int x1, int y1, int x2, int y2, int r, int g, int b)
 {
-	LineEx(curr_buf,3,x1,y1,x2,y2,r,g,b);
+	S3D_2D_LineEx(curr_buf,LINE_THICKNESS,x1,y1,x2,y2,r,g,b);
 }
 
-void _draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
+void _s3d_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
 {
-	TriFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
+	S3D_2D_TriangleFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
 }
 
-void _draw_quad(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
+void _s3d_draw_quad(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
 {
-	TriFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
-	TriFill(curr_buf,x1,y1,x3,y3,x4,y4,r,g,b);
+	S3D_2D_TriangleFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
+	S3D_2D_TriangleFill(curr_buf,x1,y1,x3,y3,x4,y4,r,g,b);
 }
 
 //---------------------------------------------
 
-extern m44 GLOBAL;
-extern u32 global_updated;
-void __global_matrix_update(void);
+//In engine.c
+extern m44 S3D_GLOBAL_MATRIX;
+inline void _s3d_global_matrix_update(void);
 
-void polygon_vertex(s32 x, s32 y, s32 z)
+//In polygon.c
+void _s3d_polygon_list_add_line(v4 * a, v4 * b, int _r, int _g, int _b);
+void _s3d_polygon_list_add_triangle(v4 * a, v4 * b, v4 * c, int _r, int _g, int _b);
+void _s3d_polygon_list_add_quad(v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b);
+
+void S3D_PolygonVertex(s32 x, s32 y, s32 z)
 {
 	v4 v = { x, y, z, int2fx(1) };
 	v4 result;
 	
-	if(global_updated == 0) { __global_matrix_update(); }
+	_s3d_global_matrix_update();
 	
-	m44_v4_multiply(&GLOBAL,&v,&result);
+	m44_v4_Multiply(&S3D_GLOBAL_MATRIX,&v,&result);
 	
 	vtx_array[vtx_count][0] = fx2int(fxdiv(result[0],result[3]));
 	vtx_array[vtx_count][1] = fx2int(fxdiv(result[1],result[3]));
@@ -119,29 +426,29 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 	{
 		switch(currmode)
 		{
-			case P_LINES:
-				polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
+			case S3D_LINES:
+				_s3d_polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_count = 0;
 				break;
 				
-			case P_TRIANGLES:
-				polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
+			case S3D_TRIANGLES:
+				_s3d_polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_count = 0;
 				break;
 				
-			case P_QUADS:
-				polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
+			case S3D_QUADS:
+				_s3d_polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_count = 0;
 				break;
 			
-			case P_LINE_STRIP:
-				polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
+			case S3D_LINE_STRIP:
+				_s3d_polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_array[0][0] = vtx_array[1][0];
@@ -151,8 +458,8 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 				vtx_count = 1;
 				break;
 				
-			case P_TRIANGLE_STRIP:
-				polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
+			case S3D_TRIANGLE_STRIP:
+				_s3d_polygon_list_add_triangle(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_array[0][0] = vtx_array[2][0];
@@ -162,8 +469,8 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 				vtx_count = 2;
 				break;
 				
-			case P_QUAD_STRIP:
-				polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
+			case S3D_QUAD_STRIP:
+				_s3d_polygon_list_add_quad(&(vtx_array[0]),&(vtx_array[1]),&(vtx_array[2]),&(vtx_array[3]),
 						currcolor_r,currcolor_g,currcolor_b);
 				
 				vtx_array[0][0] = vtx_array[3][0];
@@ -184,70 +491,4 @@ void polygon_vertex(s32 x, s32 y, s32 z)
 	}
 }
 
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
-
-#define MAX_LIGHT_SOURCES (2) // no more than 32
-static v4 light_dir[MAX_LIGHT_SOURCES];
-static v4 light_color[MAX_LIGHT_SOURCES];
-static u32 light_enabled = 0;
-static int amb_r = 0, amb_g = 0, amb_b = 0;
-
-void polygon_normal(s32 x, s32 y, s32 z)
-{
-	v4 l = { x, y, z, 0};
-	
-	int fr = amb_r, fg = amb_g, fb = amb_b; // add factors
-	
-	int i;
-	for(i = 0; i < MAX_LIGHT_SOURCES; i++) if(light_enabled & LIGHT_N(i))
-	{
-		s32 factor = -v4_dot_product(&l,&(light_dir[i])); // change sign because light goes AGAINST a normal
-		if(factor > 0)
-		{
-			fr += fxmul(factor,light_color[i][0]);
-			fg += fxmul(factor,light_color[i][1]);
-			fb += fxmul(factor,light_color[i][2]);
-		}
-	}
-	
-	if(fr > 255) fr = 255;
-	if(fg > 255) fg = 255;
-	if(fb > 255) fb = 255;
-	
-	int r = (saved_r * fr) / 256;
-	int g = (saved_g * fg) / 256;
-	int b = (saved_b * fb) / 256;
-	
-	currcolor_r = r; currcolor_g = g; currcolor_b = b;
-}
-
-
-void light_set_ambient_color(int r, int g, int b)
-{
-	amb_r = r;
-	amb_g = g;
-	amb_b = b;
-}
-
-void light_set_color(int index, int r, int g, int b)
-{
-	light_color[index][0] = r;
-	light_color[index][1] = g;
-	light_color[index][2] = b;
-}
-
-void light_set_dir(int index, s32 x, s32 y, s32 z)
-{
-	light_dir[index][0] = x;
-	light_dir[index][1] = y;
-	light_dir[index][2] = z;
-}
-
-void lights_enable(u32 enable_mask)
-{
-	light_enabled = enable_mask;
-}
-
-//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------

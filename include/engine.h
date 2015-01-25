@@ -2,17 +2,26 @@
 #ifndef __ENGINE__
 #define __ENGINE__
 
+//----------------------------------------------------------------------------
+//-                      Software 3D engine. Main file.                      -
+//----------------------------------------------------------------------------
+
 #include "matrix.h"
-#include "plot.h"
 #include "draw.h"
 #include "polygon.h"
 
-void proyection_matrix_set(m44 * m);
+//----------------------------------------------------------------------------
 
-void modelview_matrix_set(m44 * m);
-void modelview_matrix_multiply(m44 * m);
-void modelview_matrix_push(void);
-void modelview_matrix_pop(void);
+void S3D_ProyectionMatrixSet(m44 * m);
+
+//----------------------------------------------------------------------------
+
+void S3D_ModelviewMatrixSet(m44 * m);
+void S3D_ModelviewMatrixMultiply(m44 * m);
+void S3D_ModelviewMatrixPush(void);
+void S3D_ModelviewMatrixPop(void);
+
+//----------------------------------------------------------------------------
 
 #endif //__ENGINE__
 

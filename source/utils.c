@@ -1,4 +1,6 @@
 
+//-------------------------------------------------------------------------------------------------------
+
 #include <3ds.h>
 
 #include <stdlib.h>
@@ -80,7 +82,7 @@ inline uint32_t fast_rand(void)
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
 
-void save_screenshot(void)
+void Screenshot_PNG(void)
 {
 	u32 * dst = malloc(400*240*sizeof(u32));
 	if(dst)
@@ -131,4 +133,5 @@ void save_screenshot(void)
 		free(dst);
 	}
 }
+
 //-------------------------------------------------------------------------------------------------------
