@@ -53,7 +53,7 @@ static inline int _s3d_check_face(int x1, int y1, int x2, int y2, int x3, int y3
 {
 	int dx1 = x2-x1; int dy1 = y2-y1;
 	int dx2 = x3-x1; int dy2 = y3-y1;
-	int cross = dx1*dy2 - dx2*dy1;
+	int cross = dx1*dy2 - dx2*dy1; // Z axis goes away (to the inside of the screen)
 	if((cross > 0) && !_s3d_draw_back) return 0;
 	if((cross < 0) && !_s3d_draw_front) return 0;
 	return 1;
