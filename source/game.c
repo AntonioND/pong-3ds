@@ -2,6 +2,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include <3ds.h>
+#include <stdlib.h>
 
 #include "engine.h"
 #include "utils.h"
@@ -165,6 +166,8 @@ void draw_pad(int r, int g, int b)
 
 void Game_DrawScene(void)
 {
+	S3D_SetCulling(1,0);
+	
 	m44 m;
 	m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
 	S3D_ModelviewMatrixSet(&m);
@@ -268,7 +271,7 @@ static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 	return 1; //partially or totally overlapping
 }
 
-void Game_Handle(int keys)
+void Game_HandleAndDraw(int keys)
 {
 	//---------------------------------------------------
 	//                 Handle game
@@ -379,6 +382,11 @@ void Game_Handle(int keys)
 	//---------------------------------------------------
 	//
 	//---------------------------------------------------
+}
+
+void Game_End(void)
+{
+	
 }
 
 //-------------------------------------------------------------------------------------------------------

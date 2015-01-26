@@ -23,7 +23,7 @@
 int Save_PNG(const char * file_name, int width, int height, void * buffer, int save_alpha);
 
 // buffer is 32 bit
-//int Read_PNG(const char * file_name, char ** _buffer, int * _width, int * _height);
+int Read_PNG(const char * file_name, char ** _buffer, int * _width, int * _height);
 
 #endif //__PNG_UTILS__
 

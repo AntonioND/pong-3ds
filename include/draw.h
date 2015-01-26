@@ -48,6 +48,10 @@ void S3D_PolygonNormal(s32 x, s32 y, s32 z);
 
 //--------------------------------------------------------------------------------------------------
 
+void S3D_SetCulling(int draw_front, int draw_back);
+
+//--------------------------------------------------------------------------------------------------
+
 void S3D_LightAmbientColorSet(int r, int g, int b);
 
 void S3D_LightDirectionalVectorSet(int index, s32 x, s32 y, s32 z);

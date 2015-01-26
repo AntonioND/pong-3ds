@@ -20,7 +20,6 @@
 
 #include <png.h>
 
-
 //----------------------------------------------------------------------------------------------
 
 void png_warn_fn_(png_structp sp, png_const_charp cp)
@@ -129,7 +128,7 @@ int Save_PNG(const char * file_name, int width, int height, void * buffer, int s
 }
 
 //----------------------------------------------------------------------------------------------
-/*
+
 int Read_PNG(const char * file_name, char ** _buffer, int * _width, int * _height)
 {
     int width, height;
@@ -278,5 +277,5 @@ int Read_PNG(const char * file_name, char ** _buffer, int * _width, int * _heigh
 
     return 0;
 }
-*/
+
 //----------------------------------------------------------------------------------------------

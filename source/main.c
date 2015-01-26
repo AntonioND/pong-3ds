@@ -23,7 +23,7 @@
 #define TRANSL_DIV_FACTOR (4.0f)
 #define SHEAR_DIV_FACTOR  (2.0f)
 
-void DrawLeft(void)
+static void DrawLeft(void)
 {
 	float slider = CONFIG_3D_SLIDERSTATE;
 	int transl = float2fx(slider/TRANSL_DIV_FACTOR);
@@ -43,7 +43,7 @@ void DrawLeft(void)
 	S3D_PolygonListFlush(1);
 }
 
-void DrawRight(void)
+static void DrawRight(void)
 {
 	float slider = CONFIG_3D_SLIDERSTATE;
 	if(slider == 0.0f) return;
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	//The bottom screen has 30 rows and 40 columns
 	printf("\x1b[0;16HPong 3DS");
 	printf("\x1b[2;14Hby AntonioND");
-	printf("\x1b[3;6H(Antonio Ni%co Diaz)",165);
+	printf("\x1b[3;10H(Antonio Ni%co Diaz)",165);
 	printf("\x1b[28;5HSELECT: Screenshot.");
 	printf("\x1b[29;5HSTART:  Exit.");
 	
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		
 		S3D_FramebuffersClearTopScreen(0,0,0);
 		
-		Game_Handle(keys);
+		Game_HandleAndDraw(keys);
 		
 		printf("\x1b[8;5H3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
 		printf("\x1b[10;5HFPS: %d  ",Timing_GetFPS());
@@ -132,6 +132,8 @@ int main(int argc, char **argv)
 		
 		gspWaitForVBlank();
 	}
+	
+	Game_End();
 
 	gfxExit();
 	aptExit();
