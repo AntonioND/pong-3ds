@@ -17,6 +17,10 @@ void S3D_BufferSetScreen(int right);
 
 //--------------------------------------------------------------------------------------------------
 
+void S3D_2D_Plot(u8 * buf, int x, int y, int r, int g, int b);
+
+void S3D_2D_PlotEx(u8 * buf, int thickness, int x, int y, int r, int g, int b);
+
 void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b);
 
 void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int r, int g, int b);

@@ -70,7 +70,7 @@ void m44_v4_Multiply(m44 * m, v4 * v, v4 * dest)
 }
 
 //--------------------------------------------------------------------------------------------------
-
+/*
 void m44_CreateOrtho(m44 * m,u32 width, u32 height)
 {
 	m44 screen, ortho;
@@ -105,7 +105,7 @@ void m44_CreatePerspective(m44 * m,u32 width, u32 height, s32 znear)
 	
 	m44_Multiply(&screen,&perspective,m);
 }
-
+*/
 void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int znear, int zfar)
 {
 	m44 screen, perspective;

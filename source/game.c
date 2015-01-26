@@ -166,15 +166,20 @@ void draw_pad(int r, int g, int b)
 
 void Game_DrawScene(void)
 {
-	S3D_SetCulling(1,0);
-	
-	m44 m;
-	m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
-	S3D_ModelviewMatrixSet(&m);
-	m44_CreateRotationX(&m,-0x1000);
-	S3D_ModelviewMatrixMultiply(&m);
-	
+	//3D Stuff
 	{
+		//---------------------------------------------------
+		//                 Configuration
+		//---------------------------------------------------
+		
+		S3D_SetCulling(1,0);
+		
+		m44 m;
+		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
+		S3D_ModelviewMatrixSet(&m);
+		m44_CreateRotationX(&m,-0x1000);
+		S3D_ModelviewMatrixMultiply(&m);
+		
 		S3D_LightAmbientColorSet(64,64,64);
 		
 		S3D_LightEnable(S3D_LIGHT_N(0));
@@ -241,6 +246,11 @@ void Game_DrawScene(void)
 		draw_pad(0,255,0);
 		
 		S3D_ModelviewMatrixPop();
+	}
+	
+	//2D stuff
+	{
+		
 	}
 }
 

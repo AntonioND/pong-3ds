@@ -101,8 +101,8 @@ void m44_v4_Multiply(m44 * m, v4 * v, v4 * dest);
 
 //----------------------------------------------------------------------------
 
-void m44_CreateOrtho(m44 * m,u32 width, u32 height);
-void m44_CreatePerspective(m44 * m,u32 width, u32 height, s32 znear);
+//void m44_CreateOrtho(m44 * m,u32 width, u32 height);
+//void m44_CreatePerspective(m44 * m,u32 width, u32 height, s32 znear);
 void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int znear, int zfar);
 
 //----------------------------------------------------------------------------

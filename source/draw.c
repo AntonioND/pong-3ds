@@ -16,12 +16,11 @@ void S3D_FramebuffersClearTopScreen(int r, int g, int b)
 {
 	u32 val = (b<<16)|(g<<8)|(r);
 	
-	u8 * fb_left = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	S3D_FramebufferFill(fb_left, val, GFX_TOP);
+	S3D_FramebufferFill(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), val, GFX_TOP);
 	
 	if(CONFIG_3D_SLIDERSTATE == 0.0f) return;
-	u8 * fb_right = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
-	S3D_FramebufferFill(fb_right, val, GFX_TOP);
+
+	S3D_FramebufferFill(gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), val, GFX_TOP);
 }
 
 static u8 * curr_buf;
@@ -49,10 +48,13 @@ void S3D_SetCulling(int draw_front, int draw_back)
 	_s3d_draw_back = draw_back;
 }
 
-static inline int _s3d_check_face(int x1, int y1, int x2, int y2, int x3, int y3)
+static inline int _s3d_check_cull_face(int x1, int y1, int x2, int y2, int x3, int y3)
 {
 	int dx1 = x2-x1; int dy1 = y2-y1;
+	if((dx1 & dy1) == 0) return 1; // if 2 pixels are the same, draw the polygon always
 	int dx2 = x3-x1; int dy2 = y3-y1;
+	if((dx2 & dy2) == 0) return 1;
+
 	int cross = dx1*dy2 - dx2*dy1; // Z axis goes away (to the inside of the screen)
 	if((cross > 0) && !_s3d_draw_back) return 0;
 	if((cross < 0) && !_s3d_draw_front) return 0;
@@ -301,6 +303,25 @@ void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 
 //----------------------
 
+void S3D_2D_Plot(u8 * buf, int x, int y, int r, int g, int b)
+{
+	_s3d_plot_safe(buf,x,y,r,g,b);
+}
+
+void S3D_2D_PlotEx(u8 * buf, int thickness, int x, int y, int r, int g, int b)
+{
+    thickness --;
+
+    int i,j;
+    int hw = thickness/2;
+
+    for(i = -hw; i <= -hw+thickness; i++)
+        for(j = -hw; j <= -hw+thickness; j++)
+            _s3d_plot_safe(buf,x+i,y+j,r,g,b);
+}
+
+//----------------------
+
 void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
     thickness --;
@@ -319,31 +340,26 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 {
 	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3);
 	
-	// Sort: x1 < x2 < x3
+	// Sort: x1 <= x2 <= x3
 	if(x1 > x2) { swapints_pairs(&x1,&x2, &y1,&y2); }
 	if(x2 > x3) { swapints_pairs(&x2,&x3, &y2,&y3); if(x1 > x2) { swapints_pairs(&x1,&x2, &y1,&y2); } }
-	
-	int dy1, dy2, dy3;
-	if(x1 != x2) dy1=fxdiv(y2-y1,int2fx(x2-x1)); else dy1=0;
-	if(x1 != x3) dy2=fxdiv(y3-y1,int2fx(x3-x1)); else dy2=0;
-	if(x2 != x3) dy3=fxdiv(y3-y2,int2fx(x3-x2)); else dy3=0;
-	
-	int sx = x1;
-	int sy = y1; int ey = y1;
-	
-	if(x2 >= 400) x2 = 400-1;
-	if(x3 >= 400) x3 = 400-1;
 
-	u8 * linebuf = &(buf[240*sx*3]);
-
-#if 1
+	u8 * linebuf = &(buf[240*x1*3]);
+	
 	if(x1 != x2) // x1 != x2
 	{
-		if(x1 != x3) // x1 != x2, x1 != x3
+		int dy1 = fxdiv(y2-y1,int2fx(x2-x1));
+		
+		//if(x1 != x3) // x1 != x2, x1 != x3
 		{
-			if(x2 != x3)  // x1 != x2, x1 != x3, x2 != x3
+			int dy2 = fxdiv(y3-y1,int2fx(x3-x1));
+			
+			if(x2 != x3)  // x1 != x2, x1 != x3, x2 != x3 -> Most common case
 			{
-				//Optimize for the most common case
+				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
+				
+				int sx = x1; int sy = y1; int ey = y1;
+				if(x2 >= 400) x2 = 400-1; if(x3 >= 400) x3 = 400-1; // limit X coordinate
 				
 				if(dy1 > dy2)
 				{
@@ -352,40 +368,123 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 					ey = y2;
 					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
-				else
+				else //if(dy1 <= dy2)
 				{
 					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
 					ey = y2;
 					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
-					
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
 				
 				return;
 			}
+			else  // x1 != x2, x1 != x3, x2 == x3
+			{
+				if(x2 >= 400) x2 = 400-1; // limit X coordinate
+				
+				int sx = x1; int sy = y1; int ey = y1;
+				
+				if(dy1 > dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					if( sx >= 0 ) _s3d_vertical_line_downwards(linebuf, sx,fx2int(y3),fx2int(y2), r,g,b);
+				}
+				else //if(dy1 <= dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
+					if( sx >= 0 ) _s3d_vertical_line_downwards(linebuf, sx,fx2int(y2),fx2int(y3), r,g,b);
+				}
+				
+				return;
+			}
+		}
+		//else // x1 != x2, x1 == x3
+		//{
+		//	//Impossible because x1 <= x2 <= x3
+		//	printf("C");
+		//	return;
+		//}
+	}
+	else // x1 == x2
+	{
+		if(x1 != x3) // x1 == x2, x1 != x3
+		{
+			int dy2 = fxdiv(y3-y1,int2fx(x3-x1));
+			
+			//if(x2 != x3)  // x1 == x2, x1 != x3, x2 != x3
+			{
+				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
+				
+				if(x3 >= 400) x3 = 400-1; // limit X coordinate
+				
+				int sx = x1;
+				int sy = y1; int ey = y2;
+				
+				if(y1 > y2)
+				{
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
+					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
+				}
+				else //if(dy1 <= dy2)
+				{
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
+				}
+				
+				return;
+			}
+			//else // x1 == x2, x1 != x3, x2 == x3
+			//{
+			//	//Impossible
+			//	printf("B");
+			//	return;
+			//}
+		}
+		else // x1 == x2, x1 == x3
+		{
+			//if(x2 != x3)  // x1 == x2, x1 == x3, x2 != x3
+			//{
+			//	//Impossible
+			//	printf("A");
+			//	return;
+			//}
+			//else  // x1 == x2, x1 == x3, x2 == x3
+			{
+				//Just a line
+				if( ((u32)x1) < 400 )
+				{
+					int ymin = min(min(y1,y2),y3);
+					int ymax = max(max(y1,y2),y3);
+					_s3d_vertical_line(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b);
+				}
+				return;
+			}
 		}
 	}
-
-	for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
-		_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-	ey = y2;
-	for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
-		_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 	
-	_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
+#if 0
+	int sx = x1; int sy = y1; int ey = y1;
+	int dy1,dy2,dy3;
+	if(x1 != x2) dy1=fxdiv(y2-y1,int2fx(x2-x1)); else dy1=0;
+	if(x1 != x3) dy2=fxdiv(y3-y1,int2fx(x3-x1)); else dy2=0;
+	if(x2 != x3) dy3=fxdiv(y3-y2,int2fx(x3-x2)); else dy3=0;
 	
-#else
 	//Safe invalid way of doing it... If x coordinates are the same, it fails
 	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
 		_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 	ey = y2;
 	for( ;sx<=x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
 		_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+	
+	_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 #endif
 }
 
@@ -489,14 +588,14 @@ void _s3d_draw_line(int x1, int y1, int x2, int y2, int r, int g, int b)
 
 void _s3d_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
 {
-	if(!_s3d_check_face(x1,y1,x2,y2,x3,y3)) return;
+	if(!_s3d_check_cull_face(x1,y1,x2,y2,x3,y3)) return;
 	
 	S3D_2D_TriangleFill(curr_buf,x1,y1,x2,y2,x3,y3,r,g,b);
 }
 
 void _s3d_draw_quad(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
 {
-	if(!_s3d_check_face(x1,y1,x2,y2,x3,y3)) return;
+	if(!_s3d_check_cull_face(x1,y1,x2,y2,x3,y3)) return;
 
 	if( (x1==x2) || (x2==x3) || (x3==x4) || (x4==x1) )
 	{
