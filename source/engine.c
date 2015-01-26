@@ -10,12 +10,13 @@ m44 S3D_GLOBAL_MATRIX; // global variable
 static m44 PROJECTION, MODELVIEW;
 static u32 global_updated = 0;
 
-static m44 matrix_stack[8];
+#define MATRIX_STACK_SIZE (8)
+static m44 matrix_stack[MATRIX_STACK_SIZE];
 static s32 matrix_stack_ptr = 0;
 
 //----------------------------------------------------------------------------
 
-void S3D_ProyectionMatrixSet(m44 * m)
+void S3D_ProjectionMatrixSet(m44 * m)
 {
 	m44_Copy(m,&PROJECTION);
 	global_updated = 0;
@@ -31,7 +32,7 @@ void S3D_ModelviewMatrixSet(m44 * m)
 
 void S3D_ModelviewMatrixPush(void)
 {
-	//if(matrix_stack_ptr >= 8) while(1);
+	//if(matrix_stack_ptr >= MATRIX_STACK_SIZE) while(1);
 	m44_Copy(&MODELVIEW,&(matrix_stack[matrix_stack_ptr]));
 	matrix_stack_ptr++;
 }

@@ -246,11 +246,48 @@ void Game_DrawScene(void)
 		draw_pad(0,255,0);
 		
 		S3D_ModelviewMatrixPop();
+		
+		//---------------------------------------------------
+		//                     Flush
+		//---------------------------------------------------
+		
+		S3D_PolygonListFlush(1);
 	}
 	
 	//2D stuff
 	{
+		u8 * buf = S3D_BufferGetCurrent();
 		
+		
+		/*
+		{
+			static int x1 = 10,y1=10,x2 = 300, y2 = 200;
+			if(keys&KEY_DLEFT) x1--;
+			if(keys&KEY_DRIGHT) x1++;
+			if(keys&KEY_DDOWN) y1--;
+			if(keys&KEY_DUP) y1++;
+			if(keys&KEY_Y) x2--;
+			if(keys&KEY_A) x2++;
+			if(keys&KEY_B) y2--;
+			if(keys&KEY_X) y2++;
+			S3D_2D_LineEx(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL),3,x1,y1,x2,y2,255,255,255);
+		}
+		*/
+		/*
+		{
+			int keys = hidKeysHeld();
+			static int x1 = 10,y1=10,x2 = 300, y2 = 200;
+			if(keys&KEY_DLEFT) x1--;
+			if(keys&KEY_DRIGHT) x1++;
+			if(keys&KEY_DDOWN) y1--;
+			if(keys&KEY_DUP) y1++;
+			if(keys&KEY_Y) x2--;
+			if(keys&KEY_A) x2++;
+			if(keys&KEY_B) y2--;
+			if(keys&KEY_X) y2++;
+			S3D_2D_QuadAllignedFill(buf, x1,y1,x2,y2, 255,255,255);
+		}
+		*/
 	}
 }
 

@@ -15,7 +15,16 @@ void S3D_FramebuffersClearTopScreen(int r, int g, int b);
 
 void S3D_BufferSetScreen(int right);
 
+u8 * S3D_BufferGetCurrent(void);
+
 //--------------------------------------------------------------------------------------------------
+
+// (0,240-1) ---------- (400-1,240-1)
+//    |                       |
+//    |     TOP      (x,y)    |
+//    |        SCREENS        |
+//    |                       |
+//  (0,0) -------------- (400-1,0)
 
 void S3D_2D_Plot(u8 * buf, int x, int y, int r, int g, int b);
 
@@ -27,9 +36,12 @@ void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int 
 
 void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b);
 
+void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b);
+
 //--------------------------------------------------------------------------------------------------
 
 typedef enum {
+	S3D_DOTS,
 	S3D_LINES,
 	S3D_TRIANGLES,
 	S3D_QUADS,

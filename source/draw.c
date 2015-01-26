@@ -27,14 +27,12 @@ static u8 * curr_buf;
 
 void S3D_BufferSetScreen(int right)
 {
-	if(right)
-	{
-		curr_buf = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
-	}
-	else
-	{
-		curr_buf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	}
+	curr_buf = gfxGetFramebuffer(GFX_TOP, right ? GFX_RIGHT : GFX_LEFT, NULL, NULL);
+}
+
+u8 * S3D_BufferGetCurrent(void)
+{
+	return curr_buf;
 }
 
 //---------------------------------------------------------------------------------------
@@ -85,10 +83,15 @@ static inline int sgn(int x)
 	return 0;
 }
 
+static inline void swapints(int * a1, int * a2)
+{
+	int t = *a1; *a1 = *a2; *a2 = t;
+}
+
 static inline void swapints_pairs(int * a1, int * a2, int * b1, int * b2)
 {
 	int t = *a1; *a1 = *a2; *a2 = t;
-	t = *b1; *b1 = *b2; *b2 = t;
+	    t = *b1; *b1 = *b2; *b2 = t;
 }
 
 static inline void roll_values(int * a1, int * a2, int * a3, int * a4, 
@@ -215,11 +218,11 @@ static inline int _s3d_compute_out_code(int32_t x, int32_t y)
 {
 	int code = 0;
 
-	if(y >= 240) code |= TOP;             //above the clip window
-	else if(y < 0) code |= BOTTOM;     //below the clip window
+	if(y >= int2fx(240)) code |= TOP;      //above the clip window
+	else if(y < int2fx(0)) code |= BOTTOM; //below the clip window
 
-	if(x >= 400) code |= RIGHT;           //to the right of clip window
-	else if(x < 0) code |= LEFT;       //to the left of clip window
+	if(x >= int2fx(400)) code |= RIGHT;    //to the right of clip window
+	else if(x < int2fx(0)) code |= LEFT;   //to the left of clip window
 
 	return code;
 }
@@ -229,6 +232,74 @@ static inline int _s3d_compute_out_code(int32_t x, int32_t y)
 //diagonal from (xmin, ymin) to (xmax, ymax).
 void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
+	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
+	int outcode1, outcode2, outcodeOut;
+
+	s32 fx1 = int2fx(x1);
+	s32 fy1 = int2fx(y1);
+	s32 fx2 = int2fx(x2);
+	s32 fy2 = int2fx(y2);
+
+	//compute outcodes
+	outcode1 = _s3d_compute_out_code(fx1, fy1);
+	outcode2 = _s3d_compute_out_code(fx2, fy2);
+
+	while(1)
+	{
+		if((outcode1|outcode2) == 0) //logical or is 0. Trivially accept and get out of loop
+		{
+			_s3d_line_unsafe(buf, fx2int(fx1),fx2int(fy1), fx2int(fx2),fx2int(fy2), r,g,b);
+			return;
+		}
+		else if(outcode1 & outcode2) //logical and is not 0. Trivially reject and exit
+        {
+			return;
+		}
+		else
+		{
+			//failed both tests, so calculate the line segment to clip
+			//from an outside point to an intersection with clip edge
+			s32 x, y;
+			//At least one endpoint is outside the clip rectangle; pick it.
+			outcodeOut = outcode1 ? outcode1 : outcode2;
+			//Now find the intersection point;
+			//use formulas y = y0 + slope * (x - x0), x = x0 + (1/slope)* (y - y0)
+			if(outcodeOut & TOP) //point is above the clip rectangle
+			{
+				x = fx1 + fxdiv64( fxmul64(fx2-fx1,int2fx(240-1)-fy1) , fy2-fy1 );
+				y = int2fx(240-1);
+			}
+			else if(outcodeOut & BOTTOM) //point is below the clip rectangle
+			{
+				x = fx1 + fxdiv64( fxmul64(fx2-fx1,int2fx(0)-fy1) , fy2-fy1 );
+				y = int2fx(0);
+			}
+			else if(outcodeOut & RIGHT) //point is to the right of clip rectangle
+			{
+				y = fy1 + fxdiv64( fxmul64(fy2-fy1,int2fx(400-1)-fx1) , fx2-fx1 );
+				x = int2fx(400-1);
+			}
+			else //if(outcodeOut & LEFT) //point is to the left of clip rectangle
+			{
+				y = fy1 + fxdiv64( fxmul64(fy2-fy1,int2fx(0)-fx1) , fx2-fx1 );
+				x = int2fx(0);
+			}
+			//Now we move outside point to intersection point to clip
+			//and get ready for next pass.
+			if(outcodeOut == outcode1)
+			{
+				fx1 = x; fy1 = y;
+				outcode1 = _s3d_compute_out_code(fx1, fy1);
+			}
+			else
+			{
+				fx2 = x; fy2 = y;
+				outcode2 = _s3d_compute_out_code(fx2, fy2);
+			}
+		}
+	}
+
+#if 0
 	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
 	int outcode1, outcode2, outcodeOut;
 	int accept = 0;
@@ -299,6 +370,7 @@ void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 	}
 
 	if(accept) _s3d_line_unsafe(buf, fx1,fy1, fx2,fy2, r,g,b);
+#endif
 }
 
 //----------------------
@@ -488,6 +560,37 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 #endif
 }
 
+//----------------------
+
+void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
+{
+	if(y1 > y2) swapints(&y1,&y2);
+	if(x1 > x2) swapints(&x1,&x2);
+	
+	//y1 < y2, x1 < x2
+	
+	if(y2 < 0) return;
+	else if(y2 >= 240) y2 = 240-1;
+	
+	if(x2 < 0) return;
+	else if(x2 >= 400) x2 = 400-1;
+	
+	if(y1 >= 240) return;
+	else if(y1 < 0) y1 = 0;
+	
+	if(x1 >= 400) return;
+	else if(x1 < 0) x1 = 0;
+	
+	u8 * linebuf = &(buf[240*x1*3]);
+
+	for(;x1<=x2;x1++,linebuf+=240*3)
+	{
+		int y = y1;
+		u8 * p = linebuf + y*3;
+		for( ;y<=y2; y++) { *p++ = b; *p++ = g; *p++ = r; }
+	}
+}
+
 //---------------------------------------------------------------------------------------
 
 static u32 currcolor_r, currcolor_g, currcolor_b;
@@ -567,7 +670,7 @@ static s3d_primitive currmode = S3D_TRIANGLES;
 static u32 vtx_count = 0;
 #define MAX_VERTICES_IN_A_PRIMITIVE (4)
 static v4 vtx_array[MAX_VERTICES_IN_A_PRIMITIVE];
-static const u32 primitive_num_vertices[S3D_PRIMITIVE_NUMBER] = {2,3,4,2,3,4};
+static const u32 primitive_num_vertices[S3D_PRIMITIVE_NUMBER] = {1,2,3,4,2,3,4};
 static u32 curr_max_vertices;
 
 void S3D_PolygonBegin(s3d_primitive type)
@@ -580,6 +683,11 @@ void S3D_PolygonBegin(s3d_primitive type)
 //---------------------------------------------
 
 #define LINE_THICKNESS (3)
+
+void _s3d_draw_dot(int x, int y, int r, int g, int b)
+{
+	S3D_2D_PlotEx(curr_buf,LINE_THICKNESS,x,y,r,g,b);
+}
 
 void _s3d_draw_line(int x1, int y1, int x2, int y2, int r, int g, int b)
 {
@@ -631,6 +739,7 @@ extern m44 S3D_GLOBAL_MATRIX;
 inline void _s3d_global_matrix_update(void);
 
 //In polygon.c
+void _s3d_polygon_list_add_dot(v4 * a, int _r, int _g, int _b);
 void _s3d_polygon_list_add_line(v4 * a, v4 * b, int _r, int _g, int _b);
 void _s3d_polygon_list_add_triangle(v4 * a, v4 * b, v4 * c, int _r, int _g, int _b);
 void _s3d_polygon_list_add_quad(v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b);
@@ -653,6 +762,13 @@ void S3D_PolygonVertex(s32 x, s32 y, s32 z)
 	{
 		switch(currmode)
 		{
+			case S3D_DOTS:
+				_s3d_polygon_list_add_dot(&(vtx_array[0]),
+						currcolor_r,currcolor_g,currcolor_b);
+				
+				vtx_count = 0;
+				break;
+				
 			case S3D_LINES:
 				_s3d_polygon_list_add_line(&(vtx_array[0]),&(vtx_array[1]),
 						currcolor_r,currcolor_g,currcolor_b);
