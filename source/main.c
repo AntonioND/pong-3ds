@@ -70,6 +70,8 @@ int main(int argc, char **argv)
 	gfxSet3D(true); //OMG 3D!!!!1!!!
 	consoleInit(GFX_BOTTOM, NULL); //Initialize console on bottom screen.
 	
+	//Game_DrawBottomScreen();
+	
 	//To move the cursor you have tu print "\x1b[r;cH", where r and c are respectively
 	//the row and column where you want your cursor to move
 	//The top screen has 30 rows and 50 columns

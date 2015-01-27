@@ -28,9 +28,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/png source/png/libpng-1.6.9 source/png/zlib-1.2.8
+SOURCES		:=	source png png/libpng-1.6.9 png/zlib-1.2.8
 DATA		:=	data
-INCLUDES	:=	source source/png source/png/libpng-1.6.9 source/png/zlib-1.2.8
+INCLUDES	:=	source png png/libpng-1.6.9 png/zlib-1.2.8
 
 APP_TITLE	:=	Pong 3DS
 APP_DESCRIPTION	:=	3DS software rendering test.

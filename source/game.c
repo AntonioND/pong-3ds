@@ -10,6 +10,56 @@
 
 //-------------------------------------------------------------------------------------------------------
 
+#include "bottom_screen_png_bin.h"
+
+#include "numbers_png_bin.h"
+#define NUMBER_SIZE_PX (32)
+
+void _quad_blit_unsafe_24(u8 * buf, const u8 * src, int x, int y, int w, int h)
+{
+	u8 * linebuf = &(buf[(240*x+y)*3]);
+	
+	while(w--)
+	{
+		int i = h;
+		u8 * p = linebuf; linebuf += 240*3;
+		while(i--)
+		{
+			*p++ = *src++; *p++ = *src++; *p++ = *src++;
+		}
+	}
+}
+
+void _quad_blit_unsafe_32(u8 * buf, const u8 * src, int x, int y, int w, int h)
+{
+	u8 * linebuf = &(buf[(240*x+y)*3]);
+	
+	while(w--)
+	{
+		int i = h;
+		u8 * p = linebuf; linebuf += 240*3;
+		while(i--)
+		{
+			if(*src++) // alpha
+			{
+				*p++ = *src++; *p++ = *src++; *p++ = *src++;
+			}
+			else
+			{
+				p += 3; src += 3;
+			}
+		}
+	}
+}
+
+void draw_number(u8 * buf, int number, int x, int y)
+{
+	_quad_blit_unsafe_32(buf, numbers_png_bin+(NUMBER_SIZE_PX*NUMBER_SIZE_PX*4)*number,
+			x,y,NUMBER_SIZE_PX,NUMBER_SIZE_PX);
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 typedef struct {
 	s32 x,vx,ax;
 	
@@ -164,6 +214,12 @@ void draw_pad(int r, int g, int b)
 }
 
 
+
+void Game_DrawBottomScreen(void)
+{
+	_quad_blit_unsafe_24(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),bottom_screen_png_bin,0,0,320,240);
+}
+
 void Game_DrawScene(void)
 {
 	//3D Stuff
@@ -288,6 +344,12 @@ void Game_DrawScene(void)
 			S3D_2D_QuadAllignedFill(buf, x1,y1,x2,y2, 255,255,255);
 		}
 		*/
+
+		
+		draw_number(buf,4,10,240-32-10-1);
+		
+		draw_number(buf,5,400-32-10-1,240-32-10-1);
+
 	}
 }
 

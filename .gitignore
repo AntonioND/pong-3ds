@@ -1,3 +1,17 @@
-# List
+# Build folders
+
 build/
+png2bin/obj/
+
+# Binaries
+
+#*.3dsx
+#*.smdh
+*.elf
+*.exe
+
+# Project-generated files
+
 *.pnps
+*.layout
+*.depend
