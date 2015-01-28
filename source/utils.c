@@ -82,7 +82,7 @@ inline uint32_t fast_rand(void)
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
 
-void Screenshot_PNG(void)
+void PNGScreenshot_Top(void)
 {
 	u32 * dst = malloc(400*240*sizeof(u32));
 	if(dst)
@@ -102,7 +102,7 @@ void Screenshot_PNG(void)
 				dst[j*400+i] = (b<<16)|(g<<8)|r;
 			}
 			
-			snprintf(filename,sizeof(filename),"%llu.png",time); // long long unsigned int
+			snprintf(filename,sizeof(filename),"%llu_top.png",time); // long long unsigned int
 			Save_PNG(filename, 400, 240, (void*)dst,0);
 		}
 		else
@@ -115,7 +115,7 @@ void Screenshot_PNG(void)
 				int r = *src++;
 				dst[j*400+i] = (b<<16)|(g<<8)|r;
 			}
-			snprintf(filename,sizeof(filename),"%llu_left.png",time); // long long unsigned int
+			snprintf(filename,sizeof(filename),"%llu_top_l.png",time); // long long unsigned int
 			Save_PNG(filename, 400, 240, (void*)dst,0);
 			
 			src = gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL);
@@ -126,9 +126,34 @@ void Screenshot_PNG(void)
 				int r = *src++;
 				dst[j*400+i] = (b<<16)|(g<<8)|r;
 			}
-			snprintf(filename,sizeof(filename),"%llu_right.png",time); // long long unsigned int
+			snprintf(filename,sizeof(filename),"%llu_top_r.png",time); // long long unsigned int
 			Save_PNG(filename, 400, 240, (void*)dst,0);
 		}
+		
+		free(dst);
+	}
+}
+
+void PNGScreenshot_Bottom(void)
+{
+	u32 * dst = malloc(320*240*sizeof(u32));
+	if(dst)
+	{
+		char filename[60];
+		u64 time = osGetTime();
+		int i,j;
+		
+		u8 * src = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+		for(i = 0; i < 320; i++) for(j = 240-1; j >= 0; j--)
+		{
+			int b = *src++;
+			int g = *src++;
+			int r = *src++;
+			dst[j*320+i] = (b<<16)|(g<<8)|r;
+		}
+		
+		snprintf(filename,sizeof(filename),"%llu_bottom.png",time); // long long unsigned int
+		Save_PNG(filename, 320, 240, (void*)dst,0);
 		
 		free(dst);
 	}

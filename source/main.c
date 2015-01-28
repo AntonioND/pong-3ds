@@ -107,8 +107,6 @@ int main(int argc, char **argv)
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 		
-		if(keys & KEY_SELECT) Screenshot_PNG(); // AFTER DRAWING SCREENS!!
-
 		gspWaitForVBlank();
 	}
 	
@@ -131,7 +129,7 @@ int main(int argc, char **argv)
 		
 		S3D_FramebuffersClearTopScreen(0,0,0);
 		
-		Game_HandleAndDraw(keys);
+		Game_Handle(keys);
 		
 		u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 		Con_Print(buf,0,170,"3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
@@ -144,7 +142,11 @@ int main(int argc, char **argv)
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 		
-		if(keys & KEY_SELECT) Screenshot_PNG(); // AFTER DRAWING SCREENS!!
+		if(keys & KEY_SELECT)
+		{
+			PNGScreenshot_Top(); // AFTER DRAWING SCREENS!!
+			//PNGScreenshot_Bottom();
+		}
 		
 		Timing_EndFrame();
 		

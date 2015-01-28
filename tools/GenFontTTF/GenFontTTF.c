@@ -151,8 +151,26 @@ void Draw_Font(const char * font_path, const int font_size, const char * output_
             TextDrawChar(i);
 
             unsigned int w_ = w, h_ = hmax;
-            fwrite(&w_,1,sizeof(w_),f);
-            fwrite(&h_,1,sizeof(h_),f);
+            {
+                unsigned char b0 = (w_>>24)&0xFF;
+                unsigned char b1 = (w_>>16)&0xFF;
+                unsigned char b2 = (w_>>8)&0xFF;
+                unsigned char b3 = w_&0xFF;
+                fwrite(&b3,1,sizeof(b3),f);
+                fwrite(&b2,1,sizeof(b2),f);
+                fwrite(&b1,1,sizeof(b1),f);
+                fwrite(&b0,1,sizeof(b0),f);
+            }
+            {
+                unsigned char b0 = (h_>>24)&0xFF;
+                unsigned char b1 = (h_>>16)&0xFF;
+                unsigned char b2 = (h_>>8)&0xFF;
+                unsigned char b3 = h_&0xFF;
+                fwrite(&b3,1,sizeof(b3),f);
+                fwrite(&b2,1,sizeof(b2),f);
+                fwrite(&b1,1,sizeof(b1),f);
+                fwrite(&b0,1,sizeof(b0),f);
+            }
             current_file_offset += 2;
 
 #define FLIP_3DS
@@ -169,7 +187,14 @@ void Draw_Font(const char * font_path, const int font_size, const char * output_
 #endif // FLIP_3DS
                 {
                     uint32_t px = TextGetPixel(x,y);
-                    fwrite(&px,1,sizeof(px),f);
+                    unsigned char a = (px>>24)&0xFF;
+                    unsigned char b = (px>>16)&0xFF;
+                    unsigned char g = (px>>8)&0xFF;
+                    unsigned char r = px&0xFF;
+                    fwrite(&a,1,sizeof(a),f);
+                    fwrite(&b,1,sizeof(b),f);
+                    fwrite(&g,1,sizeof(g),f);
+                    fwrite(&r,1,sizeof(r),f);
                     current_file_offset ++;
                 }
             }
@@ -181,7 +206,16 @@ void Draw_Font(const char * font_path, const int font_size, const char * output_
     for(i = 0; i < 256; i++)
     {
         uint32_t off = glyph_file_offset[i];
-        fwrite(&off,1,sizeof(off),f);
+        {
+            unsigned char b0 = (off>>24)&0xFF;
+            unsigned char b1 = (off>>16)&0xFF;
+            unsigned char b2 = (off>>8)&0xFF;
+            unsigned char b3 = off&0xFF;
+            fwrite(&b3,1,sizeof(b3),f);
+            fwrite(&b2,1,sizeof(b2),f);
+            fwrite(&b1,1,sizeof(b1),f);
+            fwrite(&b0,1,sizeof(b0),f);
+        }
     }
 
     fclose(f);

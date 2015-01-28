@@ -235,8 +235,8 @@ void Game_DrawScene(void)
 		
 		m44 m;
 		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
-		S3D_ModelviewMatrixSet(&m);
-		m44_CreateRotationX(&m,-0x1000);
+		S3D_ModelviewMatrixSet(&m);	
+		m44_CreateRotationX(&m,-0x1800);
 		S3D_ModelviewMatrixMultiply(&m);
 		
 		S3D_LightAmbientColorSet(64,64,64);
@@ -347,7 +347,6 @@ void Game_DrawScene(void)
 			S3D_2D_QuadAllignedFill(buf, x1,y1,x2,y2, 255,255,255);
 		}
 		*/
-
 		
 		draw_number(buf,4,10,240-32-10-1);
 		
@@ -382,7 +381,7 @@ static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 	return 1; //partially or totally overlapping
 }
 
-void Game_HandleAndDraw(int keys)
+void Game_Handle(int keys)
 {
 	//---------------------------------------------------
 	//                 Handle game

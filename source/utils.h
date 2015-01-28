@@ -23,7 +23,8 @@ inline uint32_t fast_rand(void);
 
 //----------------------------------------------------------------------------------
 
-void Screenshot_PNG(void);
+void PNGScreenshot_Top(void);
+void PNGScreenshot_Bottom(void);
 
 //----------------------------------------------------------------------------------
 

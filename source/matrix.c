@@ -43,6 +43,35 @@ void m44_Add(m44 * m1, m44 * m2, m44 * dest)
 
 void m44_Multiply(m44 * m1, m44 * m2, m44 * dest)
 {
+#if 1 // Just a bit of optimization
+#define M44_MULTIPLY_ITERATION(row,col) \
+{ \
+	ptr_M44(dest,row,col) = \
+		fxmul64( ptr_M44(m1,row,0) , ptr_M44(m2,0,col) ) + \
+	    fxmul64( ptr_M44(m1,row,1) , ptr_M44(m2,1,col) ) + \
+		fxmul64( ptr_M44(m1,row,2) , ptr_M44(m2,2,col) ) + \
+		fxmul64( ptr_M44(m1,row,3) , ptr_M44(m2,3,col) ); \
+}
+	M44_MULTIPLY_ITERATION(0,0);
+	M44_MULTIPLY_ITERATION(0,1);
+	M44_MULTIPLY_ITERATION(0,2);
+	M44_MULTIPLY_ITERATION(0,3);
+	
+	M44_MULTIPLY_ITERATION(1,0);
+	M44_MULTIPLY_ITERATION(1,1);
+	M44_MULTIPLY_ITERATION(1,2);
+	M44_MULTIPLY_ITERATION(1,3);
+	
+	M44_MULTIPLY_ITERATION(2,0);
+	M44_MULTIPLY_ITERATION(2,1);
+	M44_MULTIPLY_ITERATION(2,2);
+	M44_MULTIPLY_ITERATION(2,3);
+	
+	M44_MULTIPLY_ITERATION(3,0);
+	M44_MULTIPLY_ITERATION(3,1);
+	M44_MULTIPLY_ITERATION(3,2);
+	M44_MULTIPLY_ITERATION(3,3);
+#else
 	u32 row,col;
 	for(col = 0; col < 4; col++) for(row = 0; row < 4; row++)
 	{
@@ -52,12 +81,27 @@ void m44_Multiply(m44 * m1, m44 * m2, m44 * dest)
 			sum += fxmul64( ptr_M44(m1,row,i) , ptr_M44(m2,i,col) );
 		ptr_M44(dest,row,col) = sum;
 	}
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void m44_v4_Multiply(m44 * m, v4 * v, v4 * dest)
 {
+#if 1 // Just a bit of optimization
+#define M44_V4_MULTIPLY_ITERATION(row) \
+{ \
+	ptr_V4(dest,row) = \
+		fxmul64( ptr_M44(m,row,0) , ptr_V4(v,0) ) + \
+	    fxmul64( ptr_M44(m,row,1) , ptr_V4(v,1) ) + \
+		fxmul64( ptr_M44(m,row,2) , ptr_V4(v,2) ) + \
+		fxmul64( ptr_M44(m,row,3) , ptr_V4(v,3) ); \
+}
+	M44_V4_MULTIPLY_ITERATION(0);
+	M44_V4_MULTIPLY_ITERATION(1);
+	M44_V4_MULTIPLY_ITERATION(2);
+	M44_V4_MULTIPLY_ITERATION(3);
+#else
 	u32 row;
 	for(row = 0; row < 4; row++)
 	{
@@ -67,6 +111,7 @@ void m44_v4_Multiply(m44 * m, v4 * v, v4 * dest)
 			sum += fxmul64( ptr_M44(m,row,i) , ptr_V4(v,i) );
 		ptr_V4(dest,row) = sum;
 	}
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------
