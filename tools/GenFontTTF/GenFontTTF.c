@@ -12,8 +12,6 @@
 
 TTF_Font * font;
 uint32_t char_buffer[300][300]; // X, Y, RGBA
-int font_maxy_global = 0;
-int font_miny_global = 0;
 
 void TextInit(const char * path, int size)
 {
@@ -30,21 +28,6 @@ void TextInit(const char * path, int size)
         printf("TTF_OpenFont() error: %s\n\n", TTF_GetError());
         exit(2);
     }
-
-    int i;
-    for(i = 0; i < 256; i++)
-    {
-        int maxy,miny;
-        if(TTF_GlyphMetrics(font,i,NULL,NULL,&miny,&maxy,NULL)==-1)
-        {
-            printf("TTF_GlyphMetrics() error: %s\n\n", TTF_GetError());
-            exit(4);
-        }
-        if(maxy > font_maxy_global) font_maxy_global = maxy;
-        if(miny < font_miny_global) font_miny_global = miny;
-    }
-
-    printf("Min/Max : %d/%d\n\n",font_miny_global,font_maxy_global);
 }
 
 int TextGetCharWidth(char c)
@@ -55,27 +38,29 @@ int TextGetCharWidth(char c)
     return _w;
 }
 
-int TextGetAscent(void)
-{
-    return font_maxy_global;
-}
-
-int TextGetDescent(void)
-{
-    return font_miny_global;
-}
+SDL_Color color = {0,0,0, 255};
+SDL_Color bg = {255,255,255, 255};
 
 void TextDrawChar(char c)
 {
     char text[2] = { c, '\0' };
 
-    SDL_Color color = {0,0,0, 255};
-    SDL_Color bg = {255,255,255, 255};
     SDL_Surface * text_surface;
-    if( !( text_surface = TTF_RenderText_Shaded(font,text,color,bg) ) )
+    if(bg.a == 0) // transparent bg
     {
-        printf("TTF_RenderText_Shaded() error: %s\n\n", TTF_GetError());
-        return;
+        if( !( text_surface = TTF_RenderText_Blended(font,text,color) ) )
+        {
+            printf("TTF_RenderText_Blended() error: %s\n\n", TTF_GetError());
+            return;
+        }
+    }
+    else
+    {
+        if( !( text_surface = TTF_RenderText_Shaded(font,text,color,bg) ) )
+        {
+            printf("TTF_RenderText_Shaded() error: %s\n\n", TTF_GetError());
+            return;
+        }
     }
 
     SDL_Surface * surface = SDL_ConvertSurfaceFormat(text_surface,SDL_PIXELFORMAT_ABGR8888,SDL_SWSURFACE);
@@ -93,7 +78,9 @@ void TextDrawChar(char c)
         exit(4);
     }
 
-    int yoffset = TTF_FontAscent(font) - TextGetAscent();
+//    int yoffset = TTF_FontAscent(font) - TextGetAscent();
+//printf("%d\n",yoffset);
+    int yoffset = 0;
 
     int i,j;
     for(j = 0; (j+yoffset) < surface->h; j++) for(i = 0; i < surface->w; i++)
@@ -116,8 +103,8 @@ void Draw_Font(const char * font_path, const int font_size, const char * output_
     TextInit(font_path,font_size);
     printf("\nFont loaded from:\n   %s\n   Size = %d\n\n",font_path,font_size);
 
-    int hmax = TextGetAscent() - TextGetDescent();
-    //int hmax = TTF_FontAscent(font) - TTF_FontDescent(font) + 1;
+    //int hmax = TextGetAscent() - TextGetDescent();
+    int hmax = TTF_FontAscent(font) - TTF_FontDescent(font) + 1;
 
     int wmax = 0;
     int i;
@@ -202,12 +189,49 @@ void Draw_Font(const char * font_path, const int font_size, const char * output_
 
 //--------------------------------------------------------------------
 
+uint32_t asciihex_to_int(const char * text)
+{
+    uint32_t value = 0, i = 0;
+    while(1)
+    {
+        char char_ = toupper(text[i++]); //end of string
+        if(char_ == '\0') return value;
+        else if(char_ >= '0' && char_ <= '9') value = (value * 16) + (char_ - '0');
+        else if(char_ >= 'a' && char_ <= 'f') value = (value * 16) + (char_ - 'a' + 10);
+        else if(char_ >= 'A' && char_ <= 'F') value = (value * 16) + (char_ - 'A' + 10);
+        else return 0;
+    }
+}
+
 int main(int argc, char * argv[])
 {
     if(argc < 4)
     {
-        printf("\nUsage: GenFontTTF [font_path.ttf] [font_size] [output_file.c]\n\n");
+        printf("\nUsage: GenFontTTF [font_path.ttf] [font_size] [output_file.c] (font_color) (bg_color)\n");
+        printf("\n       Colors: Optional. Hexadecimal format: AABBGGRR (example: FF0080FF)\n");
+        printf("\n               Alpha is only used in BG. 00 = transparent, others = solid\n");
+        printf("\n");
         return 1;
+    }
+
+    if(argc >= 5)
+    {
+        uint32_t fontcolor = asciihex_to_int(argv[4]);
+        color.r = fontcolor&0xFF;
+        color.g = (fontcolor>>8)&0xFF;
+        color.b = (fontcolor>>16)&0xFF;
+        color.a = (fontcolor>>24)&0xFF;
+        printf("Font color: (%d,%d,%d,%d)\n\n",color.r,color.g,color.b,color.a);
+    }
+
+    if(argc >= 6)
+    {
+        uint32_t bgcolor = asciihex_to_int(argv[5]);
+        bg.r = bgcolor&0xFF;
+        bg.g = (bgcolor>>8)&0xFF;
+        bg.b = (bgcolor>>16)&0xFF;
+        bg.a = (bgcolor>>24)&0xFF;
+        printf("BG color: (%d,%d,%d,%d)\n\n",bg.r,bg.g,bg.b,bg.a);
     }
 
     if(SDL_Init(0)) atexit(SDL_Quit);

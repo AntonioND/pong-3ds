@@ -17,9 +17,16 @@ void _quad_blit_unsafe_ignorealpha_32(u8 * buf, const u32 * src, int x, int y, i
 		while(i--)
 		{
 			u32 data = *src++;
-			*p++ = data&0xFF;
-			*p++ = (data>>8)&0xFF;
-			*p++ = (data>>16)&0xFF;
+			//if(data&0xFF000000)
+			//{
+				*p++ = data&0xFF;
+				*p++ = (data>>8)&0xFF;
+				*p++ = (data>>16)&0xFF;
+			//}
+			//else
+			//{
+			//	p += 3;
+			//}
 		}
 	}
 }
