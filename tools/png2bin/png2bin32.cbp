@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="png2bin32" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="./png2bin32" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add directory="../../png/" />
+					<Add directory="../../png/libpng-1.6.9" />
+					<Add directory="../../png/zlib-1.2.8" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debug">
+				<Option output="./png2bin32" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="png/libpng-1.6.9" />
+			<Add directory="png/zlib-1.2.8" />
+		</Compiler>
+		<Unit filename="../../png/libpng-1.6.9/png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/png.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngconf.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngdebug.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngerror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngget.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pnginfo.h" />
+		<Unit filename="../../png/libpng-1.6.9/pnglibconf.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngmem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngpread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngpriv.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngrio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngrtran.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngrutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngset.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngstruct.h" />
+		<Unit filename="../../png/libpng-1.6.9/pngtrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngwio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngwrite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngwtran.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/libpng-1.6.9/pngwutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/png_utils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/png_utils.h" />
+		<Unit filename="../../png/zlib-1.2.8/adler32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/compress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/crc32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/crc32.h" />
+		<Unit filename="../../png/zlib-1.2.8/deflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/deflate.h" />
+		<Unit filename="../../png/zlib-1.2.8/gzclose.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/gzguts.h" />
+		<Unit filename="../../png/zlib-1.2.8/gzlib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/gzread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/gzwrite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/infback.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/inffast.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/inffast.h" />
+		<Unit filename="../../png/zlib-1.2.8/inffixed.h" />
+		<Unit filename="../../png/zlib-1.2.8/inflate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/inflate.h" />
+		<Unit filename="../../png/zlib-1.2.8/inftrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/inftrees.h" />
+		<Unit filename="../../png/zlib-1.2.8/trees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/trees.h" />
+		<Unit filename="../../png/zlib-1.2.8/uncompr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/zconf.h" />
+		<Unit filename="../../png/zlib-1.2.8/zlib.h" />
+		<Unit filename="../../png/zlib-1.2.8/zutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../png/zlib-1.2.8/zutil.h" />
+		<Unit filename="png2bin32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

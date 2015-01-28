@@ -7,6 +7,7 @@
 #include "engine.h"
 #include "utils.h"
 #include "game.h"
+#include "ttf_console.h"
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -52,11 +53,13 @@ void _quad_blit_unsafe_32(u8 * buf, const u8 * src, int x, int y, int w, int h)
 	}
 }
 
+
 void draw_number(u8 * buf, int number, int x, int y)
 {
 	_quad_blit_unsafe_32(buf, numbers_png_bin+(NUMBER_SIZE_PX*NUMBER_SIZE_PX*4)*number,
 			x,y,NUMBER_SIZE_PX,NUMBER_SIZE_PX);
 }
+
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -349,7 +352,6 @@ void Game_DrawScene(void)
 		draw_number(buf,4,10,240-32-10-1);
 		
 		draw_number(buf,5,400-32-10-1,240-32-10-1);
-
 	}
 }
 

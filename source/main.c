@@ -9,6 +9,7 @@
 #include "engine.h"
 #include "utils.h"
 #include "game.h"
+#include "ttf_console.h"
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -68,24 +69,14 @@ int main(int argc, char **argv)
 	aptInit();
 	gfxInitDefault();
 	gfxSet3D(true); //OMG 3D!!!!1!!!
-	consoleInit(GFX_BOTTOM, NULL); //Initialize console on bottom screen.
 	
-	//Game_DrawBottomScreen();
-	
-	//To move the cursor you have tu print "\x1b[r;cH", where r and c are respectively
-	//the row and column where you want your cursor to move
-	//The top screen has 30 rows and 50 columns
-	//The bottom screen has 30 rows and 40 columns
-	printf("\x1b[0;16HPong 3DS");
-	printf("\x1b[2;14Hby AntonioND");
-	printf("\x1b[3;10H(Antonio Ni%co Diaz)",165);
-	printf("\x1b[28;5HSELECT: Screenshot.");
-	printf("\x1b[29;5HSTART:  Exit.");
+	//gfxSetDoubleBuffering(GFX_BOTTOM, false);
 	
 	//Try to get as much as CPU time as possible (?)
+	u32 percent;
 	{
 		aptOpenSession();
-		u32 i, percent;
+		u32 i;
 		for(i = 100; i > 1; i--)
 		{
 			APT_SetAppCpuTimeLimit(NULL,i);
@@ -93,9 +84,36 @@ int main(int argc, char **argv)
 			if(i == percent) break;
 		}
 		aptCloseSession();
-		printf("\x1b[15;5HCPU limit: %d%%",(int)percent);
 	}
 	
+	while(aptMainLoop())
+	{
+		
+		hidScanInput();
+		int keys = hidKeysHeld();
+		if(keys & KEY_A) break; // break in order to return to hbmenu
+		
+		u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+		Game_DrawBottomScreen();
+		Con_Print(buf,0,220-1,"Pong 3DS by AntonioND");
+		Con_Print(buf,0,200-1,"(Antonio Niño Díaz)");
+	
+		Con_Print(buf,0,100,"CPU limit: %d%%",(int)percent);
+
+		Con_Print(buf,0,40,"A: Start.");
+		Con_Print(buf,0,20,"SELECT: Screenshot.");
+		Con_Print(buf,0,0,"START:  Exit.");
+		
+		gfxFlushBuffers();
+		gfxSwapBuffers();
+		
+		if(keys & KEY_SELECT) Screenshot_PNG(); // AFTER DRAWING SCREENS!!
+
+		gspWaitForVBlank();
+	}
+	
+	
+
 	fast_srand(svcGetSystemTick());
 	
 	Game_Init();
@@ -115,9 +133,10 @@ int main(int argc, char **argv)
 		
 		Game_HandleAndDraw(keys);
 		
-		printf("\x1b[8;5H3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
-		printf("\x1b[10;5HFPS: %d  ",Timing_GetFPS());
-		printf("\x1b[11;5HCPU: %d%%   ",(int)Timing_GetCPUUsage());
+		u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+		Con_Print(buf,0,170,"3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
+		Con_Print(buf,0,150,"FPS: %d  ",Timing_GetFPS());
+		Con_Print(buf,0,130,"CPU: %d%% ",(int)Timing_GetCPUUsage());
 		
 		ProjectionMatricesConfigure();
 		DrawScreens();

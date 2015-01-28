@@ -1,7 +1,8 @@
 # Build folders
 
 build/
-png2bin/obj/
+tools/png2bin/obj/
+tools/GenFontTTF/obj/
 
 # Binaries
 
@@ -9,6 +10,7 @@ png2bin/obj/
 #*.smdh
 *.elf
 *.exe
+*.dll
 
 # Project-generated files
 
