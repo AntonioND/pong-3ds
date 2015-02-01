@@ -4,9 +4,9 @@
 
 //--------------------------------------------------------------------------------------------------
 
-void S3D_PolygonListClear(void);
+void S3D_PolygonListClear(int screen);
 
-void S3D_PolygonListFlush(int perform_z_sort);
+void S3D_PolygonListFlush(int screen, int perform_z_sort);
 
 //--------------------------------------------------------------------------------------------------
 

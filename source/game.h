@@ -6,7 +6,7 @@
 
 void Game_DrawBottomScreen(void);
 
-void Game_DrawScene(void);
+void Game_DrawScene(int screen);
 
 void Game_Init(void);
 

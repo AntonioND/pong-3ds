@@ -15,6 +15,14 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
 
+//s32 __svcGetCurrentProcessorNumber(void);
+
+//-------------------------------------------------------------------------------------------------------
+
+int SecondaryThreadExit = 0;
+
+Handle SecondaryThreadHandle, mutex_thread_drawing, mutex_sync_frame;
+
 //-------------------------------------------------------------------------------------------------------
 
 static m44 left_screen, right_screen;
@@ -46,26 +54,125 @@ static void ProjectionMatricesConfigure(void)
 
 static void DrawScreens(void)
 {
-	S3D_BufferSetScreen(GFX_LEFT);
-	S3D_ProjectionMatrixSet(&left_screen);
-	S3D_PolygonListClear();
-	Game_DrawScene();
-	S3D_PolygonListFlush(1);
+	S3D_BuffersSetup();
 	
-	float slider = CONFIG_3D_SLIDERSTATE;
-	if(slider == 0.0f) return;
+	//----------------------------------------
+	
+	svcWaitSynchronization(mutex_sync_frame, U64_MAX);
+	svcReleaseMutex(mutex_thread_drawing);
+	
+	//----------------------------------------
+	
+	int screen = 0;
+	S3D_ProjectionMatrixSet(screen, &left_screen);
+	S3D_PolygonListClear(screen);
+	Game_DrawScene(screen);
+	S3D_PolygonListFlush(screen, 1);
+	
+	//----------------------------------------
 
-	S3D_BufferSetScreen(GFX_RIGHT);
-	S3D_ProjectionMatrixSet(&right_screen);
-	S3D_PolygonListClear();
-	Game_DrawScene();
-	S3D_PolygonListFlush(1);
+	svcWaitSynchronization(mutex_thread_drawing, U64_MAX);
+	svcReleaseMutex(mutex_sync_frame);
+}
+
+//-------------------------------------------------------------------------------------------------------
+
+void SecondaryThreadFunction(u32 arg)
+{
+	//Running in CPU 1
+	//Con_Print(b,0,60,"Thread 1 CPU: %d",__svcGetCurrentProcessorNumber());
+
+	Timing_Start(1);
+
+	while(SecondaryThreadExit == 0)
+	{
+		while(SecondaryThreadExit == 0)
+		{
+			if(svcWaitSynchronization(mutex_thread_drawing, U64_MAX) == 0) break;
+		}
+		
+		if(SecondaryThreadExit) break;
+		
+		//----------------------------------------
+		
+		Timing_StartFrame(1);
+		
+		float slider = CONFIG_3D_SLIDERSTATE;
+		if(slider > 0.0f)
+		{
+			int screen = 1;
+			S3D_ProjectionMatrixSet(screen, &right_screen);
+			S3D_PolygonListClear(screen);
+			Game_DrawScene(screen);
+			S3D_PolygonListFlush(screen, 1);
+		}
+		
+		Timing_EndFrame(1);
+		
+		//----------------------------------------
+		
+		svcReleaseMutex(mutex_thread_drawing);
+		
+		while(SecondaryThreadExit == 0)
+		{
+			if(svcWaitSynchronization(mutex_sync_frame, U64_MAX) == 0) break;
+		}
+		
+		svcReleaseMutex(mutex_sync_frame);
+	}
+	
+	svcExitThread();
+}
+
+#define STACK_SIZE (0x2000)
+u64 SecondaryThreadStack[STACK_SIZE/sizeof(u64)];
+
+void ThreadInit(void)
+{
+	int disablecores = 1; // Run on the other CPU only
+	u32 prio = 0x18; // 0x18 ... 0x3F. Lower is higher. main() is 0x30
+	u32 arg = 0;
+	
+	s32 val = svcCreateThread(&SecondaryThreadHandle, SecondaryThreadFunction, arg,
+					(u32*)&(SecondaryThreadStack[STACK_SIZE/sizeof(u64)]), prio, disablecores);
+	if(val)
+	{
+		//error!
+	}
+	
+	val = svcCreateMutex(&mutex_thread_drawing, true); // initially locked
+	if(val)
+	{
+		//error!
+	}
+	
+	val = svcCreateMutex(&mutex_sync_frame, false); // initially released
+	if(val)
+	{
+		//error!
+	}
+}
+
+void ThreadEnd(void)
+{
+	SecondaryThreadExit = 1;
+
+	svcReleaseMutex(mutex_thread_drawing);
+	svcReleaseMutex(mutex_sync_frame);
+	
+	svcWaitSynchronization(SecondaryThreadHandle, U64_MAX);
+	
+	svcCloseHandle(mutex_thread_drawing);
+	svcCloseHandle(mutex_sync_frame);
+	svcCloseHandle(SecondaryThreadHandle);
 }
 
 //-------------------------------------------------------------------------------------------------------
 
 int main(int argc, char **argv)
 {
+	//Running in CPU 0
+	
 	aptInit();
 	gfxInitDefault();
 	gfxSet3D(true); //OMG 3D!!!!1!!!
@@ -88,7 +195,6 @@ int main(int argc, char **argv)
 	
 	while(aptMainLoop())
 	{
-		
 		hidScanInput();
 		int keys = hidKeysHeld();
 		if(keys & KEY_A) break; // break in order to return to hbmenu
@@ -99,6 +205,7 @@ int main(int argc, char **argv)
 		Con_Print(buf,0,200-1,"(Antonio Niño Díaz)");
 	
 		Con_Print(buf,0,100,"CPU limit: %d%%",(int)percent);
+		//Con_Print(buf,0,80,"Thread 0 CPU: %d",__svcGetCurrentProcessorNumber());
 
 		Con_Print(buf,0,40,"A: Start.");
 		Con_Print(buf,0,20,"SELECT: Screenshot.");
@@ -109,32 +216,30 @@ int main(int argc, char **argv)
 		
 		gspWaitForVBlank();
 	}
-	
-	
 
 	fast_srand(svcGetSystemTick());
 	
+	ThreadInit();
+	
 	Game_Init();
 	
-	Timing_Start();
+	Timing_Start(0);
 	
 	// Main loop
 	while(aptMainLoop())
 	{
-		Timing_StartFrame();
+		Timing_StartFrame(0);
 		
 		hidScanInput();
 		int keys = hidKeysHeld();
 		if(keys & KEY_START) break; // break in order to return to hbmenu
 		
-		S3D_FramebuffersClearTopScreen(0,0,0);
-		
 		Game_Handle(keys);
 		
 		u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 		Con_Print(buf,0,170,"3D Slider: %f        ",CONFIG_3D_SLIDERSTATE);
-		Con_Print(buf,0,150,"FPS: %d  ",Timing_GetFPS());
-		Con_Print(buf,0,130,"CPU: %d%% ",(int)Timing_GetCPUUsage());
+		Con_Print(buf,0,150,"FPS: %d %d ",Timing_GetFPS(0),Timing_GetFPS(1));
+		Con_Print(buf,0,130,"CPU: %d%% %d%% ",(int)Timing_GetCPUUsage(0),(int)Timing_GetCPUUsage(1));
 		
 		ProjectionMatricesConfigure();
 		DrawScreens();
@@ -148,12 +253,14 @@ int main(int argc, char **argv)
 			//PNGScreenshot_Bottom();
 		}
 		
-		Timing_EndFrame();
+		Timing_EndFrame(0);
 		
 		gspWaitForVBlank();
 	}
 	
 	Game_End();
+	
+	ThreadEnd();
 
 	gfxExit();
 	aptExit();

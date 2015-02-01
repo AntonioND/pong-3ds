@@ -8,11 +8,11 @@
 
 //----------------------------------------------------------------------------------
 
-void Timing_Start(void);
-void Timing_EndFrame(void);
-void Timing_StartFrame(void);
-int Timing_GetFPS(void);
-float Timing_GetCPUUsage(void);
+void Timing_Start(int cpu_core);
+void Timing_EndFrame(int cpu_core);
+void Timing_StartFrame(int cpu_core);
+int Timing_GetFPS(int cpu_core);
+float Timing_GetCPUUsage(int cpu_core);
 
 //----------------------------------------------------------------------------------
 

@@ -8,14 +8,16 @@
 
 //----------------------------------------------------------------------------------
 
+void S3D_BuffersSetup(void); // must be called at the beginning of each frame
+
+u8 * S3D_BufferGet(int screen);
+
+//----------------------------------------------------------------------------------
+
 // in utils_asm.s
 void S3D_FramebufferFill(void * dst, u32 color, u32 bottom_screen); // color = 31 _BGR 0
 
-void S3D_FramebuffersClearTopScreen(int r, int g, int b);
-
-void S3D_BufferSetScreen(int right);
-
-u8 * S3D_BufferGetCurrent(void);
+void S3D_FramebuffersClearTopScreen(int screen, int r, int g, int b);
 
 //--------------------------------------------------------------------------------------------------
 
@@ -52,29 +54,29 @@ typedef enum {
 	S3D_PRIMITIVE_NUMBER
 } s3d_primitive;
 
-void S3D_PolygonBegin(s3d_primitive type);
+void S3D_PolygonBegin(int screen, s3d_primitive type);
 
-void S3D_PolygonVertex(s32 x, s32 y, s32 z);
+void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z);
 
 // Stores a color for the following polygons and sets drawing color to that color. Anulates the current normal.
-void S3D_PolygonColor(u32 r, u32 g, u32 b); 
+void S3D_PolygonColor(int screen, u32 r, u32 g, u32 b);
 
 // Sets the drawing color to current stored color affected by light.
-void S3D_PolygonNormal(s32 x, s32 y, s32 z);
+void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z);
 
 //--------------------------------------------------------------------------------------------------
 
-void S3D_SetCulling(int draw_front, int draw_back);
+void S3D_SetCulling(int screen, int draw_front, int draw_back);
 
 //--------------------------------------------------------------------------------------------------
 
-void S3D_LightAmbientColorSet(int r, int g, int b);
+void S3D_LightAmbientColorSet(int screen, int r, int g, int b);
 
-void S3D_LightDirectionalVectorSet(int index, s32 x, s32 y, s32 z);
-void S3D_LightDirectionalColorSet(int index, int r, int g, int b);
+void S3D_LightDirectionalVectorSet(int screen, int index, s32 x, s32 y, s32 z);
+void S3D_LightDirectionalColorSet(int screen, int index, int r, int g, int b);
 
 #define S3D_LIGHT_N(i) (1<<(i))
-void S3D_LightEnable(u32 enable_mask);
+void S3D_LightEnable(int screen, u32 enable_mask);
 
 //--------------------------------------------------------------------------------------------------
 

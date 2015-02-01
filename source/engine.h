@@ -12,14 +12,14 @@
 
 //----------------------------------------------------------------------------
 
-void S3D_ProjectionMatrixSet(m44 * m);
+void S3D_ProjectionMatrixSet(int screen, m44 * m);
 
 //----------------------------------------------------------------------------
 
-void S3D_ModelviewMatrixSet(m44 * m);
-void S3D_ModelviewMatrixMultiply(m44 * m);
-void S3D_ModelviewMatrixPush(void);
-void S3D_ModelviewMatrixPop(void);
+void S3D_ModelviewMatrixSet(int screen, m44 * m);
+void S3D_ModelviewMatrixMultiply(int screen, m44 * m);
+void S3D_ModelviewMatrixPush(int screen);
+void S3D_ModelviewMatrixPop(int screen);
 
 //----------------------------------------------------------------------------
 

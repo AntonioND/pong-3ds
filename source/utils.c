@@ -14,44 +14,46 @@
 #define TICKS_PER_SEC (268123480)
 #define TICKS_PER_VBL (268123480/60)
 
-int frame_count;
-u64 last_ticks = 0;
-int _FPS = 0;
-u64 cpu_last_ticks = 0;
-float _CPU = 0;
+#define MAX_CORES (2)
 
-void Timing_Start(void)
+int frame_count[MAX_CORES] = { 0, 0 };
+u64 last_ticks[MAX_CORES] = { 0, 0 };
+int _FPS[MAX_CORES] = { 0, 0 };
+u64 cpu_last_ticks[MAX_CORES] = { 0, 0 };
+float _CPU[MAX_CORES] = { 0, 0 };
+
+void Timing_Start(int cpu_core)
 {
-	last_ticks = svcGetSystemTick();
+	last_ticks[cpu_core] = svcGetSystemTick();
 }
 
-void Timing_EndFrame(void)
+void Timing_EndFrame(int cpu_core)
 {
-	frame_count ++;
-	u64 inc_ticks = svcGetSystemTick() - cpu_last_ticks;
-	_CPU = (float)inc_ticks*((float)100.0f/(float)TICKS_PER_VBL);
+	frame_count[cpu_core] ++;
+	u64 inc_ticks = svcGetSystemTick() - cpu_last_ticks[cpu_core];
+	_CPU[cpu_core] = (float)inc_ticks*((float)100.0f/(float)TICKS_PER_VBL);
 }
 
-void Timing_StartFrame(void)
+void Timing_StartFrame(int cpu_core)
 {
-	if(svcGetSystemTick() >= last_ticks + TICKS_PER_SEC)
+	if(svcGetSystemTick() >= last_ticks[cpu_core] + TICKS_PER_SEC)
 	{
-		last_ticks += TICKS_PER_SEC;
-		_FPS = frame_count;
-		frame_count = 0;	
+		last_ticks[cpu_core] += TICKS_PER_SEC;
+		_FPS[cpu_core] = frame_count[cpu_core];
+		frame_count[cpu_core] = 0;	
 	}
 	
-	cpu_last_ticks = svcGetSystemTick();
+	cpu_last_ticks[cpu_core] = svcGetSystemTick();
 }
 
-int Timing_GetFPS(void)
+int Timing_GetFPS(int cpu_core)
 {
-	return _FPS;
+	return _FPS[cpu_core];
 }
 
-float Timing_GetCPUUsage(void)
+float Timing_GetCPUUsage(int cpu_core)
 {
-	return _CPU;
+	return _CPU[cpu_core];
 }
 
 

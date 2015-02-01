@@ -81,139 +81,139 @@ _ball_t ball;
 
 //-------------------------------------------------------------------------------------------------------
 
-void draw_scenario(int r, int g, int b)
+void draw_scenario(int screen, int r, int g, int b)
 {
 	// Surface...
 	
-	S3D_PolygonColor(r,g,b);
+	S3D_PolygonColor(screen, r,g,b);
 	
-	S3D_PolygonBegin(S3D_QUADS);
+	S3D_PolygonBegin(screen, S3D_QUADS);
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
 	
-	S3D_PolygonListFlush(0);
+	S3D_PolygonListFlush(screen, 0);
 	
 	// Lines...
 	
-	S3D_PolygonColor(r/2,g/2,b/2);
+	S3D_PolygonColor(screen, r/2,g/2,b/2);
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	S3D_PolygonBegin(S3D_LINES);
+	S3D_PolygonBegin(screen, S3D_LINES);
 	
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
 	
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(10.5)); 
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5)); 
 	
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(5.0)); 	
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(5.0));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(5.0)); 	
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(5.0));
 	
-	S3D_PolygonListFlush(0);
+	S3D_PolygonListFlush(screen, 0);
 	
 	// Borders ...
 	
-	S3D_PolygonColor(r,g,b);
+	S3D_PolygonColor(screen, r,g,b);
 	
-	S3D_PolygonBegin(S3D_QUADS);
+	S3D_PolygonBegin(screen, S3D_QUADS);
 	
-	S3D_PolygonNormal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(-7),float2fx(1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(-7),float2fx(1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(-7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
 	
-	S3D_PolygonNormal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(1),float2fx(10.5));
-	S3D_PolygonVertex(float2fx(7),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(1),float2fx(10.5));
+	S3D_PolygonVertex(screen, float2fx(7),float2fx(1),float2fx(-0.5));
 	
-	S3D_PolygonListFlush(1);
+	S3D_PolygonListFlush(screen, 1);
 }
 
-void draw_ball(int r, int g, int b)
+void draw_ball(int screen, int r, int g, int b)
 {
-	S3D_PolygonColor(r,g,b);
+	S3D_PolygonColor(screen, r,g,b);
 	
-	S3D_PolygonBegin(S3D_QUAD_STRIP);
+	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
 	
-	S3D_PolygonNormal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(-1),float2fx(0.75));
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75)); 
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(0.75)); 
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
 
-	S3D_PolygonNormal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
 
-	S3D_PolygonVertex(float2fx(0.75),float2fx(0.5),float2fx(0.75)); 			
-	S3D_PolygonVertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(0.75)); 			
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(-0.75));
 	
-	S3D_PolygonBegin(S3D_QUAD_STRIP);
+	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
 
-	S3D_PolygonNormal(float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
 	
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(-1),float2fx(-0.75));
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
-	S3D_PolygonVertex(float2fx(0.75),float2fx(0.5),float2fx(-0.75));
-	S3D_PolygonVertex(float2fx(0.75),float2fx(-1),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(-0.75));
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(-1),float2fx(-0.75));
 
-	S3D_PolygonNormal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
 
-	S3D_PolygonVertex(float2fx(0.75),float2fx(0.5),float2fx(0.75));
-	S3D_PolygonVertex(float2fx(0.75),float2fx(-1),float2fx(0.75));
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(0.75));
+	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(-1),float2fx(0.75));
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(0.0),float2fx(1.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(1.0));
 
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(0.5),float2fx(0.75));
-	S3D_PolygonVertex(float2fx(-0.75),float2fx(-1),float2fx(0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(0.75));
+	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(0.75));
 }
 
-void draw_pad(int r, int g, int b)
+void draw_pad(int screen, int r, int g, int b)
 {
-	S3D_PolygonColor(r,g,b);
+	S3D_PolygonColor(screen, r,g,b);
 	
-	S3D_PolygonBegin(S3D_QUAD_STRIP);
+	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
 	
-	S3D_PolygonNormal(float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(-2),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(-2),float2fx(-1),float2fx(0.5));
-	S3D_PolygonVertex(float2fx(-2),float2fx(1),float2fx(0.5)); 
-	S3D_PolygonVertex(float2fx(-2),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(-1),float2fx(0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(1),float2fx(0.5)); 
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(1),float2fx(-0.5));
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(1.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(float2fx(2),float2fx(1),float2fx(0.5)); 			
-	S3D_PolygonVertex(float2fx(2),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(1),float2fx(0.5)); 			
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(1),float2fx(-0.5));
 	
-	S3D_PolygonBegin(S3D_QUAD_STRIP);
+	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
 	
-	S3D_PolygonVertex(float2fx(-2),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(-2),float2fx(1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(2),float2fx(1),float2fx(-0.5));
-	S3D_PolygonVertex(float2fx(2),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(-1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(1),float2fx(-0.5));
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(-1),float2fx(-0.5));
 	
-	S3D_PolygonNormal(float2fx(1.0),float2fx(0.0),float2fx(0.0));
+	S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
 
-	S3D_PolygonVertex(float2fx(2),float2fx(1),float2fx(0.5));
-	S3D_PolygonVertex(float2fx(2),float2fx(-1),float2fx(0.5));
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(1),float2fx(0.5));
+	S3D_PolygonVertex(screen, float2fx(2),float2fx(-1),float2fx(0.5));
 	
-	S3D_PolygonNormal(float2fx(0.0),float2fx(0.0),float2fx(1.0));
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(1.0));
 
-	S3D_PolygonVertex(float2fx(-2),float2fx(1),float2fx(0.5));
-	S3D_PolygonVertex(float2fx(-2),float2fx(-1),float2fx(0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(1),float2fx(0.5));
+	S3D_PolygonVertex(screen, float2fx(-2),float2fx(-1),float2fx(0.5));
 }
 
 
@@ -223,27 +223,30 @@ void Game_DrawBottomScreen(void)
 	_quad_blit_unsafe_24(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),bottom_screen_png_bin,0,0,320,240);
 }
 
-void Game_DrawScene(void)
+
+void Game_DrawScene(int screen)
 {
+	S3D_FramebuffersClearTopScreen(screen, 0,0,0);
+
 	//3D Stuff
 	{
 		//---------------------------------------------------
 		//                 Configuration
 		//---------------------------------------------------
 		
-		S3D_SetCulling(1,0);
+		S3D_SetCulling(screen, 1,0);
 		
 		m44 m;
 		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
-		S3D_ModelviewMatrixSet(&m);	
+		S3D_ModelviewMatrixSet(screen, &m);	
 		m44_CreateRotationX(&m,-0x1800);
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
-		S3D_LightAmbientColorSet(64,64,64);
+		S3D_LightAmbientColorSet(screen, 64,64,64);
 		
-		S3D_LightEnable(S3D_LIGHT_N(0));
-		S3D_LightDirectionalColorSet(0, 192,192,192);
-		S3D_LightDirectionalVectorSet(0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
+		S3D_LightEnable(screen, S3D_LIGHT_N(0));
+		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
+		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
 		
 		//---------------------------------------------------
 		//                 Draw scenario
@@ -252,47 +255,47 @@ void Game_DrawScene(void)
 		// Camera rotation effect...
 		m44_CreateRotationY(&m,pad.x);
 		//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
 		m44_CreateRotationZ(&m,-pad.x);
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
-		draw_scenario(0,0,255);
-		
+		draw_scenario(screen, 0,0,255);
+
 		//---------------------------------------------------
 		//                     IA
 		//---------------------------------------------------
 		
-		S3D_ModelviewMatrixPush();
+		S3D_ModelviewMatrixPush(screen);
 		
 		m44_CreateTranslation(&m,pad_ia.x,0,int2fx(10));
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
-		draw_pad(255,0,0);
+		draw_pad(screen, 255,0,0);
 		
-		S3D_ModelviewMatrixPop();
+		S3D_ModelviewMatrixPop(screen);
 		
 		//---------------------------------------------------
 		//                     Ball
 		//---------------------------------------------------
 		
-		S3D_ModelviewMatrixPush();
+		S3D_ModelviewMatrixPush(screen);
 		
 		m44_CreateTranslation(&m,ball.x,0,ball.z);
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
-		draw_ball(128,128,128);
+		draw_ball(screen, 128,128,128);
 		
-		S3D_ModelviewMatrixPop();
+		S3D_ModelviewMatrixPop(screen);
 		
 		//---------------------------------------------------
 		//                     Player
 		//---------------------------------------------------
 		
-		S3D_ModelviewMatrixPush();
+		S3D_ModelviewMatrixPush(screen);
 		
 		m44_CreateTranslation(&m,pad.x,0,0);
-		S3D_ModelviewMatrixMultiply(&m);
+		S3D_ModelviewMatrixMultiply(screen, &m);
 		
 		/*
 		int keys = hidKeysHeld();
@@ -302,20 +305,21 @@ void Game_DrawScene(void)
 		if(keys & KEY_R) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
 		*/
 		
-		draw_pad(0,255,0);
+		draw_pad(screen, 0,255,0);
 		
-		S3D_ModelviewMatrixPop();
+		S3D_ModelviewMatrixPop(screen);
 		
 		//---------------------------------------------------
 		//                     Flush
 		//---------------------------------------------------
 		
-		S3D_PolygonListFlush(1);
+		S3D_PolygonListFlush(screen, 1);
+
 	}
 	
 	//2D stuff
 	{
-		u8 * buf = S3D_BufferGetCurrent();
+		u8 * buf = S3D_BufferGet(screen);
 		
 		
 		/*
@@ -353,9 +357,6 @@ void Game_DrawScene(void)
 		draw_number(buf,5,400-32-10-1,240-32-10-1);
 	}
 }
-
-
-
 
 //-------------------------------------------------------------------------------------------------------
 
