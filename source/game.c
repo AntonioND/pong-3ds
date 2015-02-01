@@ -81,62 +81,63 @@ _ball_t ball;
 
 //-------------------------------------------------------------------------------------------------------
 
+static inline int max(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+static inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
 void draw_scenario(int screen, int r, int g, int b)
 {
-	// Surface...
-	
-	S3D_PolygonColor(screen, r,g,b);
+	//Surface ...
 	
 	S3D_PolygonBegin(screen, S3D_QUADS);
 	
-	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
-	
-	S3D_PolygonListFlush(screen, 0);
-	
-	// Lines...
-	
-	S3D_PolygonColor(screen, r/2,g/2,b/2);
-	
-	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
-	
-	S3D_PolygonBegin(screen, S3D_LINES);
-	
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
-	
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5)); 
-	
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(5.0)); 	
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(5.0));
-	
+	int i,j;
+	for(j = 0; j < 4; j++) for(i = 0; i < 4; i++)
+	{
+		S3D_PolygonColor(screen, 0,max(255-((i+j)*40),0),0);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		int xbase = float2fx(-6.75) + float2fx(3.5)*j - float2fx(0.1);
+		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase);
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase + float2fx(3.2));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase + float2fx(3.2));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase);
+	}
+
 	S3D_PolygonListFlush(screen, 0);
 	
 	// Borders ...
 	
-	S3D_PolygonColor(screen, r,g,b);
-	
-	S3D_PolygonBegin(screen, S3D_QUADS);
-	
-	S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(1),float2fx(-0.5));
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1),float2fx(-0.5));
-	
-	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(-0.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(-1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(1),float2fx(10.5));
-	S3D_PolygonVertex(screen, float2fx(7),float2fx(1),float2fx(-0.5));
-	
+	for(i = 0; i < 4; i++)
+	{
+		S3D_PolygonColor(screen, 0,0,max(255-(i<<6),0));
+		
+		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
+		
+		S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase);
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase + float2fx(3.2));
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase + float2fx(3.2));
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase);
+		
+		S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase);
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase + float2fx(3.0));
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase + float2fx(3.0));
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase);
+	}
+
 	S3D_PolygonListFlush(screen, 1);
 }
 
@@ -218,11 +219,47 @@ void draw_pad(int screen, int r, int g, int b)
 
 
 
+//-------------------------------------------------------------------------------------------------------
+
+struct {
+	int r,g,b;
+	int vr,vg,vb;
+} _clear_color;
+
+void ClearColorInit(void)
+{
+	_clear_color.r = _clear_color.g = _clear_color.b = 64;
+	_clear_color.vr = (fast_rand() & 3) + 1;
+	_clear_color.vg = (fast_rand() & 3) + 1;
+	_clear_color.vb = (fast_rand() & 3) + 1;
+	if(fast_rand() & 1) _clear_color.vr = -_clear_color.vr;
+	if(fast_rand() & 1) _clear_color.vg = -_clear_color.vg;
+	if(fast_rand() & 1) _clear_color.vb = -_clear_color.vb;
+}
+
+void ClearColorHandle(void)
+{
+	_clear_color.r += _clear_color.vr;
+	_clear_color.g += _clear_color.vg;
+	_clear_color.b += _clear_color.vb;
+	
+	if(_clear_color.r > 128) { _clear_color.r = 128; _clear_color.vr = -_clear_color.vr; }
+	else if(_clear_color.r < 0) { _clear_color.r = 0; _clear_color.vr = -_clear_color.vr; }
+	
+	if(_clear_color.g > 128) { _clear_color.g = 128; _clear_color.vg = -_clear_color.vg; }
+	else if(_clear_color.g < 0) { _clear_color.g = 0; _clear_color.vg = -_clear_color.vg; }
+	
+	if(_clear_color.b > 128) { _clear_color.b = 128; _clear_color.vb = -_clear_color.vb; }
+	else if(_clear_color.b < 0) { _clear_color.b = 0; _clear_color.vb = -_clear_color.vb; }
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 int rotation = 0;
 
 void Game_DrawMenu(int screen)
 {
-	S3D_FramebuffersClearTopScreen(screen, 0,0,0);
+	S3D_FramebuffersClearTopScreen(screen, _clear_color.r,_clear_color.g,_clear_color.b);
 
 	//3D Stuff
 	{
@@ -233,7 +270,7 @@ void Game_DrawMenu(int screen)
 		S3D_SetCulling(screen, 1,0);
 		
 		m44 m;
-		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
+		m44_CreateTranslation(&m,0,int2fx(0),int2fx(12));
 		S3D_ModelviewMatrixSet(screen, &m);	
 		m44_CreateRotationX(&m,-0x1800);
 		S3D_ModelviewMatrixMultiply(screen, &m);
@@ -264,7 +301,7 @@ void Game_DrawMenu(int screen)
 
 void Game_DrawRoom1(int screen)
 {
-	S3D_FramebuffersClearTopScreen(screen, 0,0,0);
+	S3D_FramebuffersClearTopScreen(screen, _clear_color.r,_clear_color.g,_clear_color.b);
 
 	//3D Stuff
 	{
@@ -309,7 +346,7 @@ void Game_DrawRoom1(int screen)
 		m44_CreateTranslation(&m,pad_ia.x,0,int2fx(10));
 		S3D_ModelviewMatrixMultiply(screen, &m);
 		
-		draw_pad(screen, 255,0,0);
+		draw_pad(screen, 255,255,0);
 		
 		S3D_ModelviewMatrixPop(screen);
 		
@@ -343,7 +380,7 @@ void Game_DrawRoom1(int screen)
 		if(keys & KEY_R) { int i; for(i = 0; i < 5; i++) draw_pad(0,255,0); };
 		*/
 		
-		draw_pad(screen, 0,255,0);
+		draw_pad(screen, 255,0,0);
 		
 		S3D_ModelviewMatrixPop(screen);
 		
@@ -397,17 +434,24 @@ void Game_DrawRoom1(int screen)
 
 //-------------------------------------------------------------------------------------------------------
 
-int GAME_ROOM = 0;
+typedef enum {
+	GAME_ROOM_MENU,
+	GAME_ROOM_1
+} _game_room_e;
+
+_game_room_e GAME_ROOM = 0;
+
+//-------------------------------------------------------------------------------------------------------
 
 void Game_DrawScreenTop(int screen)
 {
 	switch(GAME_ROOM)
 	{
-		case 0:
+		case GAME_ROOM_MENU:
 			Game_DrawMenu(screen);
 			break;
 			
-		case 1:
+		case GAME_ROOM_1:
 			Game_DrawRoom1(screen);
 			break;
 			
@@ -422,7 +466,7 @@ void Game_DrawScreenBottom(void)
 
 	switch(GAME_ROOM)
 	{
-		case 0:
+		case GAME_ROOM_MENU:
 		{
 			_quad_blit_unsafe_24(buf,bottom_screen_png_bin,0,0,320,240);
 			
@@ -435,7 +479,7 @@ void Game_DrawScreenBottom(void)
 			break;
 		}
 		
-		case 1:
+		case GAME_ROOM_1:
 		{
 			//Con_Print(buf,0,170,"3D Slider: %f   ",CONFIG_3D_SLIDERSTATE);
 			Con_Print(buf,0,150,"FPS: %d %d ",Timing_GetFPS(0),Timing_GetFPS(1));
@@ -463,6 +507,8 @@ void Game_Init(void)
 	ball.vx = fast_rand() & 1 ? ball.vx : -ball.vx;
 	ball.vz = (int2fx(1)>>3) + (fast_rand() & ((int2fx(1)>>3)-1));
 	ball.vz = fast_rand() & 1 ? ball.vz : -ball.vz;
+	
+	ClearColorInit();
 }
 
 static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
@@ -474,11 +520,13 @@ static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 
 void Game_Handle(void)
 {
+	ClearColorHandle();
+	
 	int keys = hidKeysHeld();
 	
 	switch(GAME_ROOM)
 	{
-		case 0:
+		case GAME_ROOM_MENU:
 		{
 			rotation += 0x100;
 			if(keys & KEY_A) GAME_ROOM = 1;
@@ -486,7 +534,7 @@ void Game_Handle(void)
 			break;
 		}
 		
-		case 1:
+		case GAME_ROOM_1:
 		{
 			break;
 		}

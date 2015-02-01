@@ -435,23 +435,22 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
 				
 				int sx = x1; int sy = y1; int ey = y1;
-				if(x2 >= 400) x2 = 400-1; if(x3 >= 400) x3 = 400-1; // limit X coordinate
 				
 				if(dy1 > dy2)
 				{
-					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 					ey = y2;
-					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
 				else //if(dy1 <= dy2)
 				{
-					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
 					ey = y2;
-					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
@@ -460,19 +459,17 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 			}
 			else  // x1 != x2, x1 != x3, x2 == x3
 			{
-				if(x2 >= 400) x2 = 400-1; // limit X coordinate
-				
 				int sx = x1; int sy = y1; int ey = y1;
 				
 				if(dy1 > dy2)
 				{
-					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 					if( sx >= 0 ) _s3d_vertical_line_downwards(linebuf, sx,fx2int(y3),fx2int(y2), r,g,b);
 				}
 				else //if(dy1 <= dy2)
 				{
-					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
 					if( sx >= 0 ) _s3d_vertical_line_downwards(linebuf, sx,fx2int(y2),fx2int(y3), r,g,b);
 				}
@@ -497,20 +494,18 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 			{
 				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
 				
-				if(x3 >= 400) x3 = 400-1; // limit X coordinate
-				
 				int sx = x1;
 				int sy = y1; int ey = y2;
 				
 				if(y1 > y2)
 				{
-					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b);
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
 				else //if(dy1 <= dy2)
 				{
-					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
 						_s3d_vertical_line_downwards(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 					_s3d_plot_safe(buf, x3,fx2int(y3), r,g,b);
 				}
