@@ -12,7 +12,7 @@
 //----------------------------------------------------------------------------------
 
 #define TICKS_PER_SEC (268123480)
-#define TICKS_PER_VBL (268123480/60)
+#define TICKS_PER_VBL (TICKS_PER_SEC/60)
 
 #define MAX_CORES (2)
 

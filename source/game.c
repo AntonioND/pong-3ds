@@ -4,7 +4,7 @@
 #include <3ds.h>
 #include <stdlib.h>
 
-#include "engine.h"
+#include "S3D/engine.h"
 #include "utils.h"
 #include "game.h"
 #include "ttf_console.h"
@@ -218,13 +218,51 @@ void draw_pad(int screen, int r, int g, int b)
 
 
 
-void Game_DrawBottomScreen(void)
+int rotation = 0;
+
+void Game_DrawMenu(int screen)
 {
-	_quad_blit_unsafe_24(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),bottom_screen_png_bin,0,0,320,240);
+	S3D_FramebuffersClearTopScreen(screen, 0,0,0);
+
+	//3D Stuff
+	{
+		//---------------------------------------------------
+		//                 Configuration
+		//---------------------------------------------------
+		
+		S3D_SetCulling(screen, 1,0);
+		
+		m44 m;
+		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
+		S3D_ModelviewMatrixSet(screen, &m);	
+		m44_CreateRotationX(&m,-0x1800);
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		m44_CreateScale(&m,int2fx(2),int2fx(2),int2fx(2));
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		
+		S3D_LightAmbientColorSet(screen, 64,64,64);
+		
+		S3D_LightEnable(screen, S3D_LIGHT_N(0));
+		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
+		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
+		
+		//---------------------------------------------------
+		//                 Draw cube
+		//---------------------------------------------------
+		
+		m44_CreateRotationY(&m,rotation);
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		
+		draw_ball(screen, 0,0,255);
+	}
+	
+	//2D Stuff
+	{
+		
+	}
 }
 
-
-void Game_DrawScene(int screen)
+void Game_DrawRoom1(int screen)
 {
 	S3D_FramebuffersClearTopScreen(screen, 0,0,0);
 
@@ -321,7 +359,6 @@ void Game_DrawScene(int screen)
 	{
 		u8 * buf = S3D_BufferGet(screen);
 		
-		
 		/*
 		{
 			static int x1 = 10,y1=10,x2 = 300, y2 = 200;
@@ -360,6 +397,59 @@ void Game_DrawScene(int screen)
 
 //-------------------------------------------------------------------------------------------------------
 
+int GAME_ROOM = 0;
+
+void Game_DrawScreenTop(int screen)
+{
+	switch(GAME_ROOM)
+	{
+		case 0:
+			Game_DrawMenu(screen);
+			break;
+			
+		case 1:
+			Game_DrawRoom1(screen);
+			break;
+			
+		default:
+			break;
+	}
+}
+
+void Game_DrawScreenBottom(void)
+{
+	u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+
+	switch(GAME_ROOM)
+	{
+		case 0:
+		{
+			_quad_blit_unsafe_24(buf,bottom_screen_png_bin,0,0,320,240);
+			
+			Con_Print(buf,0,220-1,"Pong 3DS by AntonioND");
+			Con_Print(buf,0,200-1,"(Antonio Niño Díaz)");
+			
+			Con_Print(buf,0,40,"A: Start.");
+			Con_Print(buf,0,20,"SELECT: Screenshot.");
+			Con_Print(buf,0,0,"START:  Exit.");
+			break;
+		}
+		
+		case 1:
+		{
+			//Con_Print(buf,0,170,"3D Slider: %f   ",CONFIG_3D_SLIDERSTATE);
+			Con_Print(buf,0,150,"FPS: %d %d ",Timing_GetFPS(0),Timing_GetFPS(1));
+			Con_Print(buf,0,130,"CPU: %d%% %d%% ",(int)Timing_GetCPUUsage(0),(int)Timing_GetCPUUsage(1));
+			break;
+		}
+		
+		default:
+			break;
+	}
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 void Game_Init(void)
 {
 	pad.x = 0; pad.vx = 0; pad.ax = 0;
@@ -382,8 +472,29 @@ static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 	return 1; //partially or totally overlapping
 }
 
-void Game_Handle(int keys)
+void Game_Handle(void)
 {
+	int keys = hidKeysHeld();
+	
+	switch(GAME_ROOM)
+	{
+		case 0:
+		{
+			rotation += 0x100;
+			if(keys & KEY_A) GAME_ROOM = 1;
+			return;
+			break;
+		}
+		
+		case 1:
+		{
+			break;
+		}
+		
+		default:
+			return;
+	}
+	
 	//---------------------------------------------------
 	//                 Handle game
 	//---------------------------------------------------

@@ -6,8 +6,7 @@
 //----------------------------------------------------------------------------
 
 m44 S3D_GLOBAL_MATRIX[2]; // global variable
-
-static m44 PROJECTION[2], MODELVIEW[2];
+m44 PROJECTION[2], MODELVIEW[2];
 static u32 global_updated[2] = { 0, 0 };
 
 #define MATRIX_STACK_SIZE (8)

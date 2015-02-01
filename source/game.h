@@ -4,13 +4,12 @@
 
 //----------------------------------------------------------------------------------
 
-void Game_DrawBottomScreen(void);
-
-void Game_DrawScene(int screen);
-
 void Game_Init(void);
 
-void Game_Handle(int keys);
+void Game_Handle(void);
+
+void Game_DrawScreenTop(int screen);
+void Game_DrawScreenBottom(void);
 
 void Game_End(void);
 

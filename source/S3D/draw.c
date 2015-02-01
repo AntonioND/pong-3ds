@@ -8,6 +8,13 @@
 #include "engine.h"
 #include "draw.h"
 
+//---------------------------------------------
+
+//In engine.c
+extern m44 S3D_GLOBAL_MATRIX[2];
+extern m44 PROJECTION[2], MODELVIEW[2];
+inline void _s3d_global_matrix_update(int screen);
+
 //--------------------------------------------------------------------------------------------------
 
 static u8 * curr_buf[2];
@@ -75,8 +82,8 @@ static inline int max(int a, int b)
 
 static inline int sgn(int x)
 {
-	if(x < 0) return -1;
 	if(x > 0) return 1;
+	if(x < 0) return -1;
 	return 0;
 }
 
@@ -612,7 +619,11 @@ void S3D_PolygonColor(int screen, u32 r, u32 g, u32 b)
 
 void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z)
 {
-	v4 l = { x, y, z, 0};
+	v4 temp_l = { x, y, z, 0};
+	v4 l;
+	_s3d_global_matrix_update(screen);
+	
+	m44_v4_Multiply(&MODELVIEW[screen],&temp_l,&l);
 	
 	int fr = amb_r[screen], fg = amb_g[screen], fb = amb_b[screen]; // add factors
 	
@@ -735,10 +746,6 @@ void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, 
 }
 
 //---------------------------------------------
-
-//In engine.c
-extern m44 S3D_GLOBAL_MATRIX[2];
-inline void _s3d_global_matrix_update(int screen);
 
 //In polygon.c
 void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b);
