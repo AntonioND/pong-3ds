@@ -1,5 +1,5 @@
 
-@ void S3D_FramebufferFill(void * dst, u32 color, u32 bottom_screen) ; color = 31 _BGR 0
+@ void S3D_FramebufferFill(void * dst, u32 color, u32 bottom_screen) @ color = 31 _BGR 0
 
 @ r0 = dst
 @ r1 = color
@@ -10,7 +10,7 @@
 	.global	S3D_FramebufferFill
 	
 S3D_FramebufferFill:
-	push	{r4-r7}
+	push	{r3-r7}
 	
 	orr		r1,r1,r1,lsl #24  @ r1 = RBGR
 	
@@ -19,7 +19,6 @@ S3D_FramebufferFill:
 	
 	mov		r4,r3,lsr #8      @ (r4 = _GRB)
 	orr		r4,r4,r4,lsl #24  @ r4 = BGRB
-
 	
 	@ Duplicate registers
 	mov		r5,r1
@@ -33,11 +32,13 @@ S3D_FramebufferFill:
 	orreq	r2,#(((400*240)/256)&0xFF00) @ Top
 	
 .loop:
+	
 	.rept	8*4
 	stmia	r0!, {r1, r3-r7}  @ 8 pixels per instruction, 256 pixels per iteration
 	.endr
+	
 	subs	r2,r2,#1
 	bne		.loop
 	
-	pop		{r4-r7}
+	pop		{r3-r7}
 	bx	lr

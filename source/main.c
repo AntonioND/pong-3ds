@@ -60,7 +60,7 @@ static void DrawScreens(void)
 	
 	//----------------------------------------
 	
-	svcWaitSynchronization(MutexSyncFrame, U64_MAX);
+	svcWaitSynchronization(MutexSyncFrame, U64_MAX); // Don't wait forever in main() thread
 	svcReleaseMutex(MutexThreadDrawing);
 	
 	//----------------------------------------
@@ -77,7 +77,7 @@ static void DrawScreens(void)
 	
 	//----------------------------------------
 
-	svcWaitSynchronization(MutexThreadDrawing, U64_MAX);
+	svcWaitSynchronization(MutexThreadDrawing, U64_MAX); // Don't wait forever in main() thread
 	svcReleaseMutex(MutexSyncFrame);
 }
 
