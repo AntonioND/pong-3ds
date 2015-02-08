@@ -31,11 +31,21 @@ void Game_End(void);
 
 //--------------------------------------------------------------------------------------------------
 
-static inline u32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
+// returns how much the segments overlap
+static inline s32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 {
-	if(amin < bmin) { if(amax < bmin) return 0; } //completely out (left)
-	else if(amin > bmax) return 0; // completely out (right)
-	return 1; //partially or totally overlapping
+	if(amin < bmin)
+	{
+		if(amax < bmin) return 0;
+		else if(amax < bmax) return amax - bmin;
+		else return bmax - bmin;
+	}
+	else
+	{
+		if(bmax < amin) return 0;
+		else if(bmax < amax) return bmax - amin;
+		else return amax - amin;
+	}
 }
 
 //--------------------------------------------------------------------------------------------------

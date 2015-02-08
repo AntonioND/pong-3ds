@@ -2,6 +2,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #include <string.h>
+#include <limits.h>
 
 #include "S3D/engine.h"
 #include "game.h"
@@ -135,13 +136,19 @@ static inline int abs(int a)
 	return a > 0 ? a : -a;
 }
 
-static void _ball_UpdateCollisions(void)
+static inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+// margins are only valid if there is a collision in that axis
+static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 {
 	BALL.collisions = 0;
 	
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
-
+	
 	int ballxmin, ballxmax, ballymin, ballymax, ballzmin, ballzmax;
 	Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,&ballzmin,&ballzmax);
 	
@@ -160,90 +167,189 @@ static void _ball_UpdateCollisions(void)
 		Pad_P1GetBounds(&padxmin,&padxmax,&padymin,&padymax,&padzmin,&padzmax);
 		Pad_P1GetPosition(&px,&py,&pz);
 	}
-
-	int ball_coliding = 0;/*
-	if(_segments_overlap(padxmin,padxmax, ballxmin,ballxmax))
+	
+	int x_ball_coliding = 0, y_ball_coliding = 0, z_ball_coliding = 0;
 	{
-		if(_segments_overlap(padymin,padymax, ballymin,ballymax))
+		s32 xoverlap, yoverlap, zoverlap;
+		xoverlap = _segments_overlap(padxmin,padxmax, ballxmin,ballxmax);
+		if(xoverlap)
 		{
-			if(_segments_overlap(padymin,padymax, ballymin,ballymax))
+			yoverlap = _segments_overlap(padymin,padymax, ballymin,ballymax);
+			if(yoverlap)
 			{
-				ball_coliding = 1;
+				zoverlap = _segments_overlap(padzmin,padzmax, ballzmin,ballzmax);
+				if(zoverlap)
+				{
+					int min_overlap = min(xoverlap,min(yoverlap,zoverlap));
+					if(min_overlap == xoverlap) x_ball_coliding = 1;
+					if(min_overlap == yoverlap) y_ball_coliding = 1;
+					if(min_overlap == zoverlap) z_ball_coliding = 1;
+				}
 			}
 		}
-	}*/
+	}
+	
+	int bx,by,bz;
+	Ball_GetPosition(&bx,&by,&bz);
 	
 	// X
 	{
-		if(ballxmin <= roomxmin) BALL.collisions |= COLLISION_X_MIN;
-		if(ballxmax >= roomxmax) BALL.collisions |= COLLISION_X_MAX;
+		int xm = INT_MAX;
 		
-		if(ball_coliding)
+		if(ballxmin <= roomxmin)
 		{
-			if(BALL.x < px) BALL.collisions |= COLLISION_X_MAX;
-			else BALL.collisions |= COLLISION_X_MIN;
+			BALL.collisions |= COLLISION_X_MIN;  xm = abs(roomxmin - ballxmin);
 		}
+		else if(ballxmax >= roomxmax)
+		{
+			BALL.collisions |= COLLISION_X_MAX;  xm = abs(ballxmax - roomxmax);
+		}
+		
+		if(x_ball_coliding)
+		{
+			int temp = 0;
+			if(BALL.x < px)
+			{
+				BALL.collisions |= COLLISION_X_MAX;  temp = abs(ballxmax - padxmin);
+			}
+			else
+			{
+				BALL.collisions |= COLLISION_X_MIN;  temp = abs(ballxmin - padxmax);
+			}
+			
+			if(temp < xm) xm = temp; // save the greatest value to separate the ball
+		}
+		
+		if(xmargin) *xmargin = xm+1;
 	}
 	
 	// Y
 	{
-		if(ballymin <= roomymin) BALL.collisions |= COLLISION_Y_MIN;
-		if(ballymax >= roomymax) BALL.collisions |= COLLISION_Y_MAX;
+		int ym = INT_MAX;
 		
-		if(ball_coliding)
+		if(ballymin <= roomymin)
 		{
-			if(BALL.y < py) BALL.collisions |= COLLISION_Y_MAX;
-			else BALL.collisions |= COLLISION_Y_MIN;
+			BALL.collisions |= COLLISION_Y_MIN;  ym = abs(roomymin - ballymin);
 		}
+		else if(ballymax >= roomxmax)
+		{
+			BALL.collisions |= COLLISION_Y_MAX;  ym = abs(ballymax - roomymax);
+		}
+		
+		if(y_ball_coliding)
+		{
+			int temp = 0;
+			if(BALL.y < py)
+			{
+				BALL.collisions |= COLLISION_Y_MAX;  temp = abs(ballymax - padymin);
+			}
+			else
+			{
+				BALL.collisions |= COLLISION_Y_MIN;  temp = abs(ballymin - padymax);
+			}
+			
+			if(temp < ym) ym = temp; // save the greatest value to separate the ball
+		}
+		
+		if(ymargin) *ymargin = ym+1;
 	}
 	
 	// Z
 	{
-		if(ballzmin <= roomzmin) BALL.collisions |= COLLISION_Z_MIN;
-		if(ballzmax >= roomzmax) BALL.collisions |= COLLISION_Z_MAX;
+		int zm = INT_MAX;
 		
-		if(ball_coliding)
+		if(ballzmin <= roomzmin)
 		{
-			if(BALL.z < pz) BALL.collisions |= COLLISION_Z_MAX;
-			else BALL.collisions |= COLLISION_Z_MIN;
+			BALL.collisions |= COLLISION_Z_MIN;  zm = abs(roomzmin - ballzmin);
 		}
+		else if(ballymax >= roomxmax)
+		{
+			BALL.collisions |= COLLISION_Z_MAX;  zm = abs(ballzmax - roomzmax);
+		}
+		
+		if(z_ball_coliding)
+		{
+			int temp = 0;
+			if(BALL.z < pz)
+			{
+				BALL.collisions |= COLLISION_Z_MAX;  temp = abs(ballzmax - padzmin);
+			}
+			else
+			{
+				BALL.collisions |= COLLISION_Z_MIN;  temp = abs(ballzmin - padzmax);
+			}
+			
+			if(temp < zm) zm = temp; // save the greatest value to separate the ball
+		}
+		
+		if(zmargin) *zmargin = zm+1;
 	}
 }
 
 void Ball_Handle(void)
 {
+		int keys = hidKeysHeld();
+		if(keys & KEY_A) BALL.vx = +float2fx(0.1);
+		else if(keys & KEY_Y) BALL.vx = -float2fx(0.1);
+		else BALL.vx = 0;
+		if(keys & KEY_X) BALL.vz = +float2fx(0.1);
+		else if(keys & KEY_B) BALL.vz = -float2fx(0.1);
+		else BALL.vz = 0;
+		if(keys & KEY_L) BALL.vy = +float2fx(0.1);
+		else if(keys & KEY_R) BALL.vy = -float2fx(0.1);
+		else BALL.vy = 0;
+
+
+
 	BALL.x += BALL.vx; BALL.y += BALL.vy; BALL.z += BALL.vz;
 	
-	_ball_UpdateCollisions();
+	int xm,ym,zm;
+	_ball_UpdateCollisions(&xm,&ym,&zm);
 	
 	if(BALL.collisions & COLLISION_X_MIN)
 	{
-		BALL.vx = +abs(BALL.vx); BALL.ax = +abs(BALL.ax); BALL.x -= BALL.vx;
+		if(BALL.vx < 0)
+		{
+			BALL.x += xm; BALL.vx = 0; BALL.ax = 0;
+		}
 	}
 	else if(BALL.collisions & COLLISION_X_MAX)
 	{
-		BALL.vx = -abs(BALL.vx); BALL.ax = -abs(BALL.ax); BALL.x -= BALL.vx;
+		if(BALL.vx > 0)
+		{
+			BALL.x -= xm; BALL.vx = 0; BALL.ax = 0;
+		}
 	}
 	
 	if(BALL.collisions & COLLISION_Y_MIN)
 	{
-		BALL.vy = +abs(BALL.vy); BALL.ay = +abs(BALL.ay); BALL.y -= BALL.vy;
+		if(BALL.vy < 0)
+		{
+			BALL.y += ym; BALL.vy = 0; BALL.ay = 0;
+		}
 	}
 	else if(BALL.collisions & COLLISION_Y_MAX)
 	{
-		BALL.vy = -abs(BALL.vy); BALL.ay = -abs(BALL.ay); BALL.y -= BALL.vy;
+		if(BALL.vy > 0)
+		{
+			BALL.y -= ym; BALL.vy = 0; BALL.ay = 0;
+		}
 	}
 	
 	if(BALL.collisions & COLLISION_Z_MIN)
 	{
-		BALL.vz = +abs(BALL.vz); BALL.az = +abs(BALL.az); BALL.z -= BALL.vz;
+		if(BALL.vz < 0)
+		{
+			BALL.z += zm; BALL.vz = 0; BALL.az = 0;
+		}
 	}
 	else if(BALL.collisions & COLLISION_Z_MAX)
 	{
-		BALL.vz = -abs(BALL.vz); BALL.az = -abs(BALL.az); BALL.z -= BALL.vz;
+		if(BALL.vz > 0)
+		{
+			BALL.z -= zm; BALL.vz = 0; BALL.az = 0;
+		}
 	}
-	
-	_ball_UpdateCollisions();
 	
 	BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
 }

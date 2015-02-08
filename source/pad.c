@@ -2,6 +2,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #include <string.h>
+#include <limits.h>
 
 #include <3ds.h>
 
@@ -176,7 +177,13 @@ static inline int abs(int a)
 	return a > 0 ? a : -a;
 }
 
-static void _pad_UpdateCollisions(_pad_t * p)
+static inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+// margins are only valid if there is a collision in that axis
+static void _pad_UpdateCollisions(_pad_t * p, int * xmargin, int * ymargin, int * zmargin)
 {
 	p->collisions = 0;
 	
@@ -189,55 +196,121 @@ static void _pad_UpdateCollisions(_pad_t * p)
 	int padxmin, padxmax, padymin, padymax, padzmin, padzmax;
 	_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,&padzmin,&padzmax);
 	
-	int ball_coliding = 0;/*
-	if(_segments_overlap(padxmin,padxmax, ballxmin,ballxmax))
+	int x_ball_coliding = 0, y_ball_coliding = 0, z_ball_coliding = 0;
 	{
-		if(_segments_overlap(padymin,padymax, ballymin,ballymax))
+		s32 xoverlap, yoverlap, zoverlap;
+		xoverlap = _segments_overlap(padxmin,padxmax, ballxmin,ballxmax);
+		if(xoverlap)
 		{
-			if(_segments_overlap(padymin,padymax, ballymin,ballymax))
+			yoverlap = _segments_overlap(padymin,padymax, ballymin,ballymax);
+			if(yoverlap)
 			{
-				ball_coliding = 1;
+				zoverlap = _segments_overlap(padzmin,padzmax, ballzmin,ballzmax);
+				if(zoverlap)
+				{
+					int min_overlap = min(xoverlap,min(yoverlap,zoverlap));
+					if(min_overlap == xoverlap) x_ball_coliding = 1;
+					if(min_overlap == yoverlap) y_ball_coliding = 1;
+					if(min_overlap == zoverlap) z_ball_coliding = 1;
+				}
 			}
 		}
-	}*/
+	}
 	
 	int bx,by,bz;
 	Ball_GetPosition(&bx,&by,&bz);
 	
 	// X
 	{
-		if(padxmin <= roomxmin) p->collisions |= COLLISION_X_MIN;
-		if(padxmax >= roomxmax) p->collisions |= COLLISION_X_MAX;
+		int xm = INT_MAX;
 		
-		if(ball_coliding)
+		if(padxmin <= roomxmin)
 		{
-			if(p->x < bx) p->collisions |= COLLISION_X_MAX;
-			else p->collisions |= COLLISION_X_MIN;
+			p->collisions |= COLLISION_X_MIN;  xm = abs(roomxmin - padxmin);
 		}
+		else if(padxmax >= roomxmax)
+		{
+			p->collisions |= COLLISION_X_MAX;  xm = abs(padxmax - roomxmax);
+		}
+		
+		if(x_ball_coliding)
+		{
+			int temp = 0;
+			if(p->x < bx)
+			{
+				p->collisions |= COLLISION_X_MAX;  temp = abs(padxmax - ballxmin);
+			}
+			else
+			{
+				p->collisions |= COLLISION_X_MIN;  temp = abs(padxmin - ballxmax);
+			}
+			
+			if(temp < xm) xm = temp; // save the greatest value to separate the pad
+		}
+		
+		if(xmargin) *xmargin = xm+1;
 	}
 	
 	// Y
 	{
-		if(padymin <= roomymin) p->collisions |= COLLISION_Y_MIN;
-		if(padymax >= roomymax) p->collisions |= COLLISION_Y_MAX;
+		int ym = INT_MAX;
 		
-		if(ball_coliding)
+		if(padymin <= roomymin)
 		{
-			if(p->y < by) p->collisions |= COLLISION_Y_MAX;
-			else p->collisions |= COLLISION_Y_MIN;
+			p->collisions |= COLLISION_Y_MIN;  ym = abs(roomymin - padymin);
 		}
+		else if(padymax >= roomymax)
+		{
+			p->collisions |= COLLISION_Y_MAX;  ym = abs(padymax - roomymax);
+		}
+		
+		if(y_ball_coliding)
+		{
+			int temp = 0;
+			if(p->y < by)
+			{
+				p->collisions |= COLLISION_Y_MAX;  temp = abs(padymax - ballymin);
+			}
+			else
+			{
+				p->collisions |= COLLISION_Y_MIN;  temp = abs(padymin - ballymax);
+			}
+			
+			if(temp < ym) ym = temp; // save the greatest value to separate the pad
+		}
+		
+		if(ymargin) *ymargin = ym+1;
 	}
 	
 	// Z
 	{
-		if(padzmin <= roomzmin) p->collisions |= COLLISION_Z_MIN;
-		if(padzmax >= roomzmax) p->collisions |= COLLISION_Z_MAX;
+		int zm = INT_MAX;
 		
-		if(ball_coliding)
+		if(padzmin <= roomzmin)
 		{
-			if(p->z < bz) p->collisions |= COLLISION_Z_MAX;
-			else p->collisions |= COLLISION_Z_MIN;
+			p->collisions |= COLLISION_Z_MIN;  zm = abs(roomzmin - padzmin);
 		}
+		else if(padzmax >= roomzmax)
+		{
+			p->collisions |= COLLISION_Z_MAX;  zm = abs(padzmax - roomzmax);
+		}
+		
+		if(z_ball_coliding)
+		{
+			int temp = 0;
+			if(p->z < bz)
+			{
+				p->collisions |= COLLISION_Z_MAX;  temp = abs(padzmax - ballzmin);
+			}
+			else
+			{
+				p->collisions |= COLLISION_Z_MIN;  temp = abs(padzmin - ballzmax);
+			}
+			
+			if(temp < zm) zm = temp; // save the greatest value to separate the pad
+		}
+		
+		if(zmargin) *zmargin = zm+1;
 	}
 }
 
@@ -252,22 +325,27 @@ void Pad_HandleAll(void)
 		else if(keys & KEY_LEFT) p->vx = -float2fx(0.25);
 		else p->vx = 0;
 		
+		if(keys & KEY_UP) p->vz = +float2fx(0.25);
+		else if(keys & KEY_DOWN) p->vz = -float2fx(0.25);
+		else p->vz = 0;
+		
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
-		_pad_UpdateCollisions(p);
+		int xm,ym,zm;
+		_pad_UpdateCollisions(p,&xm,&ym,&zm);
 		
 		if(p->collisions & COLLISION_X_MIN)
 		{
 			if(p->vx < 0)
 			{
-				p->x -= p->vx; p->vx = 0; p->ax = 0;
+				p->x += xm; p->vx = 0; p->ax = 0;
 			}
 		}
 		else if(p->collisions & COLLISION_X_MAX)
 		{
 			if(p->vx > 0)
 			{
-				p->x -= p->vx; p->vx = 0; p->ax = 0;
+				p->x -= xm; p->vx = 0; p->ax = 0;
 			}
 		}
 		
@@ -275,14 +353,14 @@ void Pad_HandleAll(void)
 		{
 			if(p->vy < 0)
 			{
-				p->y -= p->vy; p->vy = 0; p->ay = 0;
+				p->y += ym; p->vy = 0; p->ay = 0;
 			}
 		}
 		else if(p->collisions & COLLISION_Y_MAX)
 		{
 			if(p->vy > 0)
 			{
-				p->y -= p->vy; p->vy = 0; p->ay = 0;
+				p->y -= ym; p->vy = 0; p->ay = 0;
 			}
 		}
 		
@@ -290,58 +368,82 @@ void Pad_HandleAll(void)
 		{
 			if(p->vz < 0)
 			{
-				p->z -= p->vz; p->vz = 0; p->az = 0;
+				p->z += zm; p->vz = 0; p->az = 0;
 			}
 		}
 		else if(p->collisions & COLLISION_Z_MAX)
 		{
 			if(p->vz > 0)
 			{
-				p->z -= p->vz; p->vz = 0; p->az = 0;
+				p->z -= zm; p->vz = 0; p->az = 0;
 			}
 		}
-		
-		_pad_UpdateCollisions(p);
 		
 		p->vx += p->ax; p->vy += p->ay; p->vz += p->az;
 	}
 	
 	// Player 2
 	{
-		_pad_t * p = &PAD2;
+		_pad_t * p = &PAD1;
+		/*
+		int keys = hidKeysHeld();
+		if(keys & KEY_RIGHT) p->vx = +float2fx(0.25);
+		else if(keys & KEY_LEFT) p->vx = -float2fx(0.25);
+		else p->vx = 0;
 		
+		if(keys & KEY_UP) p->vz = +float2fx(0.25);
+		else if(keys & KEY_DOWN) p->vz = -float2fx(0.25);
+		else p->vz = 0;
+		*/
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
-		_pad_UpdateCollisions(p);
+		int xm,ym,zm;
+		_pad_UpdateCollisions(p,&xm,&ym,&zm);
 		
 		if(p->collisions & COLLISION_X_MIN)
 		{
-			p->vx = +abs(p->vx); p->ax = +abs(p->ax); p->x -= p->vx;
+			if(p->vx < 0)
+			{
+				p->x += xm; p->vx = 0; p->ax = 0;
+			}
 		}
 		else if(p->collisions & COLLISION_X_MAX)
 		{
-			p->vx = -abs(p->vx); p->ax = -abs(p->ax); p->x -= p->vx;
+			if(p->vx > 0)
+			{
+				p->x -= xm; p->vx = 0; p->ax = 0;
+			}
 		}
 		
 		if(p->collisions & COLLISION_Y_MIN)
 		{
-			p->vy = +abs(p->vy); p->ay = +abs(p->ay); p->y -= p->vy;
+			if(p->vy < 0)
+			{
+				p->y += ym; p->vy = 0; p->ay = 0;
+			}
 		}
 		else if(p->collisions & COLLISION_Y_MAX)
 		{
-			p->vy = -abs(p->vy); p->ay = -abs(p->ay); p->y -= p->vy;
+			if(p->vy > 0)
+			{
+				p->y -= ym; p->vy = 0; p->ay = 0;
+			}
 		}
 		
 		if(p->collisions & COLLISION_Z_MIN)
 		{
-			p->vz = +abs(p->vz); p->az = +abs(p->az); p->z -= p->vz;
+			if(p->vz < 0)
+			{
+				p->z += zm; p->vz = 0; p->az = 0;
+			}
 		}
 		else if(p->collisions & COLLISION_Z_MAX)
 		{
-			p->vz = -abs(p->vz); p->az = -abs(p->az); p->z -= p->vz;
+			if(p->vz > 0)
+			{
+				p->z -= zm; p->vz = 0; p->az = 0;
+			}
 		}
-		
-		_pad_UpdateCollisions(p);
 		
 		p->vx += p->ax; p->vy += p->ay; p->vz += p->az;
 	}
