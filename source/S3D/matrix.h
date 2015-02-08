@@ -55,6 +55,12 @@ static inline s32 fxmul64(s32 fa, s32 fb) { return (((s64)fa)*fb)>>FIX_SHIFT; }
 // Divide two fixed point values using 64bit math.
 static inline s32 fxdiv64(s32 fa, s32 fb) { return ( ((s64)fa)<<FIX_SHIFT)/(fb); }
 
+// Square root.
+u32 fxsqrt(u32 fx);
+
+// Square root using 64bit math.
+u32 fxsqrt64(u32 fx);
+
 //----------------------------------------------------------------------------
 
 typedef s32 v4[4];

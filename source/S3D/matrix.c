@@ -7,6 +7,56 @@
 
 //--------------------------------------------------------------------------------------------------
 
+u32 fxsqrt(u32 fx)
+{
+	register u32 root, remainder, place;
+
+	root = 0;
+	remainder = fx;
+	place = 0x40000000;
+
+	while (place > remainder)
+		place = place >> 2;
+	while (place)
+	{
+		if (remainder >= root + place)
+		{
+			remainder = remainder - root - place;
+			root = root + (place << 1);
+		}
+		root = root >> 1;
+		place = place >> 2;
+	}
+
+	return root<<(FIX_SHIFT/2);
+}
+
+u32 fxsqrt64(u32 fx)
+{
+	register u64 root, remainder, place;
+
+	root = 0;
+	remainder = ((u64)fx) << FIX_SHIFT;
+	place = 0x4000000000000000ULL;
+
+	while (place > remainder)
+		place = place >> 2;
+	while (place)
+	{
+		if (remainder >= root + place)
+		{
+			remainder = remainder - root - place;
+			root = root + (place << 1);
+		}
+		root = root >> 1;
+		place = place >> 2;
+	}
+
+	return root;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res)
 {
 	// |  i  j  k |

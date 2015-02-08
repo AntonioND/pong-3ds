@@ -18,7 +18,7 @@ typedef struct { // values in fixed point!
 	s32 sx,sy,sz; // size
 	
 	s32 x,vx,ax; // coordinate, speed, acceleration
-	s32 y,vy,ay;
+	s32 y,vy,ay; // start coordinates are (0.0, 0.0, Z)
 	s32 z,vz,az;
 	
 	int r,g,b;
@@ -167,7 +167,20 @@ void Pad_InitAll(void)
 {
 	memset(&PAD1,0,sizeof(_pad_t));
 	memset(&PAD2,0,sizeof(_pad_t));
-	PAD2.z = float2fx(10.0);
+}
+
+void Pad_ResetAll(void)
+{
+	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
+	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
+	
+	PAD1.x = float2fx(0.0);
+	PAD1.y = float2fx(0.0);
+	PAD1.z = roomzmin + (PAD1.sz/2);
+	
+	PAD2.x = float2fx(0.0);
+	PAD2.y = float2fx(0.0);
+	PAD2.z = roomzmax - (PAD2.sz/2);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -180,6 +193,13 @@ static inline int abs(int a)
 static inline int min(int a, int b)
 {
 	return a < b ? a : b;
+}
+
+static inline int clamp(int min, int val, int max)
+{
+	if(val < min) return min;
+	if(val > max) return max;
+	return val;
 }
 
 // margins are only valid if there is a collision in that axis
@@ -320,14 +340,42 @@ void Pad_HandleAll(void)
 	{
 		_pad_t * p = &PAD1;
 		
-		int keys = hidKeysHeld();
-		if(keys & KEY_RIGHT) p->vx = +float2fx(0.25);
-		else if(keys & KEY_LEFT) p->vx = -float2fx(0.25);
-		else p->vx = 0;
-		
-		if(keys & KEY_UP) p->vz = +float2fx(0.25);
-		else if(keys & KEY_DOWN) p->vz = -float2fx(0.25);
-		else p->vz = 0;
+		//----------------------
+		// Player input
+		{
+			circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
+			hidCircleRead(&cp);
+			cp.dx = clamp(-0x90,cp.dx,0x90);
+			cp.dy = clamp(-0x90,cp.dy,0x90);
+			
+			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
+			{
+				p->ax = int2fx(cp.dx) / (0x90*10);
+				p->az = int2fx(cp.dy) / (0x90*10);
+			}
+			else
+			{
+				p->ax = p->az = 0;
+				
+				p->vx = fxmul(p->vx,float2fx(0.8));
+				p->vy = fxmul(p->vy,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			
+			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vy,p->vy) + fxmul(p->vz,p->vz) );
+			if( v > float2fx(0.3) )
+			{
+				v = fxdiv( float2fx(0.3), v );
+				p->vx = fxmul(p->vx,v);
+				p->vy = fxmul(p->vy,v);
+				p->vz = fxmul(p->vz,v);
+			}
+			else if( v < float2fx(0.05) )
+			{
+				p->vx = p->vy = p->vz = float2fx(0.0);
+			}
+		}
+		//----------------------
 		
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
@@ -384,17 +432,79 @@ void Pad_HandleAll(void)
 	
 	// Player 2
 	{
-		_pad_t * p = &PAD1;
-		/*
-		int keys = hidKeysHeld();
-		if(keys & KEY_RIGHT) p->vx = +float2fx(0.25);
-		else if(keys & KEY_LEFT) p->vx = -float2fx(0.25);
-		else p->vx = 0;
+		_pad_t * p = &PAD2;
 		
-		if(keys & KEY_UP) p->vz = +float2fx(0.25);
-		else if(keys & KEY_DOWN) p->vz = -float2fx(0.25);
-		else p->vz = 0;
-		*/
+		//----------------------
+		// AI
+		{
+			int bx,by,bz;
+			Ball_GetPosition(&bx,&by,&bz);
+			
+			int bvx,bvy,bvz;
+			Ball_GetSpeed(&bvx,&bvy,&bvz);
+			
+			int go_left = 0, go_right = 0, go_up = 0, go_down = 0;
+			
+#warning "TODO"
+			
+			// Calculate direction
+			
+			if(bvz > 0) // if aproaching the pad
+			{
+				int ballxmin, ballxmax, ballymin, ballymax;
+				Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,NULL,NULL);
+				
+				int padxmin, padxmax, padymin, padymax;
+				_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+				
+				int ballxsize, ballysize;
+				Ball_GetDimensions(&ballxsize,&ballysize,NULL);
+				
+				if(_segments_overlap(ballxmin,ballxmax, padxmin, padxmax) < ballxsize)
+				{
+					if(p->x < bx) go_right = 1;
+					else go_left = 1;
+				}
+				
+				if(_segments_overlap(ballymin,ballymax, padymin, padymax) < ballysize)
+				{
+					if(p->y < by) go_up = 1;
+					else go_down = 1;
+				}
+			}
+				
+			// Move
+			
+			if(go_right) p->ax = +float2fx(0.1);
+			else if(go_left) p->ax = -float2fx(0.1);
+			else p->ax = 0;
+			
+			if(go_up) p->az = +float2fx(0.1);
+			else if(go_down) p->az = -float2fx(0.1);
+			else p->az = 0;
+			
+			if(!(go_left||go_right||go_up||go_down))
+			{
+				p->vx = fxmul(p->vx,float2fx(0.8));
+				p->vy = fxmul(p->vy,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			
+			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vy,p->vy) + fxmul(p->vz,p->vz) );
+			if( v > float2fx(0.3) )
+			{
+				v = fxdiv( float2fx(0.3), v );
+				p->vx = fxmul(p->vx,v);
+				p->vy = fxmul(p->vy,v);
+				p->vz = fxmul(p->vz,v);
+			}
+			else if( v < float2fx(0.05) )
+			{
+				p->vx = p->vy = p->vz = float2fx(0.0);
+			}
+		}
+		//----------------------
+		
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
 		int xm,ym,zm;

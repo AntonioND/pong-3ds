@@ -112,17 +112,34 @@ void Ball_GetPosition(int * x, int * y, int * z)
 	if(z) *z = BALL.z;
 }
 
+void Ball_GetSpeed(int * x, int * y, int * z)
+{
+	if(x) *x = BALL.vx;
+	if(y) *y = BALL.vy;
+	if(z) *z = BALL.vz;
+}
+
+void Ball_GetDimensions(int * x, int * y, int * z)
+{
+	if(x) *x = BALL.sx;
+	if(y) *y = BALL.sy;
+	if(z) *z = BALL.sz;
+}
+
 //--------------------------------------------------------------------------------------------------
 
 void Ball_Init(void)
 {
 	memset(&BALL,0,sizeof(_ball_t));
-	
+}
+
+void Ball_Reset(void)
+{
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
 	
-	BALL.x = (roomxmax + roomxmin) / 2;
-	BALL.y = 0; //(roomymax + roomymin) / 2;
+	BALL.x = float2fx(0.0);
+	BALL.y = roomymin + (BALL.sy/2);
 	BALL.z = (roomzmax + roomzmin) / 2;
 	
 	BALL.vx = float2fx(0.15);

@@ -24,6 +24,7 @@ void Pad_P1GetPosition(int * x, int * y, int * z);
 void Pad_P2GetPosition(int * x, int * y, int * z);
 
 void Pad_InitAll(void);
+void Pad_ResetAll(void);
 void Pad_HandleAll(void);
 
 //--------------------------------------------------------------------------------------------------
