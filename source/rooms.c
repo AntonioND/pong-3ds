@@ -5,7 +5,7 @@
 
 #include "S3D/engine.h"
 #include "game.h"
-#include "room.h"
+#include "rooms.h"
 #include "pad.h"
 #include "ball.h"
 

@@ -10,7 +10,7 @@
 #include "game.h"
 #include "pad.h"
 #include "ball.h"
-#include "room.h"
+#include "rooms.h"
 
 //--------------------------------------------------------------------------------------------------
 
