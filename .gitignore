@@ -6,8 +6,8 @@ tools/GenFontTTF/obj/
 
 # Binaries
 
-#*.3dsx
-#*.smdh
+*.3dsx
+*.smdh
 *.elf
 *.exe
 *.dll
