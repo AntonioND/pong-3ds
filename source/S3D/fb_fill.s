@@ -1,8 +1,8 @@
 
-@ void S3D_FramebufferFill(void * dst, u32 color, u32 bottom_screen) @ color = 31 _BGR 0
+@ void S3D_FramebufferFill(void * dst, u32 color, u32 bottom_screen)
 
 @ r0 = dst
-@ r1 = color
+@ r1 = color (31 _BGR 0)
 @ r2 = bottom_screen
 
 	.align	2

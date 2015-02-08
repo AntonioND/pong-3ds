@@ -154,7 +154,7 @@ void Game_Init(void)
 {
 	ClearColorInit();
 	
-	Room_Init();
+	Room_SetNumber(GAME_ROOM_MENU);
 }
 
 void Game_Handle(void)

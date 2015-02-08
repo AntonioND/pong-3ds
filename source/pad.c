@@ -203,12 +203,21 @@ static inline int clamp(int min, int val, int max)
 }
 
 // margins are only valid if there is a collision in that axis
-static void _pad_UpdateCollisions(_pad_t * p, int * xmargin, int * ymargin, int * zmargin)
+static void _pad_UpdateCollisions(_pad_t * p, int pad_number, int * xmargin, int * ymargin, int * zmargin)
 {
 	p->collisions = 0;
 	
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
+	
+	if(pad_number == 1) // Player 1
+	{
+		roomzmax = roomzmin + float2fx(3.0);
+	}
+	else // Player 2 / AI
+	{
+		roomzmin = roomzmax - float2fx(3.0);
+	}	
 	
 	int ballxmin, ballxmax, ballymin, ballymax, ballzmin, ballzmax;
 	Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,&ballzmin,&ballzmax);
@@ -380,7 +389,7 @@ void Pad_HandleAll(void)
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
 		int xm,ym,zm;
-		_pad_UpdateCollisions(p,&xm,&ym,&zm);
+		_pad_UpdateCollisions(p,1,&xm,&ym,&zm);
 		
 		if(p->collisions & COLLISION_X_MIN)
 		{
@@ -440,16 +449,19 @@ void Pad_HandleAll(void)
 			int bx,by,bz;
 			Ball_GetPosition(&bx,&by,&bz);
 			
+			int roomzmin, roomzmax;
+			Room_GetBounds(NULL,NULL,NULL,NULL,&roomzmin,&roomzmax);
+			int z_first_quarter = roomzmin + ( (roomzmax-roomzmin) / 4 );
+			
 			int bvx,bvy,bvz;
 			Ball_GetSpeed(&bvx,&bvy,&bvz);
 			
-			int go_left = 0, go_right = 0, go_up = 0, go_down = 0;
-			
-#warning "TODO"
+			int move_left_right = 0, move_up_down = 0;
+			int dx, dy;
 			
 			// Calculate direction
 			
-			if(bvz > 0) // if aproaching the pad
+			if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
 			{
 				int ballxmin, ballxmax, ballymin, ballymax;
 				Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,NULL,NULL);
@@ -462,29 +474,56 @@ void Pad_HandleAll(void)
 				
 				if(_segments_overlap(ballxmin,ballxmax, padxmin, padxmax) < ballxsize)
 				{
-					if(p->x < bx) go_right = 1;
-					else go_left = 1;
+					move_left_right = 1;
+					dx = bx - p->x;
 				}
 				
 				if(_segments_overlap(ballymin,ballymax, padymin, padymax) < ballysize)
 				{
-					if(p->y < by) go_up = 1;
-					else go_down = 1;
+					move_up_down = 1;
+					dy = by - p->y;
 				}
 			}
-				
+			
 			// Move
 			
-			if(go_right) p->ax = +float2fx(0.1);
-			else if(go_left) p->ax = -float2fx(0.1);
-			else p->ax = 0;
-			
-			if(go_up) p->az = +float2fx(0.1);
-			else if(go_down) p->az = -float2fx(0.1);
-			else p->az = 0;
-			
-			if(!(go_left||go_right||go_up||go_down))
+			if(move_left_right && move_up_down)
 			{
+				p->ax = dx;
+				p->ay = dy;
+				int len = fxsqrt( fxmul(p->ax,p->ax) + fxmul(p->ay,p->ay) );
+				len = fxdiv( float2fx(0.1), len );
+				p->ax = fxmul(p->ax,len);
+				p->ay = fxmul(p->ay,len);
+				
+				p->az = 0;
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			else if(move_left_right)
+			{
+				if(dx > 0) p->ax = +float2fx(0.1);
+				else p->ax = -float2fx(0.1);
+				
+				p->ay = 0;
+				p->az = 0;
+				p->vy = fxmul(p->vy,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			else if(move_up_down)
+			{
+				if(dy > 0) p->ay = +float2fx(0.1);
+				else p->ay = -float2fx(0.1);
+				
+				p->ax = 0;
+				p->az = 0;
+				p->vx = fxmul(p->vx,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			else
+			{
+				p->ax = 0;
+				p->ay = 0;
+				p->az = 0;
 				p->vx = fxmul(p->vx,float2fx(0.8));
 				p->vy = fxmul(p->vy,float2fx(0.8));
 				p->vz = fxmul(p->vz,float2fx(0.8));
@@ -508,7 +547,7 @@ void Pad_HandleAll(void)
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
 		
 		int xm,ym,zm;
-		_pad_UpdateCollisions(p,&xm,&ym,&zm);
+		_pad_UpdateCollisions(p,2,&xm,&ym,&zm);
 		
 		if(p->collisions & COLLISION_X_MIN)
 		{
