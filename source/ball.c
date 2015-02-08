@@ -125,8 +125,8 @@ void Ball_Init(void)
 	BALL.y = 0; //(roomymax + roomymin) / 2;
 	BALL.z = (roomzmax + roomzmin) / 2;
 	
-	BALL.vx = float2fx(0.05);
-	BALL.vz = float2fx(0.05);
+	BALL.vx = float2fx(0.15);
+	BALL.vz = float2fx(0.15);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -231,7 +231,7 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 		{
 			BALL.collisions |= COLLISION_Y_MIN;  ym = abs(roomymin - ballymin);
 		}
-		else if(ballymax >= roomxmax)
+		else if(ballymax >= roomymax)
 		{
 			BALL.collisions |= COLLISION_Y_MAX;  ym = abs(ballymax - roomymax);
 		}
@@ -262,7 +262,7 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 		{
 			BALL.collisions |= COLLISION_Z_MIN;  zm = abs(roomzmin - ballzmin);
 		}
-		else if(ballymax >= roomxmax)
+		else if(ballzmax >= roomzmax)
 		{
 			BALL.collisions |= COLLISION_Z_MAX;  zm = abs(ballzmax - roomzmax);
 		}
@@ -288,19 +288,6 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 
 void Ball_Handle(void)
 {
-		int keys = hidKeysHeld();
-		if(keys & KEY_A) BALL.vx = +float2fx(0.1);
-		else if(keys & KEY_Y) BALL.vx = -float2fx(0.1);
-		else BALL.vx = 0;
-		if(keys & KEY_X) BALL.vz = +float2fx(0.1);
-		else if(keys & KEY_B) BALL.vz = -float2fx(0.1);
-		else BALL.vz = 0;
-		if(keys & KEY_L) BALL.vy = +float2fx(0.1);
-		else if(keys & KEY_R) BALL.vy = -float2fx(0.1);
-		else BALL.vy = 0;
-
-
-
 	BALL.x += BALL.vx; BALL.y += BALL.vy; BALL.z += BALL.vz;
 	
 	int xm,ym,zm;
@@ -310,14 +297,14 @@ void Ball_Handle(void)
 	{
 		if(BALL.vx < 0)
 		{
-			BALL.x += xm; BALL.vx = 0; BALL.ax = 0;
+			BALL.x += xm - BALL.vx; BALL.vx = -BALL.vx;
 		}
 	}
 	else if(BALL.collisions & COLLISION_X_MAX)
 	{
 		if(BALL.vx > 0)
 		{
-			BALL.x -= xm; BALL.vx = 0; BALL.ax = 0;
+			BALL.x -= xm + BALL.vx; BALL.vx = -BALL.vx;
 		}
 	}
 	
@@ -325,14 +312,14 @@ void Ball_Handle(void)
 	{
 		if(BALL.vy < 0)
 		{
-			BALL.y += ym; BALL.vy = 0; BALL.ay = 0;
+			BALL.y += ym - BALL.vy; BALL.vy = -BALL.vy;
 		}
 	}
 	else if(BALL.collisions & COLLISION_Y_MAX)
 	{
 		if(BALL.vy > 0)
 		{
-			BALL.y -= ym; BALL.vy = 0; BALL.ay = 0;
+			BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
 		}
 	}
 	
@@ -340,14 +327,14 @@ void Ball_Handle(void)
 	{
 		if(BALL.vz < 0)
 		{
-			BALL.z += zm; BALL.vz = 0; BALL.az = 0;
+			BALL.z += zm - BALL.vz; BALL.vz = -BALL.vz;
 		}
 	}
 	else if(BALL.collisions & COLLISION_Z_MAX)
 	{
 		if(BALL.vz > 0)
 		{
-			BALL.z -= zm; BALL.vz = 0; BALL.az = 0;
+			BALL.z -= zm + BALL.vz; BALL.vz = -BALL.vz;
 		}
 	}
 	

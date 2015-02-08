@@ -65,46 +65,6 @@ void draw_number(u8 * buf, int number, int x, int y)
 
 //-------------------------------------------------------------------------------------------------------
 
-void __draw_ball(int screen, int r, int g, int b)
-{
-	S3D_PolygonColor(screen, r,g,b);
-	
-	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
-	
-	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(-0.75));
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(0.75));
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(0.75)); 
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
-
-	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
-
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(0.75)); 			
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(-0.75));
-	
-	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
-
-	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
-	
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(-0.75));
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(-0.75));
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(-0.75));
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(-1),float2fx(-0.75));
-
-	S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
-
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(0.5),float2fx(0.75));
-	S3D_PolygonVertex(screen, float2fx(0.75),float2fx(-1),float2fx(0.75));
-	
-	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(1.0));
-
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(0.75));
-	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(0.75));
-}
-
-//-------------------------------------------------------------------------------------------------------
-
 struct {
 	int r,g,b;
 	int vr,vg,vb;
@@ -139,94 +99,12 @@ void ClearColorHandle(void)
 
 //-------------------------------------------------------------------------------------------------------
 
-int rotation = 0;
-
-void Game_DrawMenu(int screen)
+void Game_DrawScreenTop(int screen)
 {
 	S3D_FramebuffersClearTopScreen(screen, _clear_color.r,_clear_color.g,_clear_color.b);
 
-	//3D Stuff
-	{
-		//---------------------------------------------------
-		//                 Configuration
-		//---------------------------------------------------
-		
-		S3D_SetCulling(screen, 1,0);
-		
-		m44 m;
-		m44_CreateTranslation(&m,0,int2fx(0),int2fx(12));
-		S3D_ModelviewMatrixSet(screen, &m);	
-		m44_CreateRotationX(&m,-0x1800);
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		m44_CreateScale(&m,int2fx(2),int2fx(2),int2fx(2));
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		
-		S3D_LightAmbientColorSet(screen, 64,64,64);
-		
-		S3D_LightEnable(screen, S3D_LIGHT_N(0));
-		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
-		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
-		
-		//---------------------------------------------------
-		//                 Draw cube
-		//---------------------------------------------------
-		
-		m44_CreateRotationY(&m,rotation);
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		
-		__draw_ball(screen, 0,0,255);
-	}
-	
-	//2D Stuff
-	{
-		
-	}
-}
-
-void Game_DrawRoom1(int screen)
-{
-	S3D_FramebuffersClearTopScreen(screen, _clear_color.r,_clear_color.g,_clear_color.b);
-
-	//3D Stuff
-	{
-		// Configure
-		
-		S3D_SetCulling(screen, 1,0);
-		
-		m44 m;
-		m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
-		S3D_ModelviewMatrixSet(screen, &m);	
-		m44_CreateRotationX(&m,-0x1800);
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		
-		S3D_LightAmbientColorSet(screen, 64,64,64);
-		
-		S3D_LightEnable(screen, S3D_LIGHT_N(0));
-		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
-		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
-		
-		// Move camera
-		
-		int x;
-		Pad_P1GetPosition(&x,NULL,NULL);
-		
-		// Camera rotation effect...
-		m44_CreateRotationY(&m,-x);
-		//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		
-		m44_CreateRotationZ(&m,x);
-		S3D_ModelviewMatrixMultiply(screen, &m);
-		
-		// Draw
-		
-		Room_Draw(screen); // Internal flush
-		
-		Pad_P2Draw(screen); // IA
-		Ball_Draw(screen);
-		Pad_P1Draw(screen); // Player
-		S3D_PolygonListFlush(screen, 1);
-	}
+	// 3D stuff
+	Room_Draw(screen);
 	
 	//2D stuff
 	{
@@ -235,26 +113,6 @@ void Game_DrawRoom1(int screen)
 		draw_number(buf,4,10,240-32-10-1);
 		
 		draw_number(buf,5,400-32-10-1,240-32-10-1);
-	}
-}
-
-
-//-------------------------------------------------------------------------------------------------------
-
-void Game_DrawScreenTop(int screen)
-{
-	switch(Room_GetNumber())
-	{
-		case GAME_ROOM_MENU:
-			Game_DrawMenu(screen);
-			break;
-			
-		case GAME_ROOM_1:
-			Game_DrawRoom1(screen);
-			break;
-			
-		default:
-			break;
 	}
 }
 
@@ -302,33 +160,22 @@ void Game_Init(void)
 void Game_Handle(void)
 {
 	ClearColorHandle();
-	
-	int keys = hidKeysHeld();
-	
+
 	switch(Room_GetNumber())
 	{
 		case GAME_ROOM_MENU:
-		{
-			rotation += 0x100;
-			if(keys & KEY_A) Room_SetNumber(GAME_ROOM_1);
-			return;
+			Room_Handle();
 			break;
-		}
 		
 		case GAME_ROOM_1:
-		{
+			Room_Handle();
+			Ball_Handle();
+			Pad_HandleAll();
 			break;
-		}
 		
 		default:
-			return;
+			break;
 	}
-	
-	// Handle game
-	
-	Ball_Handle();
-	Pad_HandleAll();
-	Room_Handle();
 }
 
 void Game_End(void)
