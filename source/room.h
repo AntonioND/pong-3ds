@@ -4,8 +4,12 @@
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_SetCurrent(int room);
-int Room_GetCurrent(void);
+#include "game.h"
+
+//--------------------------------------------------------------------------------------------------
+
+void Room_SetNumber(_game_room_e room);
+int Room_GetNumber(void);
 
 void Room_Draw(int screen);
 
