@@ -360,7 +360,7 @@ void Pad_HandleAll(void)
 			cp.dx = clamp(-0x90,cp.dx,0x90);
 			cp.dy = clamp(-0x90,cp.dy,0x90);
 			
-			if(Game_PlayerScoreDelayEnabled())
+			if(!Game_StateMachinePadMovementEnabled())
 			{
 				cp.dx = cp.dy = 0;
 			}
@@ -468,7 +468,7 @@ void Pad_HandleAll(void)
 			int dx = 0, dy = 0;
 			
 			// Calculate direction
-			if(!Game_PlayerScoreDelayEnabled())
+			if(Game_StateMachinePadMovementEnabled())
 			{
 				if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
 				{

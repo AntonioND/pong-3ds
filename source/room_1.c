@@ -141,6 +141,8 @@ void Room_1_Init(void)
 	Pad_ResetAll();
 	
 	Game_PlayerResetAll();
+	
+	Game_StateMachineReset();
 }
 
 void Room_1_End(void)

@@ -388,7 +388,7 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 void Ball_Handle(void)
 {
 	// Check if goal
-	if(!Game_PlayerScoreDelayEnabled())
+	if(Game_StateMachineBallAddScoreEnabled())
 	{
 		int roomzmin, roomzmax;
 		Room_GetBounds(NULL,NULL,NULL,NULL,&roomzmin,&roomzmax);
@@ -409,6 +409,8 @@ void Ball_Handle(void)
 	}
 	
 	// Move
+	
+	if(!Game_StateMachineBallMovementEnabled()) return;
 	
 	BALL.x += BALL.vx; BALL.y += BALL.vy; BALL.z += BALL.vz;
 

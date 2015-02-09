@@ -53,6 +53,7 @@ void Room_Draw(int screen)
 
 int Room_3DMovementEnabled(void)
 {
+#warning "TODO"
 	switch(current_room)
 	{
 		// Playable rooms

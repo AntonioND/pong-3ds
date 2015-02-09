@@ -21,8 +21,15 @@ void Game_PlayerResetAll(void);
 void Game_PlayerScoreIncrease(int player); // 0 or 1
 int Game_PlayerScoreGet(int player); // 0 or 1
 
+//--------------------------------------------------------------------------------------------------
+
+void Game_StateMachineReset(void);
+
 void Game_PlayerScoreStartDelay(void);
-int Game_PlayerScoreDelayEnabled(void);
+
+int Game_StateMachinePadMovementEnabled(void);
+int Game_StateMachineBallMovementEnabled(void);
+int Game_StateMachineBallAddScoreEnabled(void);
 
 //--------------------------------------------------------------------------------------------------
 
