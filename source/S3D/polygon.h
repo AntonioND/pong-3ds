@@ -1,6 +1,6 @@
 
-#ifndef __POLYGON__
-#define __POLYGON__
+#ifndef __S3D_POLYGON__
+#define __S3D_POLYGON__
 
 //--------------------------------------------------------------------------------------------------
 
@@ -10,5 +10,5 @@ void S3D_PolygonListFlush(int screen, int perform_z_sort);
 
 //--------------------------------------------------------------------------------------------------
 
-#endif //__POLYGON__
+#endif //__S3D_POLYGON__
 

@@ -1,6 +1,6 @@
 
-#ifndef __MATRIX__
-#define __MATRIX__
+#ifndef __S3D_FXMATH__
+#define __S3D_FXMATH__
 
 //----------------------------------------------------------------------------
 
@@ -10,7 +10,7 @@
 
 //This fixed point part is based on "tonc_math.h"
 
-#define SIN_LUT_SIZE 512
+#define SIN_LUT_SIZE 512 // Don't change this without changing the lut itself.
 
 extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
 
@@ -19,12 +19,12 @@ extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
 // Look-up a sine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f sine value
-static inline s32 fxsin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]<<FIX_SHIFT_EXTRA; }
+static inline s32 fxsin(u32 theta) { return sin_lut[(theta>>7)&(SIN_LUT_SIZE-1)]<<FIX_SHIFT_EXTRA; }
 
 // Look-up a cosine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f cosine value
-static inline s32 fxcos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]<<FIX_SHIFT_EXTRA; }
+static inline s32 fxcos(u32 theta) { return sin_lut[((theta>>7)+(SIN_LUT_SIZE/4))&(SIN_LUT_SIZE-1)]<<FIX_SHIFT_EXTRA; }
 
 #define FIX_SHIFT       (12+FIX_SHIFT_EXTRA)  // Don't modify this, modify FIX_SHIFT_EXTRA
 #define FIX_SCALE       ( 1<<FIX_SHIFT		)
@@ -128,4 +128,4 @@ void m44_CreateTranslation(m44 * m, s32 x, s32 y, s32 z);
 
 //----------------------------------------------------------------------------
 
-#endif //__MATRIX__
+#endif //__S3D_FXMATH__

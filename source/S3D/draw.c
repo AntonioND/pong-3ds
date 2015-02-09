@@ -4,7 +4,7 @@
 #include <3ds.h>
 #include <string.h>
 
-#include "matrix.h"
+#include "fxmath.h"
 #include "engine.h"
 #include "draw.h"
 

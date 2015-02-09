@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "matrix.h"
+#include "fxmath.h"
 #include "math.h"
 #include "draw.h"
 

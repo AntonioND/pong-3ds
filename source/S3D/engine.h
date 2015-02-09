@@ -1,12 +1,12 @@
 
-#ifndef __ENGINE__
-#define __ENGINE__
+#ifndef __S3D_ENGINE__
+#define __S3D_ENGINE__
 
 //----------------------------------------------------------------------------
 //-                      Software 3D engine. Main file.                      -
 //----------------------------------------------------------------------------
 
-#include "matrix.h"
+#include "fxmath.h"
 #include "draw.h"
 #include "polygon.h"
 
@@ -23,5 +23,5 @@ void S3D_ModelviewMatrixPop(int screen);
 
 //----------------------------------------------------------------------------
 
-#endif //__ENGINE__
+#endif //__S3D_ENGINE__
 
