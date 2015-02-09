@@ -14,17 +14,19 @@
 
 extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
 
+#define FIX_SHIFT_EXTRA 0 // Positive values only!
+
 // Look-up a sine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f sine value
-static inline s32 lu_sin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]; }
+static inline s32 lu_sin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]<<FIX_SHIFT_EXTRA; }
 
 // Look-up a cosine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f cosine value
-static inline s32 lu_cos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]; }
+static inline s32 lu_cos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]<<FIX_SHIFT_EXTRA; }
 
-#define FIX_SHIFT       8
+#define FIX_SHIFT       (12+FIX_SHIFT_EXTRA)  // Don't modify this, modify FIX_SHIFT_EXTRA
 #define FIX_SCALE       ( 1<<FIX_SHIFT		)
 #define FIX_SCALEF      ( (float)FIX_SCALE	)
 
@@ -72,8 +74,8 @@ typedef s32 v4[4];
 
 static inline s32 v4_DotProduct(v4 * v1, v4 * v2)
 {
-	return fxmul(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul(ptr_V4(v1,1),ptr_V4(v2,1)) + 
-           fxmul(ptr_V4(v1,2),ptr_V4(v2,2)) + fxmul(ptr_V4(v1,3),ptr_V4(v2,3));
+	return fxmul64(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul64(ptr_V4(v1,1),ptr_V4(v2,1)) + 
+           fxmul64(ptr_V4(v1,2),ptr_V4(v2,2)) + fxmul64(ptr_V4(v1,3),ptr_V4(v2,3));
 }
 
 void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res);

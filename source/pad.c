@@ -345,6 +345,9 @@ static void _pad_UpdateCollisions(_pad_t * p, int pad_number, int * xmargin, int
 
 void Pad_HandleAll(void)
 {
+#define PAD_MAX_ACCELERATION (float2fx(0.1))
+#define PAD_MAX_SPEED (float2fx(0.3))
+
 	// Player 1
 	{
 		_pad_t * p = &PAD1;
@@ -359,8 +362,8 @@ void Pad_HandleAll(void)
 			
 			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
 			{
-				p->ax = int2fx(cp.dx) / (0x90*10);
-				p->az = int2fx(cp.dy) / (0x90*10);
+				p->ax = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dx)) / 0x90;
+				p->az = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
 			}
 			else
 			{
@@ -372,9 +375,9 @@ void Pad_HandleAll(void)
 			}
 			
 			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vy,p->vy) + fxmul(p->vz,p->vz) );
-			if( v > float2fx(0.3) )
+			if( v > PAD_MAX_SPEED )
 			{
-				v = fxdiv( float2fx(0.3), v );
+				v = fxdiv( PAD_MAX_SPEED, v );
 				p->vx = fxmul(p->vx,v);
 				p->vy = fxmul(p->vy,v);
 				p->vz = fxmul(p->vz,v);
@@ -457,7 +460,7 @@ void Pad_HandleAll(void)
 			Ball_GetSpeed(&bvx,&bvy,&bvz);
 			
 			int move_left_right = 0, move_up_down = 0;
-			int dx, dy;
+			int dx = 0, dy = 0;
 			
 			// Calculate direction
 			
@@ -484,6 +487,23 @@ void Pad_HandleAll(void)
 					dy = by - p->y;
 				}
 			}
+			else // go back to the center of the screen
+			{
+				int padxmin, padxmax, padymin, padymax;
+				_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+				
+				if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padxmin, padxmax) < float2fx(0.19))
+				{
+					move_left_right = 1;
+					dx = float2fx(0.0) - p->x;
+				}
+				
+				if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padymin, padymax) < float2fx(0.19))
+				{
+					move_up_down = 1;
+					dy = float2fx(0.0) - p->y;
+				}
+			}
 			
 			// Move
 			
@@ -492,7 +512,7 @@ void Pad_HandleAll(void)
 				p->ax = dx;
 				p->ay = dy;
 				int len = fxsqrt( fxmul(p->ax,p->ax) + fxmul(p->ay,p->ay) );
-				len = fxdiv( float2fx(0.1), len );
+				len = fxdiv( PAD_MAX_ACCELERATION, len );
 				p->ax = fxmul(p->ax,len);
 				p->ay = fxmul(p->ay,len);
 				
@@ -501,8 +521,8 @@ void Pad_HandleAll(void)
 			}
 			else if(move_left_right)
 			{
-				if(dx > 0) p->ax = +float2fx(0.1);
-				else p->ax = -float2fx(0.1);
+				if(dx > 0) p->ax = +PAD_MAX_ACCELERATION;
+				else p->ax = -PAD_MAX_ACCELERATION;
 				
 				p->ay = 0;
 				p->az = 0;
@@ -511,8 +531,8 @@ void Pad_HandleAll(void)
 			}
 			else if(move_up_down)
 			{
-				if(dy > 0) p->ay = +float2fx(0.1);
-				else p->ay = -float2fx(0.1);
+				if(dy > 0) p->ay = +PAD_MAX_ACCELERATION;
+				else p->ay = -PAD_MAX_ACCELERATION;
 				
 				p->ax = 0;
 				p->az = 0;
@@ -530,9 +550,9 @@ void Pad_HandleAll(void)
 			}
 			
 			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vy,p->vy) + fxmul(p->vz,p->vz) );
-			if( v > float2fx(0.3) )
+			if( v > PAD_MAX_SPEED )
 			{
-				v = fxdiv( float2fx(0.3), v );
+				v = fxdiv( PAD_MAX_SPEED, v );
 				p->vx = fxmul(p->vx,v);
 				p->vy = fxmul(p->vy,v);
 				p->vz = fxmul(p->vz,v);

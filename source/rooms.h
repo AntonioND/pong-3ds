@@ -19,6 +19,8 @@ void Room_Draw(int screen);
 void Room_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
 
 void Room_Init(void);
+void Room_End(void);
+
 void Room_Handle(void);
 
 //--------------------------------------------------------------------------------------------------

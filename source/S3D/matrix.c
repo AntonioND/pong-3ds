@@ -64,9 +64,9 @@ void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res)
 	// | 2x 2y 2z |
 	
 	ptr_V4SET(res,
-		fxmul(ptr_V4(v1,1),ptr_V4(v2,2)) - fxmul(ptr_V4(v1,2),ptr_V4(v2,1)),
-		-fxmul(ptr_V4(v1,0),ptr_V4(v2,2)) + fxmul(ptr_V4(v1,2),ptr_V4(v2,0)),
-		fxmul(ptr_V4(v1,0),ptr_V4(v2,1)) - fxmul(ptr_V4(v1,1),ptr_V4(v2,0)) );
+		fxmul64(ptr_V4(v1,1),ptr_V4(v2,2)) - fxmul64(ptr_V4(v1,2),ptr_V4(v2,1)),
+		-fxmul64(ptr_V4(v1,0),ptr_V4(v2,2)) + fxmul64(ptr_V4(v1,2),ptr_V4(v2,0)),
+		fxmul64(ptr_V4(v1,0),ptr_V4(v2,1)) - fxmul64(ptr_V4(v1,1),ptr_V4(v2,0)) );
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -206,10 +206,9 @@ void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int zn
 	m44 screen, perspective;
 	
 	M44SET(perspective,	
-	//	fxdiv( 2*znear,right-left ), 0, fxdiv(right+left,right-left), 0, // TODO: FIX??
-		-fxdiv( 2*znear,right-left ), 0, fxdiv(right+left,right-left), 0,
-		0,  fxdiv( 2*znear,top-bottom ),fxdiv(top+bottom,top-bottom), 0,
-		0, 0, fxdiv(zfar+znear,zfar-znear), -fxdiv(2*fxmul(zfar,znear),zfar-znear),
+		-fxdiv64( 2*znear,right-left ), 0, fxdiv64(right+left,right-left), 0,
+		0,  fxdiv64( 2*znear,top-bottom ),fxdiv64(top+bottom,top-bottom), 0,
+		0, 0, fxdiv64(zfar+znear,zfar-znear), -fxdiv64(2*fxmul64(zfar,znear),zfar-znear),
 		0, 0, -int2fx(1),0 );
 
 	M44SET(screen,
@@ -225,8 +224,8 @@ void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int zn
 
 void m44_CreateRotationX(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle)>>4;
-	s32 cos = lu_cos(angle)>>4;
+	s32 sin = lu_sin(angle);
+	s32 cos = lu_cos(angle);
 	
 	ptr_M44SET(m,	
 		int2fx(1), int2fx(0), int2fx(0), int2fx(0),
@@ -237,8 +236,8 @@ void m44_CreateRotationX(m44 * m, s32 angle)
 
 void m44_CreateRotationY(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle)>>4;
-	s32 cos = lu_cos(angle)>>4;
+	s32 sin = lu_sin(angle);
+	s32 cos = lu_cos(angle);
 	
 	ptr_M44SET(m,	
 		      cos, int2fx(0),       -sin, int2fx(0),
@@ -249,8 +248,8 @@ void m44_CreateRotationY(m44 * m, s32 angle)
 
 void m44_CreateRotationZ(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle)>>4;
-	s32 cos = lu_cos(angle)>>4;
+	s32 sin = lu_sin(angle);
+	s32 cos = lu_cos(angle);
 	
 	ptr_M44SET(m,	
 		      cos,      -sin, int2fx(0), int2fx(0),
@@ -261,8 +260,8 @@ void m44_CreateRotationZ(m44 * m, s32 angle)
 
 void m44_CreateRotationAxis(m44 * m, s32 angle, s32 x, s32 y, s32 z)
 {
-	s32 sin = lu_sin(angle)>>4;
-	s32 cos = lu_cos(angle)>>4;
+	s32 sin = lu_sin(angle);
+	s32 cos = lu_cos(angle);
 	s32 one_minus_cos = int2fx(1) - cos;
 	s32 x_sin = fxmul(x,sin);
 	s32 y_sin = fxmul(y,sin);

@@ -9,6 +9,7 @@
 #include "ball.h"
 #include "rooms.h"
 #include "pad.h"
+#include "utils.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -306,8 +307,25 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 
 void Ball_Handle(void)
 {
-	BALL.x += BALL.vx; BALL.y += BALL.vy; BALL.z += BALL.vz;
+	// Update speed
 	
+	BALL.vx = fxmul(BALL.vx,float2fx(1.005)); // speed up
+	BALL.vy = fxmul(BALL.vy,float2fx(1.005));
+	BALL.vz = fxmul(BALL.vz,float2fx(1.005));
+	
+	int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+	if( v > float2fx(0.4) ) // limit speed
+	{
+		v = fxdiv( float2fx(0.4), v );
+		BALL.vx = fxmul(BALL.vx,v);
+		BALL.vy = fxmul(BALL.vy,v);
+		BALL.vz = fxmul(BALL.vz,v);
+	}
+	
+	// Move
+	
+	BALL.x += BALL.vx; BALL.y += BALL.vy; BALL.z += BALL.vz;
+
 	int xm,ym,zm;
 	_ball_UpdateCollisions(&xm,&ym,&zm);
 	
@@ -341,11 +359,15 @@ void Ball_Handle(void)
 		}
 	}
 	
+	
+	int weird_bounce = 0;
+	
 	if(BALL.collisions & COLLISION_Z_MIN)
 	{
 		if(BALL.vz < 0)
 		{
 			BALL.z += zm - BALL.vz; BALL.vz = -BALL.vz;
+			weird_bounce = 1;
 		}
 	}
 	else if(BALL.collisions & COLLISION_Z_MAX)
@@ -353,6 +375,36 @@ void Ball_Handle(void)
 		if(BALL.vz > 0)
 		{
 			BALL.z -= zm + BALL.vz; BALL.vz = -BALL.vz;
+			weird_bounce = 1;
+		}
+	}
+	
+	if(weird_bounce)
+	{
+		int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		
+		BALL.vx += (fast_rand() & (int2fx(1.0)>>4)) - (int2fx(1.0)>>5);
+		if(BALL.vy) BALL.vy += (fast_rand() & (int2fx(1.0)>>4)) - (int2fx(1.0)>>5);
+		
+		int new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		
+		int factor = fxdiv( v, new_v );
+		BALL.vx = fxmul(BALL.vx,factor);
+		BALL.vy = fxmul(BALL.vy,factor);
+		BALL.vz = fxmul(BALL.vz,factor);
+		
+		while(abs(BALL.vz) < float2fx(0.1) )
+		{
+			v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+			
+			BALL.vz = fxmul(BALL.vz, float2fx(1.5));
+			
+			new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+			
+			factor = fxdiv( v, new_v );
+			BALL.vx = fxmul(BALL.vx,factor);
+			BALL.vy = fxmul(BALL.vy,factor);
+			BALL.vz = fxmul(BALL.vz,factor);
 		}
 	}
 	

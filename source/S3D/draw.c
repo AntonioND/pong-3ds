@@ -351,15 +351,15 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 	
 	if(x1 != x2) // x1 != x2
 	{
-		int dy1 = fxdiv(y2-y1,int2fx(x2-x1));
+		int dy1 = fxdiv64(y2-y1,int2fx(x2-x1));
 		
 		//if(x1 != x3) // x1 != x2, x1 != x3
 		{
-			int dy2 = fxdiv(y3-y1,int2fx(x3-x1));
+			int dy2 = fxdiv64(y3-y1,int2fx(x3-x1));
 			
 			if(x2 != x3)  // x1 != x2, x1 != x3, x2 != x3 -> Most common case
 			{
-				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
+				int dy3 = fxdiv64(y3-y2,int2fx(x3-x2));
 				
 				int sx = x1; int sy = y1; int ey = y1;
 				
@@ -415,11 +415,11 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 	{
 		if(x1 != x3) // x1 == x2, x1 != x3
 		{
-			int dy2 = fxdiv(y3-y1,int2fx(x3-x1));
+			int dy2 = fxdiv64(y3-y1,int2fx(x3-x1));
 			
 			//if(x2 != x3)  // x1 == x2, x1 != x3, x2 != x3
 			{
-				int dy3 = fxdiv(y3-y2,int2fx(x3-x2));
+				int dy3 = fxdiv64(y3-y2,int2fx(x3-x2));
 				
 				int sx = x1;
 				int sy = y1; int ey = y2;
@@ -471,9 +471,9 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 #if 0
 	int sx = x1; int sy = y1; int ey = y1;
 	int dy1,dy2,dy3;
-	if(x1 != x2) dy1=fxdiv(y2-y1,int2fx(x2-x1)); else dy1=0;
-	if(x1 != x3) dy2=fxdiv(y3-y1,int2fx(x3-x1)); else dy2=0;
-	if(x2 != x3) dy3=fxdiv(y3-y2,int2fx(x3-x2)); else dy3=0;
+	if(x1 != x2) dy1=fxdiv64(y2-y1,int2fx(x2-x1)); else dy1=0;
+	if(x1 != x3) dy2=fxdiv64(y3-y1,int2fx(x3-x1)); else dy2=0;
+	if(x2 != x3) dy3=fxdiv64(y3-y2,int2fx(x3-x2)); else dy3=0;
 	
 	//Safe invalid way of doing it... If x coordinates are the same, it fails
 	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
@@ -555,9 +555,9 @@ void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z)
 		s32 factor = -v4_DotProduct(&l,&(light_dir[screen][i])); // change sign because light goes AGAINST a normal
 		if(factor > 0)
 		{
-			fr += fxmul(factor,light_color[screen][i][0]);
-			fg += fxmul(factor,light_color[screen][i][1]);
-			fb += fxmul(factor,light_color[screen][i][2]);
+			fr += fxmul64(factor,light_color[screen][i][0]);
+			fg += fxmul64(factor,light_color[screen][i][1]);
+			fb += fxmul64(factor,light_color[screen][i][2]);
 		}
 	}
 	
@@ -684,8 +684,8 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 	
 	m44_v4_Multiply(&S3D_GLOBAL_MATRIX[screen],&v,&result);
 	
-	vtx_array[screen][vtx_count[screen]][0] = fx2int(fxdiv(result[0],result[3]));
-	vtx_array[screen][vtx_count[screen]][1] = fx2int(fxdiv(result[1],result[3]));
+	vtx_array[screen][vtx_count[screen]][0] = fx2int(fxdiv64(result[0],result[3]));
+	vtx_array[screen][vtx_count[screen]][1] = fx2int(fxdiv64(result[1],result[3]));
 	vtx_array[screen][vtx_count[screen]][3] = result[3];
 	vtx_count[screen]++;
 	
