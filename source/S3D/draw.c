@@ -546,6 +546,7 @@ void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z)
 	_s3d_global_matrix_update(screen);
 	
 	m44_v4_Multiply(&MODELVIEW[screen],&temp_l,&l);
+	v4_Normalize(&l);
 	
 	int fr = amb_r[screen], fg = amb_g[screen], fb = amb_b[screen]; // add factors
 	

@@ -14,17 +14,17 @@
 
 extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
 
-#define FIX_SHIFT_EXTRA 0 // Positive values only!
+#define FIX_SHIFT_EXTRA 0 // Positive (odd) values only!
 
 // Look-up a sine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f sine value
-static inline s32 lu_sin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]<<FIX_SHIFT_EXTRA; }
+static inline s32 fxsin(u32 theta) { return sin_lut[(theta>>7)&0x1FF]<<FIX_SHIFT_EXTRA; }
 
 // Look-up a cosine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f cosine value
-static inline s32 lu_cos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]<<FIX_SHIFT_EXTRA; }
+static inline s32 fxcos(u32 theta) { return sin_lut[((theta>>7)+128)&0x1FF]<<FIX_SHIFT_EXTRA; }
 
 #define FIX_SHIFT       (12+FIX_SHIFT_EXTRA)  // Don't modify this, modify FIX_SHIFT_EXTRA
 #define FIX_SCALE       ( 1<<FIX_SHIFT		)
@@ -79,6 +79,8 @@ static inline s32 v4_DotProduct(v4 * v1, v4 * v2)
 }
 
 void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res);
+
+void v4_Normalize(v4 * v);
 
 //----------------------------------------------------------------------------
 

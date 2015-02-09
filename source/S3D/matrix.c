@@ -69,6 +69,19 @@ void v4_CrossProduct(v4 * v1, v4 * v2, v4 * res)
 		fxmul64(ptr_V4(v1,0),ptr_V4(v2,1)) - fxmul64(ptr_V4(v1,1),ptr_V4(v2,0)) );
 }
 
+void v4_Normalize(v4 * v)
+{
+	int l = fxsqrt( fxmul(ptr_V4(v,0),ptr_V4(v,0)) + fxmul(ptr_V4(v,1),ptr_V4(v,1)) +
+	                fxmul(ptr_V4(v,2),ptr_V4(v,2)) + fxmul(ptr_V4(v,3),ptr_V4(v,3)) );
+
+	s32 inv_l = fxdiv(float2fx(1.0),l);
+	
+	ptr_V4(v,0) = fxmul(ptr_V4(v,0),inv_l);
+	ptr_V4(v,1) = fxmul(ptr_V4(v,1),inv_l);
+	ptr_V4(v,2) = fxmul(ptr_V4(v,2),inv_l);
+	ptr_V4(v,3) = fxmul(ptr_V4(v,3),inv_l);
+}
+
 //--------------------------------------------------------------------------------------------------
 
 void m44_Copy(m44 * src, m44 * dest)
@@ -224,8 +237,8 @@ void m44_CreateFrustum(m44 * m, int left, int right, int bottom, int top, int zn
 
 void m44_CreateRotationX(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle);
-	s32 cos = lu_cos(angle);
+	s32 sin = fxsin(angle);
+	s32 cos = fxcos(angle);
 	
 	ptr_M44SET(m,	
 		int2fx(1), int2fx(0), int2fx(0), int2fx(0),
@@ -236,8 +249,8 @@ void m44_CreateRotationX(m44 * m, s32 angle)
 
 void m44_CreateRotationY(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle);
-	s32 cos = lu_cos(angle);
+	s32 sin = fxsin(angle);
+	s32 cos = fxcos(angle);
 	
 	ptr_M44SET(m,	
 		      cos, int2fx(0),       -sin, int2fx(0),
@@ -248,8 +261,8 @@ void m44_CreateRotationY(m44 * m, s32 angle)
 
 void m44_CreateRotationZ(m44 * m, s32 angle)
 {
-	s32 sin = lu_sin(angle);
-	s32 cos = lu_cos(angle);
+	s32 sin = fxsin(angle);
+	s32 cos = fxcos(angle);
 	
 	ptr_M44SET(m,	
 		      cos,      -sin, int2fx(0), int2fx(0),
@@ -260,8 +273,8 @@ void m44_CreateRotationZ(m44 * m, s32 angle)
 
 void m44_CreateRotationAxis(m44 * m, s32 angle, s32 x, s32 y, s32 z)
 {
-	s32 sin = lu_sin(angle);
-	s32 cos = lu_cos(angle);
+	s32 sin = fxsin(angle);
+	s32 cos = fxcos(angle);
 	s32 one_minus_cos = int2fx(1) - cos;
 	s32 x_sin = fxmul(x,sin);
 	s32 y_sin = fxmul(y,sin);

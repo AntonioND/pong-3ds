@@ -93,14 +93,13 @@ void Room_1_Draw(int screen)
 	
 	int x;
 	Pad_P1GetPosition(&x,NULL,NULL);
-	x >>= 3;
 	
 	// Camera rotation effect...
-	m44_CreateRotationY(&m,-x);
+	m44_CreateRotationY(&m,-(x>>4));
 	//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
-	m44_CreateRotationZ(&m,x);
+	m44_CreateRotationZ(&m,(x>>4));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	// Draw
