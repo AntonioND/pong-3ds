@@ -13,6 +13,25 @@
 
 //--------------------------------------------------------------------------------------------------
 
+static inline int abs(int a)
+{
+	return a > 0 ? a : -a;
+}
+
+static inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+static inline int sgn(int a)
+{
+	if(a > 0) return 1;
+	if(a < 0) return -1;
+	return 0;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 typedef struct { // values in fixed point!
 	s32 sx,sy,sz; // size
 	
@@ -129,36 +148,97 @@ void Ball_GetDimensions(int * x, int * y, int * z)
 
 //--------------------------------------------------------------------------------------------------
 
+static void _ball_SetZSpeedMinMax(void)
+{
+	//Limit min Z speed
+	while(abs(BALL.vz) < float2fx(0.05) )
+	{
+		int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		
+		// BALL.vz shouldn't be 0 or this will fail...
+		if(BALL.vz == 0) BALL.vz = float2fx(0.1);
+		else BALL.vz = sgn(BALL.vz) * float2fx(0.1);
+		
+		int new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		
+		int factor = fxdiv( v, new_v );
+		BALL.vx = fxmul(BALL.vx,factor);
+		BALL.vy = fxmul(BALL.vy,factor);
+		BALL.vz = fxmul(BALL.vz,factor);
+	}
+	
+	//Limit max Z relative speed
+	while(1)
+	{
+		int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		int factor = fxdiv( float2fx(1.0), v );
+		int relative_vz = fxmul(BALL.vz,factor);
+		
+		if(abs(relative_vz) > float2fx(0.8)) // this is the same as a dot product by (0,0,1)
+		{
+			BALL.vz = fxmul(BALL.vz,float2fx(0.75));
+			
+			int new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+			
+			factor = fxdiv( v, new_v );
+			BALL.vx = fxmul(BALL.vx,factor);
+			BALL.vy = fxmul(BALL.vy,factor);
+			BALL.vz = fxmul(BALL.vz,factor);
+		}
+		else
+		{
+			break;
+		}
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Ball_Init(void)
 {
 	memset(&BALL,0,sizeof(_ball_t));
 }
+
+#define BALL_START_SPEED (float2fx(0.2))
+#define BALL_MAX_SPEED (float2fx(0.4))
 
 void Ball_Reset(void)
 {
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
 	
-	BALL.x = float2fx(0.0);
-	BALL.y = roomymin + (BALL.sy/2);
-	BALL.z = (roomzmax + roomzmin) / 2;
+	if(Room_3DMovementEnabled())
+	{
+		BALL.x = float2fx(0.0);
+		BALL.y = float2fx(0.0);
+		BALL.z = (roomzmax + roomzmin) / 2;
+		
+		BALL.vx = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vy = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vz = (fast_rand() & int2fx(2)) - int2fx(1);
+	}
+	else
+	{
+		BALL.x = float2fx(0.0);
+		BALL.y = roomymin + (BALL.sy/2);
+		BALL.z = (roomzmax + roomzmin) / 2;
+		
+		BALL.vx = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vy = float2fx(0.0);
+		BALL.vz = (fast_rand() & int2fx(2)) - int2fx(1);
+	}
 	
-	BALL.vx = float2fx(0.15);
-	BALL.vz = float2fx(0.15);
-	//BALL.vy = float2fx(0.15);
+	// Set speed vector norm to BALL_START_SPEED
+	int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+	int factor = fxdiv( BALL_START_SPEED, v );
+	BALL.vx = fxmul(BALL.vx,factor);
+	BALL.vy = fxmul(BALL.vy,factor);
+	BALL.vz = fxmul(BALL.vz,factor);
+	
+	_ball_SetZSpeedMinMax();
 }
 
 //--------------------------------------------------------------------------------------------------
-
-static inline int abs(int a)
-{
-	return a > 0 ? a : -a;
-}
-
-static inline int min(int a, int b)
-{
-	return a < b ? a : b;
-}
 
 // margins are only valid if there is a collision in that axis
 static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
@@ -276,7 +356,7 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 	// Z
 	{
 		int zm = INT_MAX;
-		
+		/*
 		if(ballzmin <= roomzmin)
 		{
 			BALL.collisions |= COLLISION_Z_MIN;  zm = abs(roomzmin - ballzmin);
@@ -285,7 +365,7 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 		{
 			BALL.collisions |= COLLISION_Z_MAX;  zm = abs(ballzmax - roomzmax);
 		}
-		
+		*/
 		if(z_ball_coliding)
 		{
 			int temp = 0;
@@ -307,19 +387,25 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 
 void Ball_Handle(void)
 {
-	// Update speed
-	
-	BALL.vx = fxmul(BALL.vx,float2fx(1.005)); // speed up
-	BALL.vy = fxmul(BALL.vy,float2fx(1.005));
-	BALL.vz = fxmul(BALL.vz,float2fx(1.005));
-	
-	int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
-	if( v > float2fx(0.4) ) // limit speed
+	// Check if goal
+	if(!Game_PlayerScoreDelayEnabled())
 	{
-		v = fxdiv( float2fx(0.4), v );
-		BALL.vx = fxmul(BALL.vx,v);
-		BALL.vy = fxmul(BALL.vy,v);
-		BALL.vz = fxmul(BALL.vz,v);
+		int roomzmin, roomzmax;
+		Room_GetBounds(NULL,NULL,NULL,NULL,&roomzmin,&roomzmax);
+		
+		int ballzmin, ballzmax;
+		Ball_GetBounds(NULL,NULL,NULL,NULL,&ballzmin,&ballzmax);
+		
+		if( (ballzmin + BALL.vz) < roomzmin) // P2 scores
+		{
+			Game_PlayerScoreIncrease(1);
+			Game_PlayerScoreStartDelay();
+		}
+		else if( (ballzmax + BALL.vz) > roomzmax) // P1 scores
+		{
+			Game_PlayerScoreIncrease(0);
+			Game_PlayerScoreStartDelay();
+		}
 	}
 	
 	// Move
@@ -329,11 +415,14 @@ void Ball_Handle(void)
 	int xm,ym,zm;
 	_ball_UpdateCollisions(&xm,&ym,&zm);
 	
+	int bounce = 0;
+	
 	if(BALL.collisions & COLLISION_X_MIN)
 	{
 		if(BALL.vx < 0)
 		{
 			BALL.x += xm - BALL.vx; BALL.vx = -BALL.vx;
+			bounce = 1;
 		}
 	}
 	else if(BALL.collisions & COLLISION_X_MAX)
@@ -341,6 +430,7 @@ void Ball_Handle(void)
 		if(BALL.vx > 0)
 		{
 			BALL.x -= xm + BALL.vx; BALL.vx = -BALL.vx;
+			bounce = 1;
 		}
 	}
 	
@@ -349,6 +439,7 @@ void Ball_Handle(void)
 		if(BALL.vy < 0)
 		{
 			BALL.y += ym - BALL.vy; BALL.vy = -BALL.vy;
+			bounce = 1;
 		}
 	}
 	else if(BALL.collisions & COLLISION_Y_MAX)
@@ -356,9 +447,9 @@ void Ball_Handle(void)
 		if(BALL.vy > 0)
 		{
 			BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
+			bounce = 1;
 		}
 	}
-	
 	
 	int weird_bounce = 0;
 	
@@ -379,12 +470,31 @@ void Ball_Handle(void)
 		}
 	}
 	
+	// Update speed
+	
+	if(bounce)
+	{
+		BALL.vx = fxmul(BALL.vx,float2fx(1.03)); // speed up
+		BALL.vy = fxmul(BALL.vy,float2fx(1.03));
+		BALL.vz = fxmul(BALL.vz,float2fx(1.03));
+		
+		int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
+		if( v > BALL_MAX_SPEED ) // limit speed
+		{
+			v = fxdiv( BALL_MAX_SPEED, v );
+			BALL.vx = fxmul(BALL.vx,v);
+			BALL.vy = fxmul(BALL.vy,v);
+			BALL.vz = fxmul(BALL.vz,v);
+		}
+	}
+	
 	if(weird_bounce)
 	{
 		int v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
 		
-		BALL.vx += (fast_rand() & (int2fx(1.0)>>4)) - (int2fx(1.0)>>5);
-		if(BALL.vy) BALL.vy += (fast_rand() & (int2fx(1.0)>>4)) - (int2fx(1.0)>>5);
+		#define BALL_VARIATION_RANGE (int2fx(1.0)>>3)
+		BALL.vx += (fast_rand() & (BALL_VARIATION_RANGE-1)) - (BALL_VARIATION_RANGE>>1);
+		if(Room_3DMovementEnabled()) BALL.vy += (fast_rand() & (BALL_VARIATION_RANGE-1)) - (BALL_VARIATION_RANGE>>1);
 		
 		int new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
 		
@@ -393,19 +503,7 @@ void Ball_Handle(void)
 		BALL.vy = fxmul(BALL.vy,factor);
 		BALL.vz = fxmul(BALL.vz,factor);
 		
-		while(abs(BALL.vz) < float2fx(0.1) )
-		{
-			v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
-			
-			BALL.vz = fxmul(BALL.vz, float2fx(1.5));
-			
-			new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
-			
-			factor = fxdiv( v, new_v );
-			BALL.vx = fxmul(BALL.vx,factor);
-			BALL.vy = fxmul(BALL.vy,factor);
-			BALL.vz = fxmul(BALL.vz,factor);
-		}
+		_ball_SetZSpeedMinMax();
 	}
 	
 	BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;

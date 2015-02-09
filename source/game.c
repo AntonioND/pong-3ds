@@ -3,6 +3,7 @@
 
 #include <3ds.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "S3D/engine.h"
 #include "utils.h"
@@ -65,6 +66,54 @@ void draw_number(u8 * buf, int number, int x, int y)
 
 //-------------------------------------------------------------------------------------------------------
 
+typedef struct {
+	int score;
+} _player_info_s;
+
+_player_info_s PLAYER[2];
+
+void Game_PlayerResetAll(void)
+{
+	memset(&PLAYER,0,sizeof(PLAYER));
+}
+
+void Game_PlayerScoreIncrease(int player)
+{
+	PLAYER[player].score++;
+}
+
+int Game_PlayerScoreGet(int player)
+{
+	return PLAYER[player].score;
+}
+
+static int player_score_delay;
+
+void Game_PlayerScoreStartDelay(void)
+{
+	player_score_delay = 30; // 30 frames
+}
+
+int Game_PlayerScoreDelayEnabled(void)
+{
+	return (player_score_delay > 0);
+}
+
+void Game_PlayerScoreDelayHandle(void)
+{
+	if(player_score_delay)
+	{
+		player_score_delay--;
+		if(player_score_delay == 0)
+		{
+			Ball_Reset();
+			Pad_ResetAll();
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 struct {
 	int r,g,b;
 	int vr,vg,vb;
@@ -110,9 +159,9 @@ void Game_DrawScreenTop(int screen)
 	{
 		u8 * buf = S3D_BufferGet(screen);
 		
-		draw_number(buf,4,10,240-32-10-1);
+		draw_number(buf,Game_PlayerScoreGet(0),10,240-32-10-1);
 		
-		draw_number(buf,5,400-32-10-1,240-32-10-1);
+		draw_number(buf,Game_PlayerScoreGet(1),400-32-10-1,240-32-10-1);
 	}
 }
 
@@ -160,7 +209,7 @@ void Game_Init(void)
 void Game_Handle(void)
 {
 	ClearColorHandle();
-
+	
 	switch(Room_GetNumber())
 	{
 		case GAME_ROOM_MENU:
@@ -168,6 +217,7 @@ void Game_Handle(void)
 			break;
 		
 		case GAME_ROOM_1:
+			Game_PlayerScoreDelayHandle();
 			Room_Handle();
 			Ball_Handle();
 			Pad_HandleAll();

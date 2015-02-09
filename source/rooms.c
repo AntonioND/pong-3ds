@@ -51,6 +51,30 @@ void Room_Draw(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
+int Room_3DMovementEnabled(void)
+{
+	switch(current_room)
+	{
+		// Playable rooms
+		
+		case GAME_ROOM_1:
+			return 0;
+			break;
+			
+		// Non-playable rooms
+			
+		case GAME_ROOM_MENU:
+			return 0;
+			break;
+			
+		default:
+			return 0;
+			break;
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Room_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
 {
 	switch(current_room)

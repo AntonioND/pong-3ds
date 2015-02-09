@@ -17,6 +17,15 @@
 
 //--------------------------------------------------------------------------------------------------
 
+void Game_PlayerResetAll(void);
+void Game_PlayerScoreIncrease(int player); // 0 or 1
+int Game_PlayerScoreGet(int player); // 0 or 1
+
+void Game_PlayerScoreStartDelay(void);
+int Game_PlayerScoreDelayEnabled(void);
+
+//--------------------------------------------------------------------------------------------------
+
 void Game_Init(void);
 
 void Game_Handle(void);

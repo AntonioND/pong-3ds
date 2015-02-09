@@ -360,6 +360,11 @@ void Pad_HandleAll(void)
 			cp.dx = clamp(-0x90,cp.dx,0x90);
 			cp.dy = clamp(-0x90,cp.dy,0x90);
 			
+			if(Game_PlayerScoreDelayEnabled())
+			{
+				cp.dx = cp.dy = 0;
+			}
+			
 			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
 			{
 				p->ax = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dx)) / 0x90;
@@ -463,45 +468,47 @@ void Pad_HandleAll(void)
 			int dx = 0, dy = 0;
 			
 			// Calculate direction
-			
-			if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
+			if(!Game_PlayerScoreDelayEnabled())
 			{
-				int ballxmin, ballxmax, ballymin, ballymax;
-				Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,NULL,NULL);
-				
-				int padxmin, padxmax, padymin, padymax;
-				_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
-				
-				int ballxsize, ballysize;
-				Ball_GetDimensions(&ballxsize,&ballysize,NULL);
-				
-				if(_segments_overlap(ballxmin,ballxmax, padxmin, padxmax) < ballxsize)
+				if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
 				{
-					move_left_right = 1;
-					dx = bx - p->x;
+					int ballxmin, ballxmax, ballymin, ballymax;
+					Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,NULL,NULL);
+					
+					int padxmin, padxmax, padymin, padymax;
+					_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+					
+					int ballxsize, ballysize;
+					Ball_GetDimensions(&ballxsize,&ballysize,NULL);
+					
+					if(_segments_overlap(ballxmin,ballxmax, padxmin, padxmax) < ballxsize)
+					{
+						move_left_right = 1;
+						dx = bx - p->x;
+					}
+					
+					if(_segments_overlap(ballymin,ballymax, padymin, padymax) < ballysize)
+					{
+						move_up_down = 1;
+						dy = by - p->y;
+					}
 				}
-				
-				if(_segments_overlap(ballymin,ballymax, padymin, padymax) < ballysize)
+				else // go back to the center of the screen
 				{
-					move_up_down = 1;
-					dy = by - p->y;
-				}
-			}
-			else // go back to the center of the screen
-			{
-				int padxmin, padxmax, padymin, padymax;
-				_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
-				
-				if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padxmin, padxmax) < float2fx(0.19))
-				{
-					move_left_right = 1;
-					dx = float2fx(0.0) - p->x;
-				}
-				
-				if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padymin, padymax) < float2fx(0.19))
-				{
-					move_up_down = 1;
-					dy = float2fx(0.0) - p->y;
+					int padxmin, padxmax, padymin, padymax;
+					_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+					
+					if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padxmin, padxmax) < float2fx(0.19))
+					{
+						move_left_right = 1;
+						dx = float2fx(0.0) - p->x;
+					}
+					
+					if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padymin, padymax) < float2fx(0.19))
+					{
+						move_up_down = 1;
+						dy = float2fx(0.0) - p->y;
+					}
 				}
 			}
 			

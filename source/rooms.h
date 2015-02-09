@@ -16,6 +16,8 @@ int Room_GetNumber(void);
 
 void Room_Draw(int screen);
 
+int Room_3DMovementEnabled(void);
+
 void Room_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
 
 void Room_Init(void);

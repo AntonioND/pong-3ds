@@ -139,6 +139,8 @@ void Room_1_Init(void)
 	Pad_P2SetDimensions(float2fx(3.5),float2fx(2.0),float2fx(1.0));
 	Pad_P2SetColor(255,255,0);
 	Pad_ResetAll();
+	
+	Game_PlayerResetAll();
 }
 
 void Room_1_End(void)

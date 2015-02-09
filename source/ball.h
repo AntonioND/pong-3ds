@@ -20,6 +20,8 @@ void Ball_GetPosition(int * x, int * y, int * z);
 void Ball_GetSpeed(int * x, int * y, int * z);
 void Ball_GetDimensions(int * x, int * y, int * z);
 
+void Ball_Enable3DMovement(int enable);
+
 void Ball_Init(void);
 void Ball_Reset(void);
 void Ball_Handle(void);
