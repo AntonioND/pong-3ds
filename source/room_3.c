@@ -151,8 +151,8 @@ void Room_3_Draw(int screen)
 	
 	S3D_SetCulling(screen, 1,1);
 	Pad_P1Draw(screen); // Player	
-	S3D_PolygonListFlush(screen, 1);
 	S3D_SetCulling(screen, 1,0);
+	S3D_PolygonListFlush(screen, 1);
 }
 
 //--------------------------------------------------------------------------------------------------
