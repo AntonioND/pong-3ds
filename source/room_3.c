@@ -21,8 +21,43 @@ static inline int min(int a, int b)
 
 //--------------------------------------------------------------------------------------------------
 
-static void _room_DrawRoom1(int screen)
+static void _room_DrawRoom3(int screen)
 {
+	S3D_PolygonBegin(screen, S3D_QUADS);
+
+	S3D_PolygonColor(screen, 0,255,0);
+	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(+1.0),float2fx(0.0));
+	
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(-1.25));
+	
+	S3D_PolygonNormal(screen, float2fx(+1.0),float2fx(0.0),float2fx(0.0));
+	
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(-1.25));
+	
+	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(-1.25));
+	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(-1.0),float2fx(0.0));
+	
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(-1.25));
+	
+	S3D_PolygonListFlush(screen, 1);
+	
+/*	
 	//Surface ...
 	
 	S3D_PolygonBegin(screen, S3D_QUADS);
@@ -69,18 +104,19 @@ static void _room_DrawRoom1(int screen)
 	}
 
 	S3D_PolygonListFlush(screen, 1);
+*/
 }
 
-void Room_1_Draw(int screen)
+void Room_3_Draw(int screen)
 {
 	// Configure
 	
 	S3D_SetCulling(screen, 1,0);
 	
 	m44 m;
-	m44_CreateTranslation(&m,0,int2fx(-2),int2fx(12));
+	m44_CreateTranslation(&m,0,int2fx(0),int2fx(10));
 	S3D_ModelviewMatrixSet(screen, &m);	
-	m44_CreateRotationX(&m,-0x1800);
+	//m44_CreateRotationX(&m,-0x1800);
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	S3D_LightAmbientColorSet(screen, 64,64,64);
@@ -99,12 +135,13 @@ void Room_1_Draw(int screen)
 	//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
-	m44_CreateRotationZ(&m,(x>>4));
+	//m44_CreateRotationZ(&m,(x>>4));
+	m44_CreateRotationX(&m,(x>>4));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	// Draw
 	
-	_room_DrawRoom1(screen); // Internal flush
+	_room_DrawRoom3(screen); // Internal flush
 	
 	Pad_P2Draw(screen); // IA
 	Ball_Draw(screen);
@@ -114,19 +151,19 @@ void Room_1_Draw(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_1_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
+void Room_3_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
 {
 	if(xmin) *xmin = float2fx(-7.0);
 	if(xmax) *xmax = float2fx(+7.0);
-	if(ymin) *ymin = float2fx(-1.0);
-	if(ymax) *ymax = float2fx(+3.0);
+	if(ymin) *ymin = float2fx(-7.0);
+	if(ymax) *ymax = float2fx(+7.0);
 	if(zmin) *zmin = float2fx(-1.25);
 	if(zmax) *zmax = float2fx(+12.75);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_1_Init(void)
+void Room_3_Init(void)
 {
 	Ball_Init();
 	Ball_SetDimensions(float2fx(1.5),float2fx(1.5),float2fx(1.5));
@@ -134,9 +171,9 @@ void Room_1_Init(void)
 	Ball_Reset();
 	
 	Pad_InitAll();
-	Pad_P1SetDimensions(float2fx(3.5),float2fx(2.0),float2fx(1.0));
+	Pad_P1SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
 	Pad_P1SetColor(255,0,0);
-	Pad_P2SetDimensions(float2fx(3.5),float2fx(2.0),float2fx(1.0));
+	Pad_P2SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
 	Pad_P2SetColor(255,255,0);
 	Pad_ResetAll();
 	
@@ -145,12 +182,12 @@ void Room_1_Init(void)
 	Game_StateMachineReset();
 }
 
-void Room_1_End(void)
+void Room_3_End(void)
 {
 
 }
 
-void Room_1_Handle(void)
+void Room_3_Handle(void)
 {
 	Game_UpdateStateMachine();
 	Ball_Handle();
@@ -160,9 +197,9 @@ void Room_1_Handle(void)
 	if(keys & KEY_Y) Room_SetNumber(GAME_ROOM_MENU);
 }
 
-int Room_1_3DMovementEnabled(void)
+int Room_3_3DMovementEnabled(void)
 {
-	return 0;
+	return 1;
 }
 
 //--------------------------------------------------------------------------------------------------

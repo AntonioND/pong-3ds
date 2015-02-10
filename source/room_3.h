@@ -1,25 +1,25 @@
 
-#ifndef __ROOM_MENU__
-#define __ROOM_MENU__
+#ifndef __ROOM_3__
+#define __ROOM_3__
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_Menu_Draw(int screen);
+void Room_3_Draw(int screen);
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_Menu_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
+void Room_3_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_Menu_Init(void);
+void Room_3_Init(void);
 
-void Room_Menu_End(void);
+void Room_3_End(void);
 
-void Room_Menu_Handle(void);
+void Room_3_Handle(void);
 
-int Room_Menu_3DMovementEnabled(void);
+int Room_3_3DMovementEnabled(void);
 
 //--------------------------------------------------------------------------------------------------
 
-#endif //__ROOM_MENU__
+#endif //__ROOM_3__

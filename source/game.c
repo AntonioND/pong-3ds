@@ -202,22 +202,7 @@ void Game_Handle(void)
 {
 	ClearColorHandle();
 	
-	switch(Room_GetNumber())
-	{
-		case GAME_ROOM_MENU:
-			Room_Handle();
-			break;
-		
-		case GAME_ROOM_1:
-			Game_UpdateStateMachine();
-			Room_Handle();
-			Ball_Handle();
-			Pad_HandleAll();
-			break;
-		
-		default:
-			break;
-	}
+	Room_Handle();
 }
 
 void Game_End(void)

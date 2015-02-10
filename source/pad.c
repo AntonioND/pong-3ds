@@ -368,11 +368,19 @@ void Pad_HandleAll(void)
 			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
 			{
 				p->ax = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dx)) / 0x90;
-				p->az = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
+				
+				if(Room_3DMovementEnabled())
+					p->ay = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
+				else
+					p->az = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
 			}
 			else
 			{
-				p->ax = p->az = 0;
+				p->ax = 0;
+				if(Room_3DMovementEnabled())
+					p->ay = 0;
+				else
+					p->az = 0;
 				
 				p->vx = fxmul(p->vx,float2fx(0.8));
 				p->vy = fxmul(p->vy,float2fx(0.8));

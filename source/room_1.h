@@ -18,6 +18,8 @@ void Room_1_End(void);
 
 void Room_1_Handle(void);
 
+int Room_1_3DMovementEnabled(void);
+
 //--------------------------------------------------------------------------------------------------
 
 #endif //__ROOM_1__

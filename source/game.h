@@ -25,6 +25,8 @@ int Game_PlayerScoreGet(int player); // 0 or 1
 
 void Game_StateMachineReset(void);
 
+void Game_UpdateStateMachine(void);
+
 void Game_PlayerScoreStartDelay(void);
 
 int Game_StateMachinePadMovementEnabled(void);

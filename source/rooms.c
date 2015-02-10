@@ -7,12 +7,11 @@
 
 #include "room_menu.h"
 #include "room_1.h"
+#include "room_3.h"
 
 //--------------------------------------------------------------------------------------------------
 
-_game_room_e current_room;
-
-//--------------------------------------------------------------------------------------------------
+static _game_room_e current_room;
 
 void Room_SetNumber(_game_room_e room)
 {
@@ -34,16 +33,19 @@ void Room_Draw(int screen)
 	{
 		// Playable rooms
 		
-		case GAME_ROOM_MENU:
-			Room_Menu_Draw(screen);
+		case GAME_ROOM_1:
+			Room_1_Draw(screen);
+			break;
+		case GAME_ROOM_3:
+			Room_3_Draw(screen);
 			break;
 		
 		// Non-playable rooms
 		
-		case GAME_ROOM_1:
-			Room_1_Draw(screen);
+		case GAME_ROOM_MENU:
+			Room_Menu_Draw(screen);
 			break;
-			
+		
 		default:
 			break;
 	}
@@ -53,24 +55,22 @@ void Room_Draw(int screen)
 
 int Room_3DMovementEnabled(void)
 {
-#warning "TODO"
 	switch(current_room)
 	{
 		// Playable rooms
 		
 		case GAME_ROOM_1:
-			return 0;
-			break;
+			return Room_1_3DMovementEnabled();
+		case GAME_ROOM_3:
+			return Room_3_3DMovementEnabled();
 			
 		// Non-playable rooms
 			
 		case GAME_ROOM_MENU:
-			return 0;
-			break;
+			return Room_Menu_3DMovementEnabled();
 			
 		default:
 			return 0;
-			break;
 	}
 }
 
@@ -84,6 +84,9 @@ void Room_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, 
 		
 		case GAME_ROOM_1:
 			Room_1_GetBounds(xmin,xmax,ymin,ymax,zmin,zmax);
+			break;
+		case GAME_ROOM_3:
+			Room_3_GetBounds(xmin,xmax,ymin,ymax,zmin,zmax);
 			break;
 			
 		// Non-playable rooms
@@ -114,7 +117,10 @@ void Room_Init(void)
 		case GAME_ROOM_1:
 			Room_1_Init();
 			break;
-			
+		case GAME_ROOM_3:
+			Room_3_Init();
+			break;
+		
 		// Non-playable rooms
 		
 		case GAME_ROOM_MENU:
@@ -136,7 +142,10 @@ void Room_End(void)
 		case GAME_ROOM_1:
 			Room_1_End();
 			break;
-			
+		case GAME_ROOM_3:
+			Room_3_End();
+			break;
+		
 		// Non-playable rooms
 		
 		case GAME_ROOM_MENU:
@@ -159,6 +168,9 @@ void Room_Handle(void)
 		
 		case GAME_ROOM_1:
 			Room_1_Handle();
+			break;
+		case GAME_ROOM_3:
+			Room_3_Handle();
 			break;
 		
 		// Non-playable rooms

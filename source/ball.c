@@ -213,9 +213,9 @@ void Ball_Reset(void)
 		BALL.y = float2fx(0.0);
 		BALL.z = (roomzmax + roomzmin) / 2;
 		
-		BALL.vx = (fast_rand() & int2fx(2)) - int2fx(1);
-		BALL.vy = (fast_rand() & int2fx(2)) - int2fx(1);
-		BALL.vz = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vx = (fast_rand() & (int2fx(2)-1)) - int2fx(1);
+		BALL.vy = (fast_rand() & (int2fx(2)-1)) - int2fx(1);
+		BALL.vz = (fast_rand() & (int2fx(2)-1)) - int2fx(1);
 	}
 	else
 	{
@@ -223,9 +223,9 @@ void Ball_Reset(void)
 		BALL.y = roomymin + (BALL.sy/2);
 		BALL.z = (roomzmax + roomzmin) / 2;
 		
-		BALL.vx = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vx = (fast_rand() & (int2fx(2)-1)) - int2fx(1);
 		BALL.vy = float2fx(0.0);
-		BALL.vz = (fast_rand() & int2fx(2)) - int2fx(1);
+		BALL.vz = (fast_rand() & (int2fx(2)-1)) - int2fx(1);
 	}
 	
 	// Set speed vector norm to BALL_START_SPEED
@@ -436,20 +436,43 @@ void Ball_Handle(void)
 		}
 	}
 	
-	if(BALL.collisions & COLLISION_Y_MIN)
+	if(Room_3DMovementEnabled())
 	{
-		if(BALL.vy < 0)
+		if(BALL.collisions & COLLISION_Y_MIN)
 		{
-			BALL.y += ym - BALL.vy; BALL.vy = -BALL.vy;
-			bounce = 1;
+			if(BALL.vy < 0)
+			{
+				BALL.y += ym - BALL.vy; BALL.vy = -BALL.vy;
+				bounce = 1;
+			}
+		}
+		else if(BALL.collisions & COLLISION_Y_MAX)
+		{
+			if(BALL.vy > 0)
+			{
+				BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
+				bounce = 1;
+			}
 		}
 	}
-	else if(BALL.collisions & COLLISION_Y_MAX)
+	else
 	{
-		if(BALL.vy > 0)
+#define BOUNCE_ENERGY_CONSERVED (float2fx(0.8))
+		if(BALL.collisions & COLLISION_Y_MIN)
 		{
-			BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
-			bounce = 1;
+			if(BALL.vy < 0)
+			{
+				BALL.y += ym - BALL.vy; BALL.vy = -fxmul(BALL.vy,BOUNCE_ENERGY_CONSERVED);
+				bounce = 1;
+			}
+		}
+		else if(BALL.collisions & COLLISION_Y_MAX)
+		{
+			if(BALL.vy > 0)
+			{
+				BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
+				bounce = 1;
+			}
 		}
 	}
 	
@@ -508,7 +531,14 @@ void Ball_Handle(void)
 		_ball_SetZSpeedMinMax();
 	}
 	
-	BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
+	if(Room_3DMovementEnabled())
+	{
+		BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
+	}
+	else
+	{
+		BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
+	}
 }
 
 //--------------------------------------------------------------------------------------------------
