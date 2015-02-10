@@ -53,13 +53,13 @@ void S3D_SetCulling(int screen, int draw_front, int draw_back)
 static inline int _s3d_check_cull_face(int screen, int x1, int y1, int x2, int y2, int x3, int y3)
 {
 	int dx1 = x2-x1; int dy1 = y2-y1;
-	if((dx1 & dy1) == 0) return 1; // if 2 pixels are the same, draw the polygon always
+	if( (dx1 == 0) && (dy1 == 0) ) return 1; // if 2 pixels are the same, draw the polygon always
 	int dx2 = x3-x1; int dy2 = y3-y1;
-	if((dx2 & dy2) == 0) return 1;
+	if( (dx2 == 0) && (dy2 == 0) ) return 1;
 
 	int cross = dx1*dy2 - dx2*dy1; // Z axis goes away (to the inside of the screen)
-	if((cross > 0) && !_s3d_draw_back[screen]) return 0;
-	if((cross < 0) && !_s3d_draw_front[screen]) return 0;
+	if((cross > 0) && !(_s3d_draw_back[screen])) return 0;
+	if((cross < 0) && !(_s3d_draw_front[screen])) return 0;
 	return 1;
 }
 
@@ -113,11 +113,30 @@ static inline void _s3d_plot_unsafe(u8 * buf, u32 x, u32 y, int r, int g, int b)
 	*p++ = b; *p++ = g; *p = r;
 }
 
+static inline void _s3d_plot_unsafe_alpha(u8 * buf, u32 x, u32 y, int r, int g, int b, int a)
+{
+	u8 * p = &(buf[(240*x+y)*3]);
+	int one_minus_alpha = 255-a;
+	p[0] = ( (p[0] * one_minus_alpha) + b * a ) / 256;
+	p[1] = ( (p[1] * one_minus_alpha) + g * a ) / 256;
+	p[2] = ( (p[2] * one_minus_alpha) + r * a ) / 256;
+}
+
 static inline void _s3d_plot_safe(u8 * buf, u32 x, u32 y, int r, int g, int b)
 {
 	if((x >= 400) || (y >= 240)) return;
 	u8 * p = &(buf[(240*x+y)*3]);
 	*p++ = b; *p++ = g; *p = r;
+}
+
+static inline void _s3d_plot_safe_alpha(u8 * buf, u32 x, u32 y, int r, int g, int b, int a)
+{
+	if((x >= 400) || (y >= 240)) return;
+	u8 * p = &(buf[(240*x+y)*3]);
+	int one_minus_alpha = 255-a;
+	p[0] = ( (p[0] * one_minus_alpha) + b * a ) / 256;
+	p[1] = ( (p[1] * one_minus_alpha) + g * a ) / 256;
+	p[2] = ( (p[2] * one_minus_alpha) + r * a ) / 256;
 }
 
 static inline void _s3d_vertical_line(u8 * linebuf, u32 x, int y1, int y2, int r, int g, int b) //x unsafe
@@ -146,6 +165,48 @@ static inline void _s3d_vertical_line(u8 * linebuf, u32 x, int y1, int y2, int r
 	}
 }
 
+static inline void _s3d_vertical_line_alpha(u8 * linebuf, u32 x, int y1, int y2, int r, int g, int b, int a) //x unsafe
+{
+	if(y1 < y2)
+	{
+		if(y2 < 0) return;
+		else if(y2 >= 240) y2 = 240-1;
+		
+		if(y1 >= 240) return;
+		else if(y1 < 0) y1 = 0;
+		
+		int one_minus_alpha = 255-a;
+		
+		linebuf += y1*3;
+		for( ;y1<=y2; y1++)
+		{
+			linebuf[0] = ( (linebuf[0] * one_minus_alpha) + b * a ) / 256;
+			linebuf[1] = ( (linebuf[1] * one_minus_alpha) + g * a ) / 256;
+			linebuf[2] = ( (linebuf[2] * one_minus_alpha) + r * a ) / 256;
+			linebuf += 3;
+		}
+	}
+	else // y2 < y1
+	{
+		if(y1 < 0) return;
+		else if(y1 >= 240) y1 = 240-1;
+		
+		if(y2 >= 240) return;
+		else if(y2 < 0) y2 = 0;
+		
+		int one_minus_alpha = 255-a;
+		
+		linebuf += y2*3;
+		for( ;y2<=y1; y2++) 
+		{
+			linebuf[0] = ( (linebuf[0] * one_minus_alpha) + b * a ) / 256;
+			linebuf[1] = ( (linebuf[1] * one_minus_alpha) + g * a ) / 256;
+			linebuf[2] = ( (linebuf[2] * one_minus_alpha) + r * a ) / 256;
+			linebuf += 3;
+		}
+	}
+}
+
 static inline void _s3d_vertical_line_downwards(u8 * linebuf, u32 x, int y1, int y2, int r, int g, int b) //x unsafe, y1 < y2
 {
 //if(y2 < y1) { printf("error"); return; }
@@ -160,7 +221,30 @@ static inline void _s3d_vertical_line_downwards(u8 * linebuf, u32 x, int y1, int
 	for( ;y1<=y2; y1++) { *linebuf++ = b; *linebuf++ = g; *linebuf++ = r; }
 }
 
-void _s3d_line_unsafe(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
+//x unsafe, y1 < y2
+static inline void _s3d_vertical_line_downwards_alpha(u8 * linebuf, u32 x, int y1, int y2, int r, int g, int b, int a) 
+{
+//if(y2 < y1) { printf("error"); return; }
+
+	if(y2 < 0) return;
+	else if(y2 >= 240) y2 = 240-1;
+	
+	if(y1 >= 240) return;
+	else if(y1 < 0) y1 = 0;
+	
+	int one_minus_alpha = 255-a;
+	
+	linebuf += y1*3;
+	for( ;y1<=y2; y1++) 
+	{
+		linebuf[0] = ( (linebuf[0] * one_minus_alpha) + b * a ) / 256;
+		linebuf[1] = ( (linebuf[1] * one_minus_alpha) + g * a ) / 256;
+		linebuf[2] = ( (linebuf[2] * one_minus_alpha) + r * a ) / 256;
+		linebuf += 3;
+	}
+}
+
+void _s3d_line_unsafe_alpha(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b, int a)
 {
 	int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
 
@@ -188,7 +272,7 @@ void _s3d_line_unsafe(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, in
 				py += sdy;
 			}
 			px += sdx;
-			_s3d_plot_unsafe(buf,px,py,r,g,b);
+			_s3d_plot_unsafe_alpha(buf,px,py,r,g,b,a);
 		}
 	}
 	else // the line is more vertical than horizontal
@@ -202,7 +286,7 @@ void _s3d_line_unsafe(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, in
 				px += sdx;
 			}
 			py += sdy;
-			_s3d_plot_unsafe(buf,px,py,r,g,b);
+			_s3d_plot_unsafe_alpha(buf,px,py,r,g,b,a);
 		}
 	}
 }
@@ -234,7 +318,7 @@ static inline int _s3d_compute_out_code(int32_t x, int32_t y)
 //Cohen–Sutherland clipping algorithm clips a line from
 //P1 = (x1, y1) to P2 = (x2, y2) against a rectangle with
 //diagonal from (xmin, ymin) to (xmax, ymax).
-void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
+void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b, int a)
 {
 	//Outcodes for P1, P1, and whatever point lies outside the clip rectangle
 	int outcode1, outcode2, outcodeOut;
@@ -252,7 +336,7 @@ void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 	{
 		if((outcode1|outcode2) == 0) //logical or is 0. Trivially accept and get out of loop
 		{
-			_s3d_line_unsafe(buf, fx2int(fx1),fx2int(fy1), fx2int(fx2),fx2int(fy2), r,g,b);
+			_s3d_line_unsafe_alpha(buf, fx2int(fx1),fx2int(fy1), fx2int(fx2),fx2int(fy2), r,g,b,a);
 			return;
 		}
 		else if(outcode1 & outcode2) //logical and is not 0. Trivially reject and exit
@@ -306,12 +390,15 @@ void S3D_2D_Line(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 
 //----------------------
 
-void S3D_2D_Plot(u8 * buf, int x, int y, int r, int g, int b)
+void S3D_2D_Plot(u8 * buf, int x, int y, int r, int g, int b, int a)
 {
-	_s3d_plot_safe(buf,x,y,r,g,b);
+	if(a == 255)
+		_s3d_plot_safe(buf,x,y,r,g,b);
+	else
+		_s3d_plot_safe_alpha(buf,x,y,r,g,b,a);
 }
 
-void S3D_2D_PlotEx(u8 * buf, int thickness, int x, int y, int r, int g, int b)
+void S3D_2D_PlotEx(u8 * buf, int thickness, int x, int y, int r, int g, int b, int a)
 {
     thickness --;
 
@@ -320,12 +407,12 @@ void S3D_2D_PlotEx(u8 * buf, int thickness, int x, int y, int r, int g, int b)
 
     for(i = -hw; i <= -hw+thickness; i++)
         for(j = -hw; j <= -hw+thickness; j++)
-            _s3d_plot_safe(buf,x+i,y+j,r,g,b);
+            S3D_2D_Plot(buf,x+i,y+j,r,g,b,a);
 }
 
 //----------------------
 
-void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int r, int g, int b)
+void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int r, int g, int b, int a)
 {
     thickness --;
 
@@ -334,7 +421,7 @@ void S3D_2D_LineEx(u8 * buf, int thickness, int x1, int y1, int x2, int y2, int 
 
     for(i = -hw; i <= -hw+thickness; i++)
         for(j = -hw; j <= -hw+thickness; j++)
-            S3D_2D_Line(buf,x1+i,y1+j,x2+i,y2+j,r,g,b);
+            S3D_2D_Line(buf,x1+i,y1+j,x2+i,y2+j,r,g,b,a);
 }
 
 //----------------------
@@ -488,6 +575,155 @@ void S3D_2D_TriangleFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y
 
 //----------------------
 
+void S3D_2D_TriangleFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b, int a)
+{
+	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3);
+	
+	// Sort: x1 <= x2 <= x3
+	if(x1 > x2) { swapints_pairs(&x1,&x2, &y1,&y2); }
+	if(x2 > x3) { swapints_pairs(&x2,&x3, &y2,&y3); if(x1 > x2) { swapints_pairs(&x1,&x2, &y1,&y2); } }
+
+	u8 * linebuf = &(buf[240*x1*3]);
+	
+	if(x1 != x2) // x1 != x2
+	{
+		int dy1 = fxdiv64(y2-y1,int2fx(x2-x1));
+		
+		//if(x1 != x3) // x1 != x2, x1 != x3
+		{
+			int dy2 = fxdiv64(y3-y1,int2fx(x3-x1));
+			
+			if(x2 != x3)  // x1 != x2, x1 != x3, x2 != x3 -> Most common case
+			{
+				int dy3 = fxdiv64(y3-y2,int2fx(x3-x2));
+				
+				int sx = x1; int sy = y1; int ey = y1;
+				
+				if(dy1 > dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+					ey = y2;
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+					_s3d_plot_safe_alpha(buf, x3,fx2int(y3), r,g,b,a);
+				}
+				else //if(dy1 <= dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b,a);
+					ey = y2;
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b,a);
+					_s3d_plot_safe_alpha(buf, x3,fx2int(y3), r,g,b,a);
+				}
+				
+				return;
+			}
+			else  // x1 != x2, x1 != x3, x2 == x3
+			{
+				int sx = x1; int sy = y1; int ey = y1;
+				
+				if(dy1 > dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+					if( sx >= 0 ) _s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(y3),fx2int(y2), r,g,b,a);
+				}
+				else //if(dy1 <= dy2)
+				{
+					for( ;sx<x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b,a);
+					if( sx >= 0 ) _s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(y2),fx2int(y3), r,g,b,a);
+				}
+				
+				return;
+			}
+		}
+		//else // x1 != x2, x1 == x3
+		//{
+		//	//Impossible because x1 <= x2 <= x3
+		//	printf("C");
+		//	return;
+		//}
+	}
+	else // x1 == x2
+	{
+		if(x1 != x3) // x1 == x2, x1 != x3
+		{
+			int dy2 = fxdiv64(y3-y1,int2fx(x3-x1));
+			
+			//if(x2 != x3)  // x1 == x2, x1 != x3, x2 != x3
+			{
+				int dy3 = fxdiv64(y3-y2,int2fx(x3-x2));
+				
+				int sx = x1;
+				int sy = y1; int ey = y2;
+				
+				if(y1 > y2)
+				{
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(ey),fx2int(sy), r,g,b,a);
+					_s3d_plot_safe_alpha(buf, x3,fx2int(y3), r,g,b,a);
+				}
+				else //if(dy1 <= dy2)
+				{
+					for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+					_s3d_plot_safe_alpha(buf, x3,fx2int(y3), r,g,b,a);
+				}
+				
+				return;
+			}
+			//else // x1 == x2, x1 != x3, x2 == x3
+			//{
+			//	//Impossible
+			//	printf("B");
+			//	return;
+			//}
+		}
+		else // x1 == x2, x1 == x3
+		{
+			//if(x2 != x3)  // x1 == x2, x1 == x3, x2 != x3
+			//{
+			//	//Impossible
+			//	printf("A");
+			//	return;
+			//}
+			//else  // x1 == x2, x1 == x3, x2 == x3
+			{
+				//Just a line
+				if( ((u32)x1) < 400 )
+				{
+					int ymin = min(min(y1,y2),y3);
+					int ymax = max(max(y1,y2),y3);
+					_s3d_vertical_line_alpha(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b,a);
+				}
+				return;
+			}
+		}
+	}
+	
+#if 0
+	int sx = x1; int sy = y1; int ey = y1;
+	int dy1,dy2,dy3;
+	if(x1 != x2) dy1=fxdiv64(y2-y1,int2fx(x2-x1)); else dy1=0;
+	if(x1 != x3) dy2=fxdiv64(y3-y1,int2fx(x3-x1)); else dy2=0;
+	if(x2 != x3) dy3=fxdiv64(y3-y2,int2fx(x3-x2)); else dy3=0;
+	
+	//Safe invalid way of doing it... If x coordinates are the same, it fails
+	for( ;sx<=x2; sx++,sy+=dy2,ey+=dy1,linebuf+=240*3) if( sx >= 0 )
+		_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+	ey = y2;
+	for( ;sx<=x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( sx >= 0 )
+		_s3d_vertical_line_downwards_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+	
+	_s3d_plot_safe_alpha(buf, x3,fx2int(y3), r,g,b,a);
+#endif
+}
+
+//----------------------
+
 void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b)
 {
 	if(y1 > y2) swapints(&y1,&y2);
@@ -521,6 +757,7 @@ void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, in
 
 static u32 currcolor_r[2], currcolor_g[2], currcolor_b[2];
 static u32 saved_r[2] = { 255, 255 }, saved_g[2] = { 255, 255 }, saved_b[2] = { 255, 255 };
+static u32 currcolor_alpha[2] = { 255, 255 };
 
 #define MAX_LIGHT_SOURCES (2) // no more than 32
 static v4 light_dir[2][MAX_LIGHT_SOURCES];
@@ -532,9 +769,15 @@ static int amb_r[2] = { 0, 0 }, amb_g[2] = { 0, 0 }, amb_b[2] = { 0, 0 };
 
 void S3D_PolygonColor(int screen, u32 r, u32 g, u32 b)
 {
+	S3D_PolygonColorAlpha(screen,r,g,b,255);
+}
+
+void S3D_PolygonColorAlpha(int screen, u32 r, u32 g, u32 b, u32 a)
+{
 	currcolor_r[screen] = saved_r[screen] = r;
 	currcolor_g[screen] = saved_g[screen] = g;
 	currcolor_b[screen] = saved_b[screen] = b;
+	currcolor_alpha[screen] = a;
 }
 
 //---------------------------------------------
@@ -620,27 +863,37 @@ void S3D_PolygonBegin(int screen, s3d_primitive type)
 
 #define LINE_THICKNESS (3)
 
-void _s3d_draw_dot(int screen, int x, int y, int r, int g, int b)
+void _s3d_draw_dot(int screen, int x, int y, int r, int g, int b, int a)
 {
-	S3D_2D_PlotEx(curr_buf[screen],LINE_THICKNESS,x,y,r,g,b);
+	S3D_2D_PlotEx(curr_buf[screen],LINE_THICKNESS,x,y,r,g,b,a);
 }
 
-void _s3d_draw_line(int screen, int x1, int y1, int x2, int y2, int r, int g, int b)
+void _s3d_draw_line(int screen, int x1, int y1, int x2, int y2, int r, int g, int b, int a)
 {
-	S3D_2D_LineEx(curr_buf[screen],LINE_THICKNESS,x1,y1,x2,y2,r,g,b);
+	S3D_2D_LineEx(curr_buf[screen],LINE_THICKNESS,x1,y1,x2,y2,r,g,b,a);
 }
 
-void _s3d_draw_triangle(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b)
+void _s3d_draw_triangle(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b, int a)
 {
 	if(!_s3d_check_cull_face(screen,x1,y1,x2,y2,x3,y3)) return;
 	
-	S3D_2D_TriangleFill(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b);
+	if(a == 255)
+		S3D_2D_TriangleFill(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b);
+	else
+		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b,a);
 }
 
-void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
+void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b, int a)
 {
 	if(!_s3d_check_cull_face(screen,x1,y1,x2,y2,x3,y3)) return;
-
+	
+	if(a != 255)
+	{
+		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b,a);
+		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x3,y3,x4,y4,r,g,b,a);
+		return;
+	}
+	
 	if( (x1==x2) || (x2==x3) || (x3==x4) || (x4==x1) )
 	{
 		// Nothing
@@ -671,10 +924,10 @@ void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, 
 //---------------------------------------------
 
 //In polygon.c
-void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b);
-void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int _b);
-void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, int _g, int _b);
-void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b);
+void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b, int _a);
+void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int _b, int _a);
+void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, int _g, int _b, int _a);
+void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b, int _a);
 
 void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 {
@@ -697,7 +950,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_DOTS:
 				_s3d_polygon_list_add_dot(screen,
 						&(vtx_array[screen][0]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_count[screen] = 0;
 				break;
@@ -705,7 +958,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_LINES:
 				_s3d_polygon_list_add_line(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_count[screen] = 0;
 				break;
@@ -713,7 +966,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_TRIANGLES:
 				_s3d_polygon_list_add_triangle(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),&(vtx_array[screen][2]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_count[screen] = 0;
 				break;
@@ -721,7 +974,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_QUADS:
 				_s3d_polygon_list_add_quad(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),&(vtx_array[screen][2]),&(vtx_array[screen][3]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_count[screen] = 0;
 				break;
@@ -729,7 +982,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_LINE_STRIP:
 				_s3d_polygon_list_add_line(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_array[screen][0][0] = vtx_array[screen][1][0];
 				vtx_array[screen][0][1] = vtx_array[screen][1][1];
@@ -741,7 +994,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_TRIANGLE_STRIP:
 				_s3d_polygon_list_add_triangle(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),&(vtx_array[screen][2]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_array[screen][0][0] = vtx_array[screen][2][0];
 				vtx_array[screen][0][1] = vtx_array[screen][2][1];
@@ -753,7 +1006,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z)
 			case S3D_QUAD_STRIP:
 				_s3d_polygon_list_add_quad(screen,
 						&(vtx_array[screen][0]),&(vtx_array[screen][1]),&(vtx_array[screen][2]),&(vtx_array[screen][3]),
-						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen]);
+						currcolor_r[screen],currcolor_g[screen],currcolor_b[screen],currcolor_alpha[screen]);
 				
 				vtx_array[screen][0][0] = vtx_array[screen][3][0];
 				vtx_array[screen][0][1] = vtx_array[screen][3][1];

@@ -29,31 +29,31 @@ static void _room_DrawRoom3(int screen)
 	
 	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(+1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(-1.25));
 	
 	S3D_PolygonNormal(screen, float2fx(+1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(-1.25));
 	
 	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(-1.25));
 	
 	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(-1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(+12.75));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(-1.25));
 	
 	S3D_PolygonListFlush(screen, 1);
 	
@@ -127,26 +127,32 @@ void Room_3_Draw(int screen)
 	
 	// Move camera
 	
-	int x;
-	Pad_P1GetPosition(&x,NULL,NULL);
+	int x,y;
+	Pad_P1GetPosition(&x,&y,NULL);
 	
 	// Camera rotation effect...
-	m44_CreateRotationY(&m,-(x>>4));
-	//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
+	m44_CreateRotationY(&m,(x>>3));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
-	//m44_CreateRotationZ(&m,(x>>4));
-	m44_CreateRotationX(&m,(x>>4));
+	m44_CreateRotationX(&m,(y>>3));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	// Draw
 	
 	_room_DrawRoom3(screen); // Internal flush
 	
+	Ball_DrawShadows(screen); // Internal flush
+	Pad_P1DrawShadows(screen); // Internal flush
+	Pad_P2DrawShadows(screen); // Internal flush
+	
 	Pad_P2Draw(screen); // IA
 	Ball_Draw(screen);
-	Pad_P1Draw(screen); // Player
 	S3D_PolygonListFlush(screen, 1);
+	
+	S3D_SetCulling(screen, 1,1);
+	Pad_P1Draw(screen); // Player	
+	S3D_PolygonListFlush(screen, 1);
+	S3D_SetCulling(screen, 1,0);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -155,8 +161,8 @@ void Room_3_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin
 {
 	if(xmin) *xmin = float2fx(-7.0);
 	if(xmax) *xmax = float2fx(+7.0);
-	if(ymin) *ymin = float2fx(-7.0);
-	if(ymax) *ymax = float2fx(+7.0);
+	if(ymin) *ymin = float2fx(-6.0);
+	if(ymax) *ymax = float2fx(+6.0);
 	if(zmin) *zmin = float2fx(-1.25);
 	if(zmax) *zmax = float2fx(+12.75);
 }
@@ -167,14 +173,14 @@ void Room_3_Init(void)
 {
 	Ball_Init();
 	Ball_SetDimensions(float2fx(1.5),float2fx(1.5),float2fx(1.5));
-	Ball_SetColor(128,128,128);
+	Ball_SetColor(128,128,128,255);
 	Ball_Reset();
 	
 	Pad_InitAll();
 	Pad_P1SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
-	Pad_P1SetColor(255,0,0);
+	Pad_P1SetColor(255,0,0,128);
 	Pad_P2SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
-	Pad_P2SetColor(255,255,0);
+	Pad_P2SetColor(255,255,0,255);
 	Pad_ResetAll();
 	
 	Game_PlayerResetAll();

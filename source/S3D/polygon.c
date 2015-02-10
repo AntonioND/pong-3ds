@@ -15,7 +15,7 @@ typedef struct {
 	s3d_primitive type;
 	s32 avg_z;
 	v4 v[4]; // max vertices per polygon = 4
-	int r,g,b;
+	int r,g,b,a;
 } _poly_list_t;
 
 static _poly_list_t List[2][MAX_POLYGONS_IN_LIST];
@@ -30,7 +30,7 @@ void S3D_PolygonListClear(int screen)
 
 //---------------------------------------------------------------------------------------
 
-void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b)
+void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
 	polygon_number[screen]++;
@@ -44,10 +44,10 @@ void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b)
 	
 	e->avg_z = e->v[0][3];
 	
-	e->r = _r; e->g = _g; e->b = _b;
+	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 }
 
-void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int _b)
+void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
 	polygon_number[screen]++;
@@ -63,10 +63,10 @@ void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int 
 	e->avg_z = e->v[0][3] + e->v[1][3];
 	e->avg_z /= 2;
 	
-	e->r = _r; e->g = _g; e->b = _b;
+	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 }
 
-void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, int _g, int _b)
+void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
 	polygon_number[screen]++;
@@ -83,10 +83,10 @@ void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, 
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3];
 	e->avg_z /= 3;
 	
-	e->r = _r; e->g = _g; e->b = _b;
+	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 }
 
-void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b)
+void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
 	polygon_number[screen]++;
@@ -104,16 +104,16 @@ void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int 
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3] + e->v[3][3];
 	e->avg_z /= 4;
 	
-	e->r = _r; e->g = _g; e->b = _b;
+	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 }
 
 //---------------------------------------------------------------------------------------
 
 //In draw.c
-void _s3d_draw_dot(int screen, int x, int y, int r, int g, int b);
-void _s3d_draw_line(int screen, int x1, int y1, int x2, int y2, int r, int g, int b);
-void _s3d_draw_triangle(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b);
-void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b);
+void _s3d_draw_dot(int screen, int x, int y, int r, int g, int b, int a);
+void _s3d_draw_line(int screen, int x1, int y1, int x2, int y2, int r, int g, int b, int a);
+void _s3d_draw_triangle(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int r, int g, int b, int a);
+void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b, int a);
 
 //---------------------------------------------------------------------------------------
 
@@ -138,25 +138,25 @@ void S3D_PolygonListFlush(int screen, int perform_z_sort)
 			case S3D_DOTS:
 				_s3d_draw_dot(screen,
 							e->v[0][0],e->v[0][1],
-							e->r,e->g,e->b);
+							e->r,e->g,e->b,e->a);
 				break;
 				
 			case S3D_LINES:
 				_s3d_draw_line(screen,
 							e->v[0][0],e->v[0][1], e->v[1][0],e->v[1][1],
-							e->r,e->g,e->b);
+							e->r,e->g,e->b,e->a);
 				break;
 				
 			case S3D_TRIANGLES:
 				_s3d_draw_triangle(screen,
 							e->v[0][0],e->v[0][1], e->v[1][0],e->v[1][1], e->v[2][0],e->v[2][1],
-							e->r,e->g,e->b);
+							e->r,e->g,e->b,e->a);
 				break;
 				
 			case S3D_QUADS:
 				_s3d_draw_quad(screen,
 							e->v[0][0],e->v[0][1], e->v[1][0],e->v[1][1], e->v[2][0],e->v[2][1], e->v[3][0],e->v[3][1],
-							e->r,e->g,e->b);
+							e->r,e->g,e->b,e->a);
 				break;
 				
 			default:

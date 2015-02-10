@@ -21,7 +21,7 @@ typedef struct { // values in fixed point!
 	s32 y,vy,ay; // start coordinates are (0.0, 0.0, Z)
 	s32 z,vz,az;
 	
-	int r,g,b;
+	int r,g,b,a;
 	
 	u32 collisions;
 } _pad_t;
@@ -48,23 +48,108 @@ void Pad_P2SetDimensions(int x, int y, int z) // AI
 
 //--------------------------------------------------------------------------------------------------
 
-void Pad_P1SetColor(int r, int g, int b) // Player
+void Pad_P1SetColor(int r, int g, int b, int a) // Player
 {
 	_pad_t * p = &PAD1;
 	p->r = r;
 	p->g = g;
 	p->b = b;
+	p->a = a;
 }
 
-void Pad_P2SetColor(int r, int g, int b) // AI
+void Pad_P2SetColor(int r, int g, int b, int a) // AI
 {
 	_pad_t * p = &PAD2;
 	p->r = r;
 	p->g = g;
 	p->b = b;
+	p->a = a;
 }
 
 //--------------------------------------------------------------------------------------------------
+
+static inline void _ball_draw(int screen, _pad_t * p)
+{
+	if(Room_3DMovementEnabled()) // 4 shadows
+	{
+		int xmin = p->x - (p->sx/2);
+		int xmax = p->x + (p->sx/2);
+		int ymin = p->y - (p->sy/2);
+		int ymax = p->y + (p->sy/2);
+		int zmin = p->z - (p->sz/2);
+		int zmax = p->z + (p->sz/2);
+		
+		int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
+		Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
+		if(zmin > roomzmax) return; 
+		if(zmax < roomzmin) return;
+		
+		if(zmax > roomzmax) zmax = roomzmax;
+		if(zmin < roomzmin) zmin = roomzmin;
+		
+		S3D_PolygonColorAlpha(screen, 0,0,0, 128);
+		
+		S3D_PolygonBegin(screen, S3D_QUADS);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(-1.0),float2fx(0.0));
+
+		S3D_PolygonVertex(screen, xmax,roomymax,zmin);
+		S3D_PolygonVertex(screen, xmax,roomymax,zmax);
+		S3D_PolygonVertex(screen, xmin,roomymax,zmax);
+		S3D_PolygonVertex(screen, xmin,roomymax,zmin);
+	
+		S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, roomxmax,ymin,zmin);
+		S3D_PolygonVertex(screen, roomxmax,ymin,zmax);
+		S3D_PolygonVertex(screen, roomxmax,ymax,zmax); 
+		S3D_PolygonVertex(screen, roomxmax,ymax,zmin);
+
+		S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, roomxmin,ymin,zmin);
+		S3D_PolygonVertex(screen, roomxmin,ymax,zmin);
+		S3D_PolygonVertex(screen, roomxmin,ymax,zmax);
+		S3D_PolygonVertex(screen, roomxmin,ymin,zmax);		
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, xmin,roomymin,zmin);
+		S3D_PolygonVertex(screen, xmin,roomymin,zmax); 
+		S3D_PolygonVertex(screen, xmax,roomymin,zmax);
+		S3D_PolygonVertex(screen, xmax,roomymin,zmin);
+		
+		S3D_PolygonListFlush(screen, 0);
+	}
+	else // 1 shadow
+	{
+		int xmin = p->x - (p->sx/2);
+		int xmax = p->x + (p->sx/2);
+		int zmin = p->z - (p->sz/2);
+		int zmax = p->z + (p->sz/2);
+		
+		int roomymin, roomzmin, roomzmax;
+		Room_GetBounds(NULL,NULL,&roomymin,NULL,&roomzmin,&roomzmax);
+		if(zmin > roomzmax) return; 
+		if(zmax < roomzmin) return;
+		
+		if(zmax > roomzmax) zmax = roomzmax;
+		if(zmin < roomzmin) zmin = roomzmin;
+		
+		S3D_PolygonColorAlpha(screen, 0,0,0, 128);
+		
+		S3D_PolygonBegin(screen, S3D_QUADS);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, xmin,roomymin,zmin);
+		S3D_PolygonVertex(screen, xmin,roomymin,zmax); 
+		S3D_PolygonVertex(screen, xmax,roomymin,zmax);
+		S3D_PolygonVertex(screen, xmax,roomymin,zmin);
+		
+		S3D_PolygonListFlush(screen, 0);
+	}
+}
 
 static inline void _pad_draw(int screen, _pad_t * p)
 {
@@ -75,20 +160,25 @@ static inline void _pad_draw(int screen, _pad_t * p)
 	int zmin = p->z - (p->sz/2);
 	int zmax = p->z + (p->sz/2);
 	
-	S3D_PolygonColor(screen, p->r,p->g,p->b);
+	S3D_PolygonColorAlpha(screen, p->r,p->g,p->b,p->a);
 	
 	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
 	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(-1.0),float2fx(0.0));
+
+	S3D_PolygonVertex(screen, xmax,ymin,zmin);
+	S3D_PolygonVertex(screen, xmax,ymin,zmax);
+	S3D_PolygonVertex(screen, xmin,ymin,zmax);
+	S3D_PolygonVertex(screen, xmin,ymin,zmin);
+	
 	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, xmin,ymin,zmin);
-	S3D_PolygonVertex(screen, xmin,ymin,zmax);
-	S3D_PolygonVertex(screen, xmin,ymax,zmax); 
+	S3D_PolygonVertex(screen, xmin,ymax,zmax);
 	S3D_PolygonVertex(screen, xmin,ymax,zmin);
-	
+
 	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, xmax,ymax,zmax); 			
+
+	S3D_PolygonVertex(screen, xmax,ymax,zmax);
 	S3D_PolygonVertex(screen, xmax,ymax,zmin);
 	
 	S3D_PolygonBegin(screen, S3D_QUAD_STRIP);
@@ -119,6 +209,16 @@ void Pad_P1Draw(int screen)
 void Pad_P2Draw(int screen)
 {
 	_pad_draw(screen,&PAD2);
+}
+
+void Pad_P1DrawShadows(int screen)
+{
+	_ball_draw(screen,&PAD1);
+}
+
+void Pad_P2DrawShadows(int screen)
+{
+	_ball_draw(screen,&PAD2);
 }
 
 //--------------------------------------------------------------------------------------------------

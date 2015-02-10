@@ -10,9 +10,10 @@
 
 void Ball_SetDimensions(int x, int y, int z);
 
-void Ball_SetColor(int r, int g, int b);
+void Ball_SetColor(int r, int g, int b, int a);
 
-void Ball_Draw(int screen);
+void Ball_Draw(int screen); // Non-internal flush
+void Ball_DrawShadows(int screen); // Internal flush
 
 void Ball_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
 

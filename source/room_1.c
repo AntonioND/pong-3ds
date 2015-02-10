@@ -106,6 +106,11 @@ void Room_1_Draw(int screen)
 	
 	_room_DrawRoom1(screen); // Internal flush
 	
+	//Not needed, in this room the ball never leaves the ground
+	//Ball_DrawShadows(screen); // Internal flush
+	//Pad_P1DrawShadows(screen); // Internal flush
+	//Pad_P2DrawShadows(screen); // Internal flush
+
 	Pad_P2Draw(screen); // IA
 	Ball_Draw(screen);
 	Pad_P1Draw(screen); // Player
@@ -130,14 +135,14 @@ void Room_1_Init(void)
 {
 	Ball_Init();
 	Ball_SetDimensions(float2fx(1.5),float2fx(1.5),float2fx(1.5));
-	Ball_SetColor(128,128,128);
+	Ball_SetColor(128,128,128,255);
 	Ball_Reset();
 	
 	Pad_InitAll();
 	Pad_P1SetDimensions(float2fx(3.5),float2fx(2.0),float2fx(1.0));
-	Pad_P1SetColor(255,0,0);
+	Pad_P1SetColor(255,0,0,255);
 	Pad_P2SetDimensions(float2fx(3.5),float2fx(2.0),float2fx(1.0));
-	Pad_P2SetColor(255,255,0);
+	Pad_P2SetColor(255,255,0,255);
 	Pad_ResetAll();
 	
 	Game_PlayerResetAll();
