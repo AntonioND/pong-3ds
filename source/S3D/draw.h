@@ -26,6 +26,8 @@ void S3D_2D_TriangleFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, 
 
 void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b);
 
+void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b);
+
 //--------------------------------------------------------------------------------------------------
 
 #endif //__S3D_DRAW__

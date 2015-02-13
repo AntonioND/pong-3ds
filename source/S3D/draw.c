@@ -697,3 +697,114 @@ void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, in
 }
 
 //---------------------------------------------------------------------------------------
+
+void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b)
+{
+	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3); y4 = int2fx(y4);
+
+	// Sort: x1 <= x2 <= x3 <= x4
+	{
+		if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+		
+		if(x2 > x3)
+		{
+			swapints_pairs(&x2,&x3, &y2,&y3);
+			if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+		}
+		
+		if(x3 > x4)
+		{
+			swapints_pairs(&x3,&x4, &y3,&y4);
+			if(x2 > x3)
+			{
+				swapints_pairs(&x2,&x3, &y2,&y3);
+				if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+			}
+		}
+	}
+	
+
+	u8 * linebuf = &(buf[240*x1*3]);
+
+	if(x1 == x2) // 1 = 2
+	{
+		if(x2 == x3) // 1 = 2 = 3
+		{
+			if(x3 == x4) // 1 = 2 = 3 = 4
+			{
+				int ymin = min(min(y1,y2),min(y3,y4));
+				int ymax = max(max(y1,y2),max(y3,y4));
+				_s3d_vertical_line(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b);
+			}
+			else // 1 = 2 = 3 : 4
+			{
+				int ymin = min(min(y1,y2),y3);
+				int ymax = max(max(y1,y2),y3);
+				
+				int dsy = fxdiv64(y4-ymin,int2fx(x4-x1));
+				int dey = fxdiv64(y4-ymax,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = ymin, ey = ymax;
+				
+				for( ;sx<x4; sx++,sy+=dsy,ey+=dey,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+			}
+		}
+		else // 1 = 2 : 3
+		{
+			if(x3 == x4) // 1 = 2 : 3 = 4
+			{
+				int ysmin = min(y1,y2); int ysmax = max(y1,y2);
+				int yemin = min(y3,y4); int yemax = max(y3,y4);
+				
+				int dymin = fxdiv64(yemin-ysmin,int2fx(x4-x1));
+				int dymax = fxdiv64(yemax-ysmax,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = ysmin, ey = ysmax;
+				
+				for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+			}
+			else  // 1 = 2 : 3 : 4
+			{
+r=0;g=255;b=0;
+				
+			}
+		}
+	}
+	else // 1 : 2
+	{
+		if(x2 == x3) // 1 : 2 = 3
+		{
+			if(x3 == x4) // 1 : 2 = 3 = 4
+			{
+r=0;g=0;b=255;
+				
+			}
+			else // 1 : 2 = 3 : 4
+			{
+r=0;g=0;b=128;
+				
+			}
+		}
+		else // 1 : 2 : 3
+		{
+			if(x3 == x4) // 1 : 2 : 3 = 4
+			{
+r=255;g=255;b=0;
+				
+			}
+			else // 1 : 2 : 3 : 4
+			{
+r=0;g=255;b=255;
+				
+			}
+		}
+	}
+}
+
+//---------------------------------------------------------------------------------------
