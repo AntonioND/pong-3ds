@@ -10,8 +10,8 @@
 
 // (0,240-1) ---------- (400-1,240-1)
 //    |                       |
-//    |     TOP      (x,y)    |
-//    |        SCREENS        |
+//    |     TOP  SCREENS      |
+//    |        (x,y)          |
 //    |                       |
 //  (0,0) -------------- (400-1,0)
 
@@ -26,7 +26,9 @@ void S3D_2D_TriangleFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, 
 
 void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b);
 
+// Must be convex!!
 void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b);
+void S3D_2D_QuadFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b, int a);
 
 //--------------------------------------------------------------------------------------------------
 

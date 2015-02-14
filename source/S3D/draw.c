@@ -722,7 +722,6 @@ void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, i
 			}
 		}
 	}
-	
 
 	u8 * linebuf = &(buf[240*x1*3]);
 
@@ -773,49 +772,41 @@ void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, i
 			}
 			else  // 1 = 2 : 3 : 4
 			{
-			#warning "TODO: FIX y3=y4"
-r=255;g=0;b=0;
-
-				int ysmin = min(y1,y2); int ysmax = max(y1,y2);
+				if(y1 < y2) swapints(&y1,&y2); // Make y1 > y2
 				
-				if(y3 < y4)
+				//Convex quads only!
+				int vertex_joined_to_3 = 1;
+				int dy1 = fxdiv64(y3-y1,int2fx(x3-x1));
+				int temp = fxdiv64(y4-y1,int2fx(x4-x1));
+				if(dy1 < temp)
 				{
-					int dymin = fxdiv64(y3-ysmin,int2fx(x3-x1));
-					int dymax = fxdiv64(y4-ysmax,int2fx(x4-x1));
-					
-					int sx = x1;
-					int sy = ysmin, ey = ysmax;
-					
-					for( ;sx<x3; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					dymin = fxdiv64(y4-y3,int2fx(x4-x3));
+					vertex_joined_to_3 = 2;
+					dy1 = temp;
+				}
+				
+				int dy2 = min( fxdiv64(y3-y2,int2fx(x3-x2)) , fxdiv64(y4-y2,int2fx(x4-x2)) );
+				
+				int sx = x1;
+				int sy = y1, ey = y2;
+				
+				for( ;sx<x3; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				if(vertex_joined_to_3 == 1)
+				{
+					dy1 = fxdiv64(y4-y3,int2fx(x4-x3));
 					sy = y3;
-					
-					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
 				}
-				else
+				else //if(vertex_joined_to_3 == 2)
 				{
-					int dymin = fxdiv64(y4-ysmin,int2fx(x4-x1));
-					int dymax = fxdiv64(y3-ysmax,int2fx(x3-x1));
-					
-					int sx = x1;
-					int sy = ysmin, ey = ysmax;
-					
-					for( ;sx<x3; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					dymax = fxdiv64(y4-y3,int2fx(x4-x3));
+					dy2 = fxdiv64(y4-y3,int2fx(x4-x3));
 					ey = y3;
-					
-					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
 				}
+				
+				for( ;sx<x4; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
 			}
 		}
 	}
@@ -863,107 +854,367 @@ r=255;g=0;b=0;
 		{
 			if(x3 == x4) // 1 : 2 : 3 = 4
 			{
-			#warning "TODO: FIX y1=y2"
-r=255;g=255;b=0;
-
-				int yemin = min(y3,y4); int yemax = max(y3,y4);
+				if(y3 < y4) swapints(&y3,&y4); // Make y3 > y4
 				
-				if(y1 < y2)
+				int vertex_joined_to_2 = 0;
+				
+				int dy1, dy2;
+				//Convex quads only!
+				if(y1 > y2)
 				{
-					int dymax = fxdiv64(y2-y1,int2fx(x2-x1));
-					int dymin = fxdiv64(yemin-y1,int2fx(x4-x1));
-					
-					int sx = x1;
-					int sy = y1, ey = y1;
-					
-					for( ;sx<x2; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					dymax = fxdiv64(yemax-y2,int2fx(x4-x2));
-					ey = y2;
-					
-					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					_s3d_vertical_line(linebuf, x3,fx2int(y3),fx2int(y4), r,g,b);
+					// 1 to 3 | 1 to 2
+					vertex_joined_to_2 = 4; // 2 to 4
+					dy1 = fxdiv64(y3-y1,int2fx(x3-x1));
+					dy2 = fxdiv64(y2-y1,int2fx(x2-x1));
 				}
 				else
 				{
-					int dymin = fxdiv64(y2-y1,int2fx(x2-x1));
-					int dymax = fxdiv64(yemax-y1,int2fx(x4-x1));
-					
-					int sx = x1;
-					int sy = y1, ey = y1;
-					
-					for( ;sx<x2; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					dymin = fxdiv64(yemin-y2,int2fx(x4-x2));
-					sy = y2;
-					
-					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					_s3d_vertical_line(linebuf, x3,fx2int(y3),fx2int(y4), r,g,b);
+					// 1 to 2 | 1 to 4
+					vertex_joined_to_2 = 3; // 2 to 3
+					dy1 = fxdiv64(y2-y1,int2fx(x2-x1));
+					dy2 = fxdiv64(y4-y1,int2fx(x4-x1));
 				}
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<x2; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				if(vertex_joined_to_2 == 3)
+				{
+					// 2 to 3 | keep
+					dy1 = fxdiv64(y3-y2,int2fx(x3-x2));
+					sy = y2;
+				}
+				else //if(vertex_joined_to_2 == 4)
+				{
+					// keep | 2 to 4
+					dy2 = fxdiv64(y4-y2,int2fx(x4-x2));
+					ey = y2;
+				}
+				
+				for( ;sx<=x4; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 			}
 			else // 1 : 2 : 3 : 4
 			{
-r=0;g=255;b=255;
-			#warning "TODO: FIX"
-
-				if(y2 > y3) swapints_pairs(&x2,&x3, &y2,&y3);
+				//Convex only!
 				
-				if(x2 < x3)
+				int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
+				int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
+				int dy14 = fxdiv64(y4-y1,int2fx(x4-x1));
+				
+				int dys = min(min(dy12,dy13),dy14);
+				int dye = max(max(dy12,dy13),dy14);
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<x2; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				int dy23 = fxdiv64(y3-y2,int2fx(x3-x2));
+				int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
+				
+				if( abs(sy-y2) < abs(ey-y2) )
 				{
-					int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
-					int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
-					
-					int sx = x1;
-					int sy = y1, ey = y1;
-					
-					for( ;sx<x2; sx++,sy+=dy12,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
+					//change sy
 					sy = y2;
-					
-					for( ;sx<x3; sx++,sy+=dy24,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-						
-					int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
-					ey = y3;
-					
-					for( ;sx<x4; sx++,sy+=dy24,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+					dys = min(dy23,dy24);
 				}
 				else
 				{
-					int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
-					int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
-					
-					int sx = x1;
-					int sy = y1, ey = y1;
-					
-					for( ;sx<x3; sx++,sy+=dy12,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-					
-					int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
-					ey = y3;
-					
-					for( ;sx<x2; sx++,sy+=dy12,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-						
-					int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
-					sy = y2;
-					
-					for( ;sx<x4; sx++,sy+=dy24,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
-						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
-						
-					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+					//change ey
+					ey = y2;
+					dye = max(dy23,dy24);
 				}
+				
+				for( ;sx<x3; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
+				
+				if( abs(sy-y3) < abs(ey-y3) )
+				{
+					//change sy
+					sy = y3;
+					dys = dy34;
+					
+				}
+				else
+				{
+					//change ey
+					ey = y3;
+					dye = dy34;
+				}
+				
+				for( ;sx<x4; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+			}
+		}
+	}
+}
+
+//----------------------
+
+void S3D_2D_QuadFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b, int a)
+{
+	y1 = int2fx(y1); y2 = int2fx(y2); y3 = int2fx(y3); y4 = int2fx(y4);
+
+	// Sort: x1 <= x2 <= x3 <= x4
+	{
+		if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+		
+		if(x2 > x3)
+		{
+			swapints_pairs(&x2,&x3, &y2,&y3);
+			if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+		}
+		
+		if(x3 > x4)
+		{
+			swapints_pairs(&x3,&x4, &y3,&y4);
+			if(x2 > x3)
+			{
+				swapints_pairs(&x2,&x3, &y2,&y3);
+				if(x1 > x2) swapints_pairs(&x1,&x2, &y1,&y2);
+			}
+		}
+	}
+
+	u8 * linebuf = &(buf[240*x1*3]);
+
+	if(x1 == x2) // 1 = 2
+	{
+		if(x2 == x3) // 1 = 2 = 3
+		{
+			if(x3 == x4) // 1 = 2 = 3 = 4
+			{
+				int ymin = min(min(y1,y2),min(y3,y4));
+				int ymax = max(max(y1,y2),max(y3,y4));
+				_s3d_vertical_line_alpha(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b,a);
+			}
+			else // 1 = 2 = 3 : 4
+			{
+				int ymin = min(min(y1,y2),y3);
+				int ymax = max(max(y1,y2),y3);
+				
+				int dsy = fxdiv64(y4-ymin,int2fx(x4-x1));
+				int dey = fxdiv64(y4-ymax,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = ymin, ey = ymax;
+				
+				for( ;sx<x4; sx++,sy+=dsy,ey+=dey,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				_s3d_plot_safe_alpha(buf, x4,fx2int(y4), r,g,b,a);
+			}
+		}
+		else // 1 = 2 : 3
+		{
+			if(x3 == x4) // 1 = 2 : 3 = 4
+			{
+				int ysmin = min(y1,y2); int ysmax = max(y1,y2);
+				int yemin = min(y3,y4); int yemax = max(y3,y4);
+				
+				int dymin = fxdiv64(yemin-ysmin,int2fx(x4-x1));
+				int dymax = fxdiv64(yemax-ysmax,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = ysmin, ey = ysmax;
+				
+				for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				_s3d_vertical_line_alpha(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b,a);
+			}
+			else  // 1 = 2 : 3 : 4
+			{
+				if(y1 < y2) swapints(&y1,&y2); // Make y1 > y2
+				
+				//Convex quads only!
+				int vertex_joined_to_3 = 1;
+				int dy1 = fxdiv64(y3-y1,int2fx(x3-x1));
+				int temp = fxdiv64(y4-y1,int2fx(x4-x1));
+				if(dy1 < temp)
+				{
+					vertex_joined_to_3 = 2;
+					dy1 = temp;
+				}
+				
+				int dy2 = min( fxdiv64(y3-y2,int2fx(x3-x2)) , fxdiv64(y4-y2,int2fx(x4-x2)) );
+				
+				int sx = x1;
+				int sy = y1, ey = y2;
+				
+				for( ;sx<x3; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				if(vertex_joined_to_3 == 1)
+				{
+					dy1 = fxdiv64(y4-y3,int2fx(x4-x3));
+					sy = y3;
+				}
+				else //if(vertex_joined_to_3 == 2)
+				{
+					dy2 = fxdiv64(y4-y3,int2fx(x4-x3));
+					ey = y3;
+				}
+				
+				for( ;sx<x4; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				_s3d_plot_safe_alpha(buf, x4,fx2int(y4), r,g,b,a);
+			}
+		}
+	}
+	else // 1 : 2
+	{
+		if(x2 == x3) // 1 : 2 = 3
+		{
+			if(x3 == x4) // 1 : 2 = 3 = 4
+			{
+				int ymin = min(min(y2,y3),y4);
+				int ymax = max(max(y2,y3),y4);
+				
+				int dsy = fxdiv64(ymin-y1,int2fx(x4-x1));
+				int dey = fxdiv64(ymax-y1,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<=x4; sx++,sy+=dsy,ey+=dey,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+			}
+			else // 1 : 2 = 3 : 4
+			{
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				int dy2 = fxdiv64(y2-y1,int2fx(x2-x1));
+				int dy3 = fxdiv64(y3-y1,int2fx(x3-x1));
+				
+				for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				sy = y2, ey = y3;
+				
+				dy2 = fxdiv64(y4-y2,int2fx(x4-x2));
+				dy3 = fxdiv64(y4-y3,int2fx(x4-x3));
+				
+				for( ;sx<x4; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				_s3d_plot_safe_alpha(buf, x4,fx2int(y4), r,g,b,a);
+			}
+		}
+		else // 1 : 2 : 3
+		{
+			if(x3 == x4) // 1 : 2 : 3 = 4
+			{
+				if(y3 < y4) swapints(&y3,&y4); // Make y3 > y4
+				
+				int vertex_joined_to_2 = 0;
+				
+				int dy1, dy2;
+				//Convex quads only!
+				if(y1 > y2)
+				{
+					// 1 to 3 | 1 to 2
+					vertex_joined_to_2 = 4; // 2 to 4
+					dy1 = fxdiv64(y3-y1,int2fx(x3-x1));
+					dy2 = fxdiv64(y2-y1,int2fx(x2-x1));
+				}
+				else
+				{
+					// 1 to 2 | 1 to 4
+					vertex_joined_to_2 = 3; // 2 to 3
+					dy1 = fxdiv64(y2-y1,int2fx(x2-x1));
+					dy2 = fxdiv64(y4-y1,int2fx(x4-x1));
+				}
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<x2; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				if(vertex_joined_to_2 == 3)
+				{
+					// 2 to 3 | keep
+					dy1 = fxdiv64(y3-y2,int2fx(x3-x2));
+					sy = y2;
+				}
+				else //if(vertex_joined_to_2 == 4)
+				{
+					// keep | 2 to 4
+					dy2 = fxdiv64(y4-y2,int2fx(x4-x2));
+					ey = y2;
+				}
+				
+				for( ;sx<=x4; sx++,sy+=dy1,ey+=dy2,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+			}
+			else // 1 : 2 : 3 : 4
+			{
+				//Convex only!
+				
+				int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
+				int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
+				int dy14 = fxdiv64(y4-y1,int2fx(x4-x1));
+				
+				int dys = min(min(dy12,dy13),dy14);
+				int dye = max(max(dy12,dy13),dy14);
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<x2; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				int dy23 = fxdiv64(y3-y2,int2fx(x3-x2));
+				int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
+				
+				if( abs(sy-y2) < abs(ey-y2) )
+				{
+					//change sy
+					sy = y2;
+					dys = min(dy23,dy24);
+				}
+				else
+				{
+					//change ey
+					ey = y2;
+					dye = max(dy23,dy24);
+				}
+				
+				for( ;sx<x3; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
+				
+				if( abs(sy-y3) < abs(ey-y3) )
+				{
+					//change sy
+					sy = y3;
+					dys = dy34;
+					
+				}
+				else
+				{
+					//change ey
+					ey = y3;
+					dye = dy34;
+				}
+				
+				for( ;sx<x4; sx++,sy+=dys,ey+=dye,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
+				
+				_s3d_plot_safe_alpha(buf, x4,fx2int(y4), r,g,b,a);
 			}
 		}
 	}

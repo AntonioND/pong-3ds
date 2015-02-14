@@ -10,7 +10,7 @@
 //--------------------------------------------------------------------------------------------------
 
 static int rotation = 0;
-static int x[4], y[4];
+
 //--------------------------------------------------------------------------------------------------
 
 static void __draw_ball(int screen, int r, int g, int b)
@@ -81,19 +81,6 @@ void Room_Menu_Draw(int screen)
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	__draw_ball(screen, 0,0,255);
-	
-	
-	
-	
-	S3D_2D_QuadFill(S3D_BufferGet(screen),
-		x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[3],
-		255,255,255);
-		
-S3D_2D_Plot(S3D_BufferGet(screen),x[0],y[0], 255,0,255,255);
-S3D_2D_Plot(S3D_BufferGet(screen),x[1],y[1], 255,0,255,255);
-S3D_2D_Plot(S3D_BufferGet(screen),x[2],y[2], 255,0,255,255);
-S3D_2D_Plot(S3D_BufferGet(screen),x[3],y[3], 255,0,255,255);
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -124,20 +111,9 @@ void Room_Menu_Handle(void)
 {
 	int keys = hidKeysHeld();
 	rotation += 0x100;
-	//if(keys & KEY_A) Room_SetNumber(GAME_ROOM_1);
-	////if(keys & KEY_B) Room_SetNumber(GAME_ROOM_2);
-	//if(keys & KEY_X) Room_SetNumber(GAME_ROOM_3);
-	
-	int i = 0;
-	if(keys & KEY_A) i = 1;
-	if(keys & KEY_B) i = 2;
-	if(keys & KEY_Y) i = 3;
-
-	keys = hidKeysDown();
-	if(keys & KEY_LEFT) { if(x[i] > 0) x[i]--; }
-	if(keys & KEY_RIGHT) { if(x[i] < (400-1)) x[i]++; }
-	if(keys & KEY_DOWN) { if(y[i] > 0) y[i]--; }
-	if(keys & KEY_UP) { if(y[i] < (240-1)) y[i]++; }
+	if(keys & KEY_A) Room_SetNumber(GAME_ROOM_1);
+	//if(keys & KEY_B) Room_SetNumber(GAME_ROOM_2);
+	if(keys & KEY_X) Room_SetNumber(GAME_ROOM_3);
 }
 
 int Room_Menu_3DMovementEnabled(void)

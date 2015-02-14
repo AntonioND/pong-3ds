@@ -199,49 +199,13 @@ static inline void _s3d_draw_triangle(int screen, int x1, int y1, int x2, int y2
 		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b,a);
 }
 
-//TODO: This function will be removed when the quad-drawing function is written
-static inline void roll_values(int * a1, int * a2, int * a3, int * a4, 
-								int * b1, int * b2, int * b3, int * b4)
-{
-	int t = *a1; *a1 = *a2; *a2 = *a3; *a3 = *a4; *a4 = t;
-	    t = *b1; *b1 = *b2; *b2 = *b3; *b3 = *b4; *b4 = t;
-}
-
 static inline void _s3d_draw_quad(int screen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4,
                                   int r, int g, int b, int a)
 {
 	if(a != 255)
-	{
-		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b,a);
-		S3D_2D_TriangleFillAlpha(curr_buf[screen],x1,y1,x3,y3,x4,y4,r,g,b,a);
-		return;
-	}
-	
-	if( (x1==x2) || (x2==x3) || (x3==x4) || (x4==x1) )
-	{
-		// Nothing
-		S3D_2D_TriangleFill(curr_buf[screen],x1,y1,x2,y2,x3,y3,r,g,b);
-		S3D_2D_TriangleFill(curr_buf[screen],x1,y1,x3,y3,x4,y4,r,g,b);
-	}
+		S3D_2D_QuadFillAlpha(curr_buf[screen],x1,y1,x2,y2,x3,y3,x4,y4,r,g,b,a);
 	else
-	{
-		// Divide the quad in two triangles reducing the delta X between the edges
-		// because the triangles are drawn by vertical lines
-	
-		// Sort: x1 < x2,x4 < x3
-		if(x1 > x2) 
-		{
-			roll_values(&x1,&x2,&x3,&x4,&y1,&y2,&y3,&y4);
-			if(x1 > x2) 
-			{
-				roll_values(&x1,&x2,&x3,&x4,&y1,&y2,&y3,&y4);
-				if(x1 > x2) roll_values(&x1,&x2,&x3,&x4,&y1,&y2,&y3,&y4);
-			}
-		}
-		
-		S3D_2D_TriangleFill(curr_buf[screen],x1,y1,x2,y2,x4,y4,r,g,b);
-		S3D_2D_TriangleFill(curr_buf[screen],x2,y2,x3,y3,x4,y4,r,g,b);
-	}
+		S3D_2D_QuadFill(curr_buf[screen],x1,y1,x2,y2,x3,y3,x4,y4,r,g,b);
 }
 
 //---------------------------------------------------------------------------------------
