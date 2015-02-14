@@ -23,88 +23,93 @@ static inline int min(int a, int b)
 
 static void _room_DrawRoom3(int screen)
 {
+	int i,j;
+	
 	S3D_PolygonBegin(screen, S3D_QUADS);
-
-	S3D_PolygonColor(screen, 0,255,0);
+	
+	//------
+	
+	S3D_PolygonColor(screen, 255,0,0);
 	
 	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(+1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(-1.25));
+	for(j = 0; j < 2; j++) for(i = 0; i < 2; i++)
+	{
+		int alpha = 255 >> ((i^j)&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int xbase = float2fx(-7.0) + float2fx(7.0)*j;
+		int zbase = float2fx(-1.25) + float2fx(7.0)*i;
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(-6.0), zbase);
+		S3D_PolygonVertex(screen, xbase, float2fx(-6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(-6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(-6.0), zbase);
+	}
 	
-	S3D_PolygonNormal(screen, float2fx(+1.0),float2fx(0.0),float2fx(0.0));
+	//------
 	
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(-1.25));
-	
-	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
-	
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(-6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(-1.25));
+	S3D_PolygonColor(screen, 0,0,255);
 	
 	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(-1.0),float2fx(0.0));
 	
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(-1.25));
-	S3D_PolygonVertex(screen, float2fx(+7.0), float2fx(+6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(+12.75));
-	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(+6.0), float2fx(-1.25));
-	
-	S3D_PolygonListFlush(screen, 1);
-	
-/*	
-	//Surface ...
-	
-	S3D_PolygonBegin(screen, S3D_QUADS);
-	
-	int i,j;
-	for(j = 0; j < 4; j++) for(i = 0; i < 4; i++)
+	for(j = 0; j < 2; j++) for(i = 0; i < 2; i++)
 	{
-		S3D_PolygonColor(screen, 0,max(255-((i+j)*40),0),0);
+		int alpha = 255 >> (((1-i)^j)&1);
+		S3D_PolygonAlpha(screen, alpha);
 		
-		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		int xbase = float2fx(-7.0) + float2fx(7.0)*j;
+		int zbase = float2fx(-1.25) + float2fx(7.0)*i;
 		
-		int xbase = float2fx(-6.75) + float2fx(3.5)*j - float2fx(0.1);
-		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
-		
-		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase);
-		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase);
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(+6.0), zbase);
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(+6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, xbase, float2fx(+6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, xbase, float2fx(+6.0), zbase);
 	}
-
+	
+	//------
+	
+	S3D_PolygonColor(screen, 0,255,0);
+	
+	S3D_PolygonNormal(screen, float2fx(+1.0),float2fx(0.0),float2fx(0.0));
+	
+	for(j = 0; j < 2; j++) for(i = 0; i < 2; i++)
+	{
+		int alpha = 255 >> (((1-i)^j)&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int ybase = float2fx(-6.0) + float2fx(6.0)*j;
+		int zbase = float2fx(-1.25) + float2fx(7.0)*i;
+		
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase + float2fx(6.0), zbase);
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase + float2fx(6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, zbase);	
+	}
+	
+	//------
+	
+	S3D_PolygonColor(screen, 0,255,0);
+	
+	S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
+	
+	for(j = 0; j < 2; j++) for(i = 0; i < 2; i++)
+	{
+		int alpha = 255 >> ((i^j)&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int ybase = float2fx(-6.0) + float2fx(6.0)*j;
+		int zbase = float2fx(-1.25) + float2fx(7.0)*i;
+		
+		S3D_PolygonVertex(screen, float2fx(+7.0), ybase, zbase);
+		S3D_PolygonVertex(screen, float2fx(+7.0), ybase, zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, float2fx(+7.0), ybase + float2fx(6.0), zbase + float2fx(7.0));
+		S3D_PolygonVertex(screen, float2fx(+7.0), ybase + float2fx(6.0), zbase);	
+	}
+	
+	//------
+	
 	S3D_PolygonListFlush(screen, 0);
-
-	// Borders ...
-	
-	for(i = 0; i < 4; i++)
-	{
-		S3D_PolygonColor(screen, 0,0,max(255-(i<<6),0));
-		
-		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
-		
-		S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
-		
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase);
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase);
-		
-		S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
-		
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase);
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase + float2fx(3.0));
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase + float2fx(3.0));
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase);
-	}
-
-	S3D_PolygonListFlush(screen, 1);
-*/
 }
 
 void Room_3_Draw(int screen)

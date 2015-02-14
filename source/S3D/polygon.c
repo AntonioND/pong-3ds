@@ -90,6 +90,11 @@ void S3D_PolygonColor(int screen, u32 r, u32 g, u32 b)
 	S3D_PolygonColorAlpha(screen,r,g,b,255);
 }
 
+void S3D_PolygonAlpha(int screen, u32 a)
+{
+	currcolor_alpha[screen] = a;
+}
+
 void S3D_PolygonColorAlpha(int screen, u32 r, u32 g, u32 b, u32 a)
 {
 	currcolor_r[screen] = saved_r[screen] = r;

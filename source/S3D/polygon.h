@@ -40,6 +40,7 @@ void S3D_PolygonVertex(int screen, s32 x, s32 y, s32 z);
 // Stores a color for the following polygons and sets drawing color to that color. Anulates the current normal.
 void S3D_PolygonColor(int screen, u32 r, u32 g, u32 b);
 void S3D_PolygonColorAlpha(int screen, u32 r, u32 g, u32 b, u32 a);
+void S3D_PolygonAlpha(int screen, u32 a);
 
 // Sets the drawing color to current stored color affected by light.
 void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z);
