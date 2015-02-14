@@ -19,7 +19,7 @@ Press SELECT to take a screenshot in PNG format (2 files in 3D mode, 1 in 2D mod
 
 For now, in the main menu, press A or X to enter a game room. Pressing Y in a room will return the game to the main menu.
 
-This game is licensed under the BSD license.
+This game is licensed under the MIT license.
 
 ![](screenshot_1.png)
 ![](screenshot_2.png)
