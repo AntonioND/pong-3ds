@@ -121,7 +121,6 @@ void Room_3_Draw(int screen)
 	m44 m;
 	m44_CreateTranslation(&m,0,int2fx(0),int2fx(10));
 	S3D_ModelviewMatrixSet(screen, &m);	
-	//m44_CreateRotationX(&m,-0x1800);
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	S3D_LightAmbientColorSet(screen, 64,64,64);
@@ -208,9 +207,9 @@ void Room_3_Handle(void)
 	if(keys & KEY_Y) Room_SetNumber(GAME_ROOM_MENU);
 }
 
-int Room_3_3DMovementEnabled(void)
+_3d_mode_e Room_3_3DMode(void)
 {
-	return 1;
+	return GAME_MODE_3D;
 }
 
 //--------------------------------------------------------------------------------------------------

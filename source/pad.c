@@ -70,7 +70,7 @@ void Pad_P2SetColor(int r, int g, int b, int a) // AI
 
 static inline void _ball_draw(int screen, _pad_t * p)
 {
-	if(Room_3DMovementEnabled()) // 4 shadows
+	if(Room_3DMode() == GAME_MODE_3D) // 4 shadows
 	{
 		int xmin = p->x - (p->sx/2);
 		int xmax = p->x + (p->sx/2);
@@ -285,6 +285,26 @@ void Pad_ResetAll(void)
 
 //--------------------------------------------------------------------------------------------------
 
+inline void Pad_P1Bounce(int speed, int acc)
+{
+	if(PAD1.ay == 0)
+	{
+		PAD1.ay = acc;
+		PAD1.vy = speed;
+	}
+}
+
+inline void Pad_P2Bounce(int speed, int acc)
+{
+	if(PAD2.ay == 0)
+	{
+		PAD2.ay = acc;
+		PAD2.vy = speed;
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+
 static inline int abs(int a)
 {
 	return a > 0 ? a : -a;
@@ -448,12 +468,16 @@ void Pad_HandleAll(void)
 #define PAD_MAX_ACCELERATION (float2fx(0.1))
 #define PAD_MAX_SPEED (float2fx(0.3))
 
+#define BOUNCE_ENERGY_CONSERVED (float2fx(0.4))
+#define BOUNCE_MIN_SPEED (float2fx(0.1))
+
 	// Player 1
 	{
 		_pad_t * p = &PAD1;
 		
 		//----------------------
 		// Player input
+		if(Room_3DMode() == GAME_MODE_3D)
 		{
 			circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
 			hidCircleRead(&cp);
@@ -468,19 +492,12 @@ void Pad_HandleAll(void)
 			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
 			{
 				p->ax = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dx)) / 0x90;
-				
-				if(Room_3DMovementEnabled())
-					p->ay = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
-				else
-					p->az = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
+				p->ay = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
 			}
 			else
 			{
 				p->ax = 0;
-				if(Room_3DMovementEnabled())
-					p->ay = 0;
-				else
-					p->az = 0;
+				p->ay = 0;
 				
 				p->vx = fxmul(p->vx,float2fx(0.8));
 				p->vy = fxmul(p->vy,float2fx(0.8));
@@ -498,6 +515,50 @@ void Pad_HandleAll(void)
 			else if( v < float2fx(0.05) )
 			{
 				p->vx = p->vy = p->vz = float2fx(0.0);
+			}
+		}
+		else
+		{
+			circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
+			hidCircleRead(&cp);
+			cp.dx = clamp(-0x90,cp.dx,0x90);
+			cp.dy = clamp(-0x90,cp.dy,0x90);
+			
+			if(!Game_StateMachinePadMovementEnabled())
+			{
+				cp.dx = cp.dy = 0;
+			}
+			
+			if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
+			{
+				if(hidKeysDown() & KEY_L)
+					Pad_P1Bounce(float2fx(0.3),-float2fx(0.015));
+			}
+			
+			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )
+			{
+				p->ax = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dx)) / 0x90;
+				p->az = fxmul(PAD_MAX_ACCELERATION,int2fx(cp.dy)) / 0x90;
+			}
+			else
+			{
+				p->ax = 0;
+				p->az = 0;
+				
+				p->vx = fxmul(p->vx,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			
+			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vz,p->vz) );
+			if( v > PAD_MAX_SPEED )
+			{
+				v = fxdiv( PAD_MAX_SPEED, v );
+				p->vx = fxmul(p->vx,v);
+				p->vz = fxmul(p->vz,v);
+			}
+			else if( v < float2fx(0.05) )
+			{
+				p->vx = p->vz = float2fx(0.0);
 			}
 		}
 		//----------------------
@@ -522,18 +583,46 @@ void Pad_HandleAll(void)
 			}
 		}
 		
-		if(p->collisions & COLLISION_Y_MIN)
+		if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
 		{
-			if(p->vy < 0)
+			if(p->collisions & COLLISION_Y_MIN)
 			{
-				p->y += ym; p->vy = 0; p->ay = 0;
+				if(p->vy < 0)
+				{
+					p->y += ym - p->vy; p->vy = -fxmul(p->vy,BOUNCE_ENERGY_CONSERVED);
+					if(abs(p->vy) < BOUNCE_MIN_SPEED)
+					{
+						int roomymin;
+						Room_GetBounds(NULL,NULL,&roomymin,NULL,NULL,NULL);
+						p->y = roomymin + (p->sy / 2) + 1;
+						p->vy = 0;
+						p->ay = 0;
+					}
+				}
+			}
+			else if(p->collisions & COLLISION_Y_MAX)
+			{
+				if(p->vy > 0)
+				{
+					p->y -= ym; p->vy = 0; p->ay = 0;
+				}
 			}
 		}
-		else if(p->collisions & COLLISION_Y_MAX)
+		else if(Room_3DMode() == GAME_MODE_3D)
 		{
-			if(p->vy > 0)
+			if(p->collisions & COLLISION_Y_MIN)
 			{
-				p->y -= ym; p->vy = 0; p->ay = 0;
+				if(p->vy < 0)
+				{
+					p->y += ym; p->vy = 0; p->ay = 0;
+				}
+			}
+			else if(p->collisions & COLLISION_Y_MAX)
+			{
+				if(p->vy > 0)
+				{
+					p->y -= ym; p->vy = 0; p->ay = 0;
+				}
 			}
 		}
 		
@@ -561,6 +650,7 @@ void Pad_HandleAll(void)
 		
 		//----------------------
 		// AI
+		if(Room_3DMode() == GAME_MODE_3D)
 		{
 			int bx,by,bz;
 			Ball_GetPosition(&bx,&by,&bz);
@@ -569,13 +659,14 @@ void Pad_HandleAll(void)
 			Room_GetBounds(NULL,NULL,NULL,NULL,&roomzmin,&roomzmax);
 			int z_first_quarter = roomzmin + ( (roomzmax-roomzmin) / 4 );
 			
-			int bvx,bvy,bvz;
-			Ball_GetSpeed(&bvx,&bvy,&bvz);
+			int bvz;
+			Ball_GetSpeed(NULL,NULL,&bvz);
 			
 			int move_left_right = 0, move_up_down = 0;
 			int dx = 0, dy = 0;
 			
 			// Calculate direction
+			
 			if(Game_StateMachinePadMovementEnabled())
 			{
 				if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
@@ -677,6 +768,102 @@ void Pad_HandleAll(void)
 				p->vx = p->vy = p->vz = float2fx(0.0);
 			}
 		}
+		else
+		{
+			int bx,by,bz;
+			Ball_GetPosition(&bx,&by,&bz);
+			
+			int roomzmin, roomzmax;
+			Room_GetBounds(NULL,NULL,NULL,NULL,&roomzmin,&roomzmax);
+			int z_first_quarter = roomzmin + ( (roomzmax-roomzmin) / 4 );
+			
+			int bvz;
+			Ball_GetSpeed(NULL,NULL,&bvz);
+			
+			int move_left_right = 0, move_up_down = 0;
+			int dx = 0, dy = 0;
+			
+			int bounce = 0;
+			
+			// Calculate direction
+			
+			if(Game_StateMachinePadMovementEnabled())
+			{
+				if( (bvz > 0) && (bz > z_first_quarter) ) // if aproaching the pad
+				{
+					int ballxmin, ballxmax, ballymin, ballymax;
+					Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,NULL,NULL);
+					
+					int padxmin, padxmax, padymin, padymax;
+					_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+					
+					int ballxsize, ballysize;
+					Ball_GetDimensions(&ballxsize,&ballysize,NULL);
+					
+					if(_segments_overlap(ballxmin,ballxmax, padxmin, padxmax) < ballxsize)
+					{
+						move_left_right = 1;
+						dx = bx - p->x;
+					}
+					
+					if(_segments_overlap(ballymin,ballymax, padymin, padymax) < ballysize)
+					{
+						move_up_down = 1;
+						dy = by - p->y;
+					}
+				}
+				else // go back to the center of the screen
+				{
+					int padxmin, padxmax, padymin, padymax;
+					_pad_GetBounds(p,&padxmin,&padxmax,&padymin,&padymax,NULL,NULL);
+					
+					if(_segments_overlap(-float2fx(0.1),float2fx(0.1), padxmin, padxmax) < float2fx(0.19))
+					{
+						move_left_right = 1;
+						dx = float2fx(0.0) - p->x;
+					}
+				}
+			}
+			
+			// Move
+			
+			if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
+			{
+				if(move_up_down && (dy > 0) )
+					bounce = 1;
+			}
+			
+			if(move_left_right)
+			{
+				if(dx > 0) p->ax = +PAD_MAX_ACCELERATION;
+				else p->ax = -PAD_MAX_ACCELERATION;
+				
+				p->az = 0;
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			else
+			{
+				p->ax = 0;
+				p->az = 0;
+				p->vx = fxmul(p->vx,float2fx(0.8));
+				p->vz = fxmul(p->vz,float2fx(0.8));
+			}
+			
+			int v = fxsqrt( fxmul(p->vx,p->vx) + fxmul(p->vz,p->vz) );
+			if( v > PAD_MAX_SPEED )
+			{
+				v = fxdiv( PAD_MAX_SPEED, v );
+				p->vx = fxmul(p->vx,v);
+				p->vz = fxmul(p->vz,v);
+			}
+			else if( v < float2fx(0.05) )
+			{
+				p->vx = p->vz = float2fx(0.0);
+			}
+			
+			if(bounce)
+				Pad_P2Bounce(float2fx(0.3),-float2fx(0.015));
+		}
 		//----------------------
 		
 		p->x += p->vx; p->y += p->vy; p->z += p->vz;
@@ -699,18 +886,46 @@ void Pad_HandleAll(void)
 			}
 		}
 		
-		if(p->collisions & COLLISION_Y_MIN)
+		if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
 		{
-			if(p->vy < 0)
+			if(p->collisions & COLLISION_Y_MIN)
 			{
-				p->y += ym; p->vy = 0; p->ay = 0;
+				if(p->vy < 0)
+				{
+					p->y += ym - p->vy; p->vy = -fxmul(p->vy,BOUNCE_ENERGY_CONSERVED);
+					if(abs(p->vy) < BOUNCE_MIN_SPEED)
+					{
+						int roomymin;
+						Room_GetBounds(NULL,NULL,&roomymin,NULL,NULL,NULL);
+						p->y = roomymin + (p->sy / 2) + 1;
+						p->vy = 0;
+						p->ay = 0;
+					}
+				}
+			}
+			else if(p->collisions & COLLISION_Y_MAX)
+			{
+				if(p->vy > 0)
+				{
+					p->y -= ym; p->vy = 0; p->ay = 0;
+				}
 			}
 		}
-		else if(p->collisions & COLLISION_Y_MAX)
+		else if(Room_3DMode() == GAME_MODE_3D)
 		{
-			if(p->vy > 0)
+			if(p->collisions & COLLISION_Y_MIN)
 			{
-				p->y -= ym; p->vy = 0; p->ay = 0;
+				if(p->vy < 0)
+				{
+					p->y += ym; p->vy = 0; p->ay = 0;
+				}
+			}
+			else if(p->collisions & COLLISION_Y_MAX)
+			{
+				if(p->vy > 0)
+				{
+					p->y -= ym; p->vy = 0; p->ay = 0;
+				}
 			}
 		}
 		

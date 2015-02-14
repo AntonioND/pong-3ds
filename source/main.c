@@ -17,9 +17,9 @@
 
 //-------------------------------------------------------------------------------------------------------
 
-int SecondaryThreadExit = 0;
+static int SecondaryThreadExit = 0;
 
-Handle SecondaryThreadHandle, MutexThreadDrawing, MutexSyncFrame;
+static Handle SecondaryThreadHandle, MutexThreadDrawing, MutexSyncFrame;
 
 //-------------------------------------------------------------------------------------------------------
 

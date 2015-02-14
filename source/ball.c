@@ -69,7 +69,7 @@ void Ball_SetColor(int r, int g, int b, int a)
 
 void Ball_DrawShadows(int screen)
 {
-	if(Room_3DMovementEnabled()) // 4 shadows
+	if(Room_3DMode() == GAME_MODE_3D) // 4 shadows
 	{
 		int xmin = BALL.x - (BALL.sx/2);
 		int xmax = BALL.x + (BALL.sx/2);
@@ -296,7 +296,7 @@ void Ball_Reset(void)
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
 	
-	if(Room_3DMovementEnabled())
+	if(Room_3DMode() == GAME_MODE_3D)
 	{
 		BALL.x = float2fx(0.0);
 		BALL.y = float2fx(0.0);
@@ -325,6 +325,17 @@ void Ball_Reset(void)
 	BALL.vz = fxmul(BALL.vz,factor);
 	
 	_ball_SetZSpeedMinMax();
+}
+
+//--------------------------------------------------------------------------------------------------
+
+inline void Ball_Bounce(int speed, int acc)
+{
+	if(BALL.ay == 0)
+	{
+		BALL.ay = acc;
+		BALL.vy = speed;
+	}
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -476,6 +487,10 @@ static void _ball_UpdateCollisions(int * xmargin, int * ymargin, int * zmargin)
 
 void Ball_Handle(void)
 {
+
+#define BOUNCE_ENERGY_CONSERVED (float2fx(0.4))
+#define BOUNCE_MIN_SPEED (float2fx(0.1))
+
 	// Check if goal
 	if(Game_StateMachineBallAddScoreEnabled())
 	{
@@ -525,7 +540,7 @@ void Ball_Handle(void)
 		}
 	}
 	
-	if(Room_3DMovementEnabled())
+	if(Room_3DMode() == GAME_MODE_3D)
 	{
 		if(BALL.collisions & COLLISION_Y_MIN)
 		{
@@ -544,15 +559,22 @@ void Ball_Handle(void)
 			}
 		}
 	}
-	else
+	else if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
 	{
-#define BOUNCE_ENERGY_CONSERVED (float2fx(0.8))
 		if(BALL.collisions & COLLISION_Y_MIN)
 		{
 			if(BALL.vy < 0)
 			{
 				BALL.y += ym - BALL.vy; BALL.vy = -fxmul(BALL.vy,BOUNCE_ENERGY_CONSERVED);
-				bounce = 1;
+				if(abs(BALL.vy) < BOUNCE_MIN_SPEED)
+				{
+					int roomymin;
+					Room_GetBounds(NULL,NULL,&roomymin,NULL,NULL,NULL);
+					BALL.y = roomymin + (BALL.sy / 2) + 1;
+					BALL.vy = 0;
+					BALL.ay = 0;
+				}
+				//bounce = 1;
 			}
 		}
 		else if(BALL.collisions & COLLISION_Y_MAX)
@@ -560,7 +582,24 @@ void Ball_Handle(void)
 			if(BALL.vy > 0)
 			{
 				BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
-				bounce = 1;
+				//bounce = 1;
+			}
+		}
+	}
+	else
+	{
+		if(BALL.collisions & COLLISION_Y_MIN)
+		{
+			if(BALL.vy < 0)
+			{
+				BALL.y += ym - BALL.vy; BALL.vy = -fxmul(BALL.vy,BOUNCE_ENERGY_CONSERVED);
+			}
+		}
+		else if(BALL.collisions & COLLISION_Y_MAX)
+		{
+			if(BALL.vy > 0)
+			{
+				BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
 			}
 		}
 	}
@@ -608,7 +647,7 @@ void Ball_Handle(void)
 		
 		#define BALL_VARIATION_RANGE (int2fx(1.0)>>3)
 		BALL.vx += (fast_rand() & (BALL_VARIATION_RANGE-1)) - (BALL_VARIATION_RANGE>>1);
-		if(Room_3DMovementEnabled()) BALL.vy += (fast_rand() & (BALL_VARIATION_RANGE-1)) - (BALL_VARIATION_RANGE>>1);
+		if(Room_3DMode() == GAME_MODE_3D) BALL.vy += (fast_rand() & (BALL_VARIATION_RANGE-1)) - (BALL_VARIATION_RANGE>>1);
 		
 		int new_v = fxsqrt( fxmul(BALL.vx,BALL.vx) + fxmul(BALL.vy,BALL.vy) + fxmul(BALL.vz,BALL.vz) );
 		
@@ -620,14 +659,7 @@ void Ball_Handle(void)
 		_ball_SetZSpeedMinMax();
 	}
 	
-	if(Room_3DMovementEnabled())
-	{
-		BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
-	}
-	else
-	{
-		BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
-	}
+	BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
 }
 
 //--------------------------------------------------------------------------------------------------

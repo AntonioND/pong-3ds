@@ -90,6 +90,7 @@ void Draw2D_BottomScreen(void)
 		}
 		
 		case GAME_ROOM_1:
+		case GAME_ROOM_2:
 		case GAME_ROOM_3:
 		{
 			//Con_Print(buf,0,170,"3D Slider: %f   ",CONFIG_3D_SLIDERSTATE);

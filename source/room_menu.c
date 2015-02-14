@@ -112,13 +112,13 @@ void Room_Menu_Handle(void)
 	int keys = hidKeysHeld();
 	rotation += 0x100;
 	if(keys & KEY_A) Room_SetNumber(GAME_ROOM_1);
-	//if(keys & KEY_B) Room_SetNumber(GAME_ROOM_2);
+	if(keys & KEY_B) Room_SetNumber(GAME_ROOM_2);
 	if(keys & KEY_X) Room_SetNumber(GAME_ROOM_3);
 }
 
-int Room_Menu_3DMovementEnabled(void)
+_3d_mode_e Room_Menu_3DMode(void)
 {
-	return 0;
+	return GAME_MODE_2D;
 }
 
 //--------------------------------------------------------------------------------------------------

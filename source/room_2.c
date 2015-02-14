@@ -21,7 +21,7 @@ static inline int min(int a, int b)
 
 //--------------------------------------------------------------------------------------------------
 
-static void _room_DrawRoom1(int screen)
+static void _room_DrawRoom2(int screen)
 {
 	//Surface ...
 	
@@ -30,7 +30,7 @@ static void _room_DrawRoom1(int screen)
 	int i,j;
 	for(j = 0; j < 4; j++) for(i = 0; i < 4; i++)
 	{
-		S3D_PolygonColor(screen, 0,max(255-((i+j)*40),0),0);
+		S3D_PolygonColor(screen, max(255-((i+j)*40),0),0,0);
 		
 		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
 		
@@ -49,7 +49,7 @@ static void _room_DrawRoom1(int screen)
 	
 	for(i = 0; i < 4; i++)
 	{
-		S3D_PolygonColor(screen, 0,0,max(255-(i<<6),0));
+		S3D_PolygonColor(screen, 0,max(255-(i<<6),0),0);
 		
 		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
 		
@@ -71,7 +71,7 @@ static void _room_DrawRoom1(int screen)
 	S3D_PolygonListFlush(screen, 1);
 }
 
-void Room_1_Draw(int screen)
+void Room_2_Draw(int screen)
 {
 	// Configure
 	
@@ -96,7 +96,6 @@ void Room_1_Draw(int screen)
 	
 	// Camera rotation effect...
 	m44_CreateRotationY(&m,-(x>>4));
-	//m44_create_rotation_axis(&m, angle1, float2fx(0.58), float2fx(0.58), float2fx(0.58));
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	m44_CreateRotationZ(&m,(x>>4));
@@ -104,12 +103,11 @@ void Room_1_Draw(int screen)
 	
 	// Draw
 	
-	_room_DrawRoom1(screen); // Internal flush
+	_room_DrawRoom2(screen); // Internal flush
 	
-	//Not needed, in this room the ball never leaves the ground
-	//Ball_DrawShadows(screen); // Internal flush
-	//Pad_P1DrawShadows(screen); // Internal flush
-	//Pad_P2DrawShadows(screen); // Internal flush
+	Ball_DrawShadows(screen); // Internal flush
+	Pad_P1DrawShadows(screen); // Internal flush
+	Pad_P2DrawShadows(screen); // Internal flush
 
 	Pad_P2Draw(screen); // IA
 	Ball_Draw(screen);
@@ -119,19 +117,19 @@ void Room_1_Draw(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_1_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
+void Room_2_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
 {
 	if(xmin) *xmin = float2fx(-7.0);
 	if(xmax) *xmax = float2fx(+7.0);
 	if(ymin) *ymin = float2fx(-1.0);
-	if(ymax) *ymax = float2fx(+3.0);
+	if(ymax) *ymax = float2fx(+10.0);
 	if(zmin) *zmin = float2fx(-1.25);
 	if(zmax) *zmax = float2fx(+12.75);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void Room_1_Init(void)
+void Room_2_Init(void)
 {
 	Ball_Init();
 	Ball_SetDimensions(float2fx(1.5),float2fx(1.5),float2fx(1.5));
@@ -150,12 +148,12 @@ void Room_1_Init(void)
 	Game_StateMachineReset();
 }
 
-void Room_1_End(void)
+void Room_2_End(void)
 {
 
 }
 
-void Room_1_Handle(void)
+void Room_2_Handle(void)
 {
 	Game_UpdateStateMachine();
 	Ball_Handle();
@@ -163,11 +161,14 @@ void Room_1_Handle(void)
 	
 	int keys = hidKeysHeld();
 	if(keys & KEY_Y) Room_SetNumber(GAME_ROOM_MENU);
+	
+	keys = hidKeysDown();
+	if(keys & KEY_R) { Ball_Bounce(float2fx(0.3),-float2fx(0.015)); }
 }
 
-_3d_mode_e Room_1_3DMode(void)
+_3d_mode_e Room_2_3DMode(void)
 {
-	return GAME_MODE_2D;
+	return GAME_MODE_2D_BOUNCE;
 }
 
 //--------------------------------------------------------------------------------------------------
