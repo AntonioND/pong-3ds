@@ -768,11 +768,54 @@ void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, i
 				
 				for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
 					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				_s3d_vertical_line(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b);
 			}
 			else  // 1 = 2 : 3 : 4
 			{
-r=0;g=255;b=0;
+			#warning "TODO: FIX y3=y4"
+r=255;g=0;b=0;
+
+				int ysmin = min(y1,y2); int ysmax = max(y1,y2);
 				
+				if(y3 < y4)
+				{
+					int dymin = fxdiv64(y3-ysmin,int2fx(x3-x1));
+					int dymax = fxdiv64(y4-ysmax,int2fx(x4-x1));
+					
+					int sx = x1;
+					int sy = ysmin, ey = ysmax;
+					
+					for( ;sx<x3; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					dymin = fxdiv64(y4-y3,int2fx(x4-x3));
+					sy = y3;
+					
+					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+				}
+				else
+				{
+					int dymin = fxdiv64(y4-ysmin,int2fx(x4-x1));
+					int dymax = fxdiv64(y3-ysmax,int2fx(x3-x1));
+					
+					int sx = x1;
+					int sy = ysmin, ey = ysmax;
+					
+					for( ;sx<x3; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					dymax = fxdiv64(y4-y3,int2fx(x4-x3));
+					ey = y3;
+					
+					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+				}
 			}
 		}
 	}
@@ -782,26 +825,145 @@ r=0;g=255;b=0;
 		{
 			if(x3 == x4) // 1 : 2 = 3 = 4
 			{
-r=0;g=0;b=255;
+				int ymin = min(min(y2,y3),y4);
+				int ymax = max(max(y2,y3),y4);
 				
+				int dsy = fxdiv64(ymin-y1,int2fx(x4-x1));
+				int dey = fxdiv64(ymax-y1,int2fx(x4-x1));
+				
+				int sx = x1;
+				int sy = y1, ey = y1;
+				
+				for( ;sx<=x4; sx++,sy+=dsy,ey+=dey,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 			}
 			else // 1 : 2 = 3 : 4
 			{
-r=0;g=0;b=128;
+				int sx = x1;
+				int sy = y1, ey = y1;
 				
+				int dy2 = fxdiv64(y2-y1,int2fx(x2-x1));
+				int dy3 = fxdiv64(y3-y1,int2fx(x3-x1));
+				
+				for( ;sx<x3; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				sy = y2, ey = y3;
+				
+				dy2 = fxdiv64(y4-y2,int2fx(x4-x2));
+				dy3 = fxdiv64(y4-y3,int2fx(x4-x3));
+				
+				for( ;sx<x4; sx++,sy+=dy2,ey+=dy3,linebuf+=240*3) if( (u32)sx < 400 )
+					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+				
+				_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
 			}
 		}
 		else // 1 : 2 : 3
 		{
 			if(x3 == x4) // 1 : 2 : 3 = 4
 			{
+			#warning "TODO: FIX y1=y2"
 r=255;g=255;b=0;
+
+				int yemin = min(y3,y4); int yemax = max(y3,y4);
 				
+				if(y1 < y2)
+				{
+					int dymax = fxdiv64(y2-y1,int2fx(x2-x1));
+					int dymin = fxdiv64(yemin-y1,int2fx(x4-x1));
+					
+					int sx = x1;
+					int sy = y1, ey = y1;
+					
+					for( ;sx<x2; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					dymax = fxdiv64(yemax-y2,int2fx(x4-x2));
+					ey = y2;
+					
+					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					_s3d_vertical_line(linebuf, x3,fx2int(y3),fx2int(y4), r,g,b);
+				}
+				else
+				{
+					int dymin = fxdiv64(y2-y1,int2fx(x2-x1));
+					int dymax = fxdiv64(yemax-y1,int2fx(x4-x1));
+					
+					int sx = x1;
+					int sy = y1, ey = y1;
+					
+					for( ;sx<x2; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					dymin = fxdiv64(yemin-y2,int2fx(x4-x2));
+					sy = y2;
+					
+					for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					_s3d_vertical_line(linebuf, x3,fx2int(y3),fx2int(y4), r,g,b);
+				}
 			}
 			else // 1 : 2 : 3 : 4
 			{
 r=0;g=255;b=255;
+			#warning "TODO: FIX"
+
+				if(y2 > y3) swapints_pairs(&x2,&x3, &y2,&y3);
 				
+				if(x2 < x3)
+				{
+					int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
+					int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
+					
+					int sx = x1;
+					int sy = y1, ey = y1;
+					
+					for( ;sx<x2; sx++,sy+=dy12,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
+					sy = y2;
+					
+					for( ;sx<x3; sx++,sy+=dy24,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+						
+					int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
+					ey = y3;
+					
+					for( ;sx<x4; sx++,sy+=dy24,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+				}
+				else
+				{
+					int dy12 = fxdiv64(y2-y1,int2fx(x2-x1));
+					int dy13 = fxdiv64(y3-y1,int2fx(x3-x1));
+					
+					int sx = x1;
+					int sy = y1, ey = y1;
+					
+					for( ;sx<x3; sx++,sy+=dy12,ey+=dy13,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+					
+					int dy34 = fxdiv64(y4-y3,int2fx(x4-x3));
+					ey = y3;
+					
+					for( ;sx<x2; sx++,sy+=dy12,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+						
+					int dy24 = fxdiv64(y4-y2,int2fx(x4-x2));
+					sy = y2;
+					
+					for( ;sx<x4; sx++,sy+=dy24,ey+=dy34,linebuf+=240*3) if( (u32)sx < 400 )
+						_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
+						
+					_s3d_plot_safe(buf, x4,fx2int(y4), r,g,b);
+				}
 			}
 		}
 	}

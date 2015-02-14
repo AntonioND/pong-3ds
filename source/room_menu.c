@@ -89,6 +89,10 @@ void Room_Menu_Draw(int screen)
 		x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[3],
 		255,255,255);
 		
+S3D_2D_Plot(S3D_BufferGet(screen),x[0],y[0], 255,0,255,255);
+S3D_2D_Plot(S3D_BufferGet(screen),x[1],y[1], 255,0,255,255);
+S3D_2D_Plot(S3D_BufferGet(screen),x[2],y[2], 255,0,255,255);
+S3D_2D_Plot(S3D_BufferGet(screen),x[3],y[3], 255,0,255,255);
 
 }
 
