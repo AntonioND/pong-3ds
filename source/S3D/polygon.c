@@ -241,7 +241,6 @@ void S3D_PolygonListClear(int screen)
 static inline void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
-	polygon_number[screen]++;
 	
 	e->type = S3D_DOTS;
 	int i;
@@ -252,13 +251,16 @@ static inline void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g,
 	
 	e->avg_z = e->v[0][3];
 	
+	if(e->avg_z < float2fx(0.0)) return;
+	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
+
+	polygon_number[screen]++;
 }
 
 static inline void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r, int _g, int _b, int _a)
 {
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
-	polygon_number[screen]++;
 	
 	e->type = S3D_LINES;
 	int i;
@@ -271,7 +273,11 @@ static inline void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r
 	e->avg_z = e->v[0][3] + e->v[1][3];
 	e->avg_z /= 2;
 	
+	if(e->avg_z < float2fx(0.0)) return;
+	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
+
+	polygon_number[screen]++;
 }
 
 static inline void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4 * c, int _r, int _g, int _b, int _a)
@@ -280,7 +286,6 @@ static inline void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4
 		return;
 
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
-	polygon_number[screen]++;
 	
 	e->type = S3D_TRIANGLES;
 	int i;
@@ -294,7 +299,11 @@ static inline void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3];
 	e->avg_z /= 3;
 	
+	if(e->avg_z < float2fx(0.0)) return;
+	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
+
+	polygon_number[screen]++;
 }
 
 static inline void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c, v4 * d, int _r, int _g, int _b, int _a)
@@ -303,7 +312,6 @@ static inline void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c
 		return;
 	
 	_poly_list_t * e = &(List[screen][polygon_number[screen]]);
-	polygon_number[screen]++;
 	
 	e->type = S3D_QUADS;
 	int i;
@@ -318,7 +326,11 @@ static inline void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3] + e->v[3][3];
 	e->avg_z /= 4;
 	
+	if(e->avg_z < float2fx(0.0)) return;
+	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
+
+	polygon_number[screen]++;
 }
 
 //---------------------------------------------------------------------------------------
