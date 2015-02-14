@@ -251,7 +251,7 @@ static inline void _s3d_polygon_list_add_dot(int screen, v4 * a, int _r, int _g,
 	
 	e->avg_z = e->v[0][3];
 	
-	if(e->avg_z < float2fx(0.0)) return;
+	if(e->avg_z > float2fx(0.0)) return;
 	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 
@@ -273,7 +273,7 @@ static inline void _s3d_polygon_list_add_line(int screen, v4 * a, v4 * b, int _r
 	e->avg_z = e->v[0][3] + e->v[1][3];
 	e->avg_z /= 2;
 	
-	if(e->avg_z < float2fx(0.0)) return;
+	if(e->avg_z > float2fx(0.0)) return;
 	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 
@@ -299,7 +299,7 @@ static inline void _s3d_polygon_list_add_triangle(int screen, v4 * a, v4 * b, v4
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3];
 	e->avg_z /= 3;
 	
-	if(e->avg_z < float2fx(0.0)) return;
+	if(e->avg_z > float2fx(0.0)) return;
 	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 
@@ -326,7 +326,7 @@ static inline void _s3d_polygon_list_add_quad(int screen, v4 * a, v4 * b, v4 * c
 	e->avg_z = e->v[0][3] + e->v[1][3] + e->v[2][3] + e->v[3][3];
 	e->avg_z /= 4;
 	
-	if(e->avg_z < float2fx(0.0)) return;
+	if(e->avg_z > float2fx(0.0)) return;
 	
 	e->r = _r; e->g = _g; e->b = _b; e->a = _a;
 
