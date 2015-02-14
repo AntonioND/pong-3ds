@@ -16,6 +16,8 @@ extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
 
 #define FIX_SHIFT_EXTRA 0 // Positive (odd) values only!
 
+#define FX_2PI (0x10000) // For fxsin() and fxcos()
+
 // Look-up a sine value (2·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f sine value
