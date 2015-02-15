@@ -181,9 +181,9 @@ void Room_3_Init(void)
 	Ball_Reset();
 	
 	Pad_InitAll();
-	Pad_P1SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
+	Pad_P1SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(0.75));
 	Pad_P1SetColor(255,0,0,128);
-	Pad_P2SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(1.0));
+	Pad_P2SetDimensions(float2fx(3.5),float2fx(3.5),float2fx(0.75));
 	Pad_P2SetColor(255,255,0,255);
 	Pad_ResetAll();
 	

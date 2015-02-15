@@ -68,7 +68,7 @@ void Pad_P2SetColor(int r, int g, int b, int a) // AI
 
 //--------------------------------------------------------------------------------------------------
 
-static inline void _ball_draw(int screen, _pad_t * p)
+static inline void _pad_DrawShadows(int screen, _pad_t * p)
 {
 	if(Room_3DMode() == GAME_MODE_3D) // 4 shadows
 	{
@@ -151,7 +151,7 @@ static inline void _ball_draw(int screen, _pad_t * p)
 	}
 }
 
-static inline void _pad_draw(int screen, _pad_t * p)
+static inline void _pad_Draw(int screen, _pad_t * p)
 {
 	int xmin = p->x - (p->sx/2);
 	int xmax = p->x + (p->sx/2);
@@ -203,22 +203,22 @@ static inline void _pad_draw(int screen, _pad_t * p)
 
 void Pad_P1Draw(int screen)
 {
-	_pad_draw(screen,&PAD1);
+	_pad_Draw(screen,&PAD1);
 }
 
 void Pad_P2Draw(int screen)
 {
-	_pad_draw(screen,&PAD2);
+	_pad_Draw(screen,&PAD2);
 }
 
 void Pad_P1DrawShadows(int screen)
 {
-	_ball_draw(screen,&PAD1);
+	_pad_DrawShadows(screen,&PAD1);
 }
 
 void Pad_P2DrawShadows(int screen)
 {
-	_ball_draw(screen,&PAD2);
+	_pad_DrawShadows(screen,&PAD2);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -273,14 +273,27 @@ void Pad_ResetAll(void)
 {
 	int roomxmin, roomxmax, roomymin, roomymax, roomzmin, roomzmax;
 	Room_GetBounds(&roomxmin,&roomxmax,&roomymin,&roomymax,&roomzmin,&roomzmax);
-	
-	PAD1.x = float2fx(0.0);
-	PAD1.y = float2fx(0.0);
-	PAD1.z = roomzmin + (PAD1.sz/2);
-	
-	PAD2.x = float2fx(0.0);
-	PAD2.y = float2fx(0.0);
-	PAD2.z = roomzmax - (PAD2.sz/2);
+
+	if(Room_3DMode() == GAME_MODE_3D)
+	{
+		PAD1.x = float2fx(0.0);
+		PAD1.y = float2fx(0.0);
+		PAD1.z = roomzmin + (PAD1.sz/2);
+		
+		PAD2.x = float2fx(0.0);
+		PAD2.y = float2fx(0.0);
+		PAD2.z = roomzmax - (PAD2.sz/2);
+	}
+	else
+	{
+		PAD1.x = float2fx(0.0);
+		PAD1.y = roomymin + (PAD1.sy/2);
+		PAD1.z = roomzmin + (PAD1.sz/2);
+		
+		PAD2.x = float2fx(0.0);
+		PAD2.y = roomymin + (PAD2.sy/2);
+		PAD2.z = roomzmax - (PAD2.sz/2);
+	}
 }
 
 //--------------------------------------------------------------------------------------------------

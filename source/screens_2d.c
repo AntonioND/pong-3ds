@@ -52,6 +52,43 @@ static void _quad_blit_unsafe_32(u8 * buf, const u8 * src, int x, int y, int w, 
 	}
 }
 
+static void _quad_blit_unsafe_real_alpha_32(u8 * buf, const u8 * src, int x, int y, int w, int h)
+{
+	u8 * linebuf = &(buf[(240*x+y)*3]);
+	
+	while(w--)
+	{
+		int i = h;
+		u8 * p = linebuf; linebuf += 240*3;
+		while(i--)
+		{
+			int a = *src++;
+			if(a == 255)
+			{
+				*p++ = *src++; *p++ = *src++; *p++ = *src++;
+			}
+			else if(a == 0)
+			{
+				src += 3;
+				p += 3;
+			}
+			else
+			{
+				int one_minus_alpha = 255 - a;
+				
+				int b = *src++;
+				int g = *src++;
+				int r = *src++;
+				
+				p[0] = ( (p[0] * one_minus_alpha) + b * a ) / 256;
+				p[1] = ( (p[1] * one_minus_alpha) + g * a ) / 256;
+				p[2] = ( (p[2] * one_minus_alpha) + r * a ) / 256;
+				p += 3;
+			}
+		}
+	}
+}
+
 static void draw_number(u8 * buf, int number, int x, int y)
 {
 	_quad_blit_unsafe_32(buf, numbers_png_bin+(NUMBERS_WIDTH*NUMBERS_HEIGHT*4)*number,
@@ -73,6 +110,14 @@ static void draw_number(u8 * buf, int number, int x, int y)
 #define GET_READY_WIDTH (214)
 #define GET_READY_HEIGHT (91)
 
+#include "pong_3ds_png_bin.h"
+#define PONG_3DS_WIDTH (354)
+#define PONG_3DS_HEIGHT (48)
+
+#include "by_antoniond_png_bin.h"
+#define BY_ANTONIOND_WIDTH (136)
+#define BY_ANTONIOND_HEIGHT (24)
+
 void Draw2D_TopScreen(int screen)
 {
 	u8 * buf = S3D_BufferGet(screen);
@@ -81,7 +126,24 @@ void Draw2D_TopScreen(int screen)
 	{
 		case GAME_ROOM_MENU:
 		{
-draw_number(buf,3,200,120);
+			// Pong 3DS
+			
+			{
+				int xbase = (400-PONG_3DS_WIDTH)/2;
+				int ybase = (240-PONG_3DS_HEIGHT) - xbase;
+				_quad_blit_unsafe_32(buf,pong_3ds_png_bin,xbase,ybase,
+				                     PONG_3DS_WIDTH,PONG_3DS_HEIGHT);
+			}
+			
+			// By AntonioND
+			
+			{
+				int xbase = 400-BY_ANTONIOND_WIDTH-10;
+				int ybase = 10;
+				_quad_blit_unsafe_real_alpha_32(buf,by_antoniond_png_bin,xbase,ybase,
+				                     BY_ANTONIOND_WIDTH,BY_ANTONIOND_HEIGHT);
+			}
+			
 			break;
 		}
 		
@@ -168,8 +230,7 @@ void Draw2D_BottomScreen(void)
 		{
 			_quad_blit_unsafe_24(buf,bottom_screen_png_bin,0,0,320,240);
 			
-			Con_Print(buf,0,220-1,"Pong 3DS by AntonioND");
-			Con_Print(buf,0,200-1,"(Antonio Niño Díaz)");
+			Con_Print(buf,0,220-1,"(Antonio Niño Díaz)");
 			
 			Con_Print(buf,0,40,"A,B,X: Start.");
 			Con_Print(buf,0,20,"Y: Screenshot.");
@@ -178,7 +239,8 @@ void Draw2D_BottomScreen(void)
 		}
 		
 		case GAME_ROOM_2:
-			Con_Print(buf,0,20,"A: Jump.");
+			Con_Print(buf,0,60,"A: Jump.");
+			//Fall through
 		case GAME_ROOM_1:
 		case GAME_ROOM_3:
 		{

@@ -126,7 +126,7 @@ void SecondaryThreadFunction(u32 arg)
 }
 
 #define STACK_SIZE (0x2000)
-static u64 SecondaryThreadStack[STACK_SIZE/sizeof(u64)];
+static u64 SecondaryThreadStack[STACK_SIZE/sizeof(u64)]; // u64 to align the address
 
 int Thread_Init(void) // Start thread in CPU 1
 {
@@ -168,6 +168,8 @@ void Thread_End(void)
 	
 	while(1)
 	{
+		// This will hang the CPU if the secondary thread can't exit, but I prefer the game to
+		// hang than returning to the loader with the secondary thread running in the background.
 		if(svcWaitSynchronization(SecondaryThreadHandle, U64_MAX) == 0) break;
 	}
 	

@@ -33,7 +33,7 @@ DATA		:=	data
 INCLUDES	:=	source source/S3D png png/libpng-1.6.9 png/zlib-1.2.8
 
 APP_TITLE	:=	Pong 3DS
-APP_DESCRIPTION	:=	3D software rendering test.
+APP_DESCRIPTION	:=	3D pong game with software rendering.
 APP_AUTHOR	:=	AntonioND
 
 #---------------------------------------------------------------------------------

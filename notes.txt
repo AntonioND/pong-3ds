@@ -1,4 +1,11 @@
-Font sizes used:
--Numbers, "Player N wins": 36
--"Game paused": 16
--"Get ready": 50
+Fonts:
+
+Polygon Power:
+- 16 : "Game paused"
+- 36 : Numbers, "Player N wins"
+- 50 : "Get ready"
+- 60 : "Pong 3DS"
+
+
+Liberation Sans Bold:
+- 20 : "by AntonioND"
