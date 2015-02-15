@@ -199,12 +199,16 @@ void Room_3_End(void)
 
 void Room_3_Handle(void)
 {
-	Game_UpdateStateMachine();
-	Ball_Handle();
-	Pad_HandleAll();
+	if(!Game_IsPaused())
+	{
+		Game_UpdateStateMachine();
+		Ball_Handle();
+		Pad_HandleAll();
+	}
 	
-	int keys = hidKeysHeld();
-	if(keys & KEY_Y) Room_SetNumber(GAME_ROOM_MENU);
+	int keys = hidKeysDown();
+	if(keys & KEY_START) Room_SetNumber(GAME_ROOM_MENU);
+	if(keys & KEY_X) Game_Pause(!Game_IsPaused());
 }
 
 _3d_mode_e Room_3_3DMode(void)

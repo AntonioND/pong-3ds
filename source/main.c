@@ -69,7 +69,6 @@ static void DrawScreens(void)
 	S3D_ProjectionMatrixSet(screen, &left_screen);
 	S3D_PolygonListClear(screen);
 	Game_DrawScreenTop(screen);
-	S3D_PolygonListFlush(screen, 1);
 	
 	//----------------------------------------
 	
@@ -107,7 +106,6 @@ void SecondaryThreadFunction(u32 arg)
 			S3D_ProjectionMatrixSet(screen, &right_screen);
 			S3D_PolygonListClear(screen);
 			Game_DrawScreenTop(screen);
-			S3D_PolygonListFlush(screen, 1);
 		}
 		
 		Timing_EndFrame(1);
@@ -220,13 +218,13 @@ int main(int argc, char **argv) // Running in CPU 0
 			
 			hidScanInput(); // Once per frame
 			
-			if(hidKeysHeld() & KEY_START) break; // break in order to return to hbmenu
+			if(hidKeysHeld() & KEY_SELECT) break; // break in order to return to hbmenu
 			
 			Game_Handle();
 			
 			DrawScreens();
 			
-			if(hidKeysDown() & KEY_SELECT)
+			if(hidKeysDown() & KEY_Y)
 			{
 				PNGScreenshot_Top(); // AFTER DRAWING SCREENS!!
 				//PNGScreenshot_Bottom();

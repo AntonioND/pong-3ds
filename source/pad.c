@@ -531,7 +531,7 @@ void Pad_HandleAll(void)
 			
 			if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
 			{
-				if(hidKeysDown() & KEY_L)
+				if(hidKeysDown() & KEY_A)
 					Pad_P1Bounce(float2fx(0.3),-float2fx(0.015));
 			}
 			

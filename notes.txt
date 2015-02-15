@@ -1,0 +1,3 @@
+Font sizes used:
+-Numbers, "Player N wins": 36
+-"Game paused": 16

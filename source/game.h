@@ -8,18 +8,22 @@
 
 //--------------------------------------------------------------------------------------------------
 
-#define COLLISION_X_MIN (1)
-#define COLLISION_X_MAX (2)
-#define COLLISION_Y_MIN (4)
-#define COLLISION_Y_MAX (8)
-#define COLLISION_Z_MIN (16)
-#define COLLISION_Z_MAX (32)
+#define GAME_WIN_SCORE (10)
 
 //--------------------------------------------------------------------------------------------------
 
-void Game_PlayerResetAll(void);
-void Game_PlayerScoreIncrease(int player); // 0 or 1
-int Game_PlayerScoreGet(int player); // 0 or 1
+inline void Game_Pause(int pause);
+inline int Game_IsPaused(void);
+
+//--------------------------------------------------------------------------------------------------
+
+typedef enum {
+	GAME_STARTING,
+	GAME_INITIAL_DELAY,
+	GAME_NORMAL_PLAY,
+	GAME_GOAL_DELAY,
+	GAME_ENDING
+} _game_state_e;
 
 //--------------------------------------------------------------------------------------------------
 
@@ -32,6 +36,23 @@ void Game_PlayerScoreStartDelay(void);
 int Game_StateMachinePadMovementEnabled(void);
 int Game_StateMachineBallMovementEnabled(void);
 int Game_StateMachineBallAddScoreEnabled(void);
+
+inline _game_state_e Game_StateMachineGet(void);
+
+//--------------------------------------------------------------------------------------------------
+
+#define COLLISION_X_MIN (1)
+#define COLLISION_X_MAX (2)
+#define COLLISION_Y_MIN (4)
+#define COLLISION_Y_MAX (8)
+#define COLLISION_Z_MIN (16)
+#define COLLISION_Z_MAX (32)
+
+//--------------------------------------------------------------------------------------------------
+
+void Game_PlayerResetAll(void);
+void Game_PlayerScoreIncrease(int player); // 0 or 1
+int Game_PlayerScoreGet(int player); // 0 or 1
 
 //--------------------------------------------------------------------------------------------------
 

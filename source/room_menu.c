@@ -49,6 +49,8 @@ static void __draw_ball(int screen, int r, int g, int b)
 
 	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(0.5),float2fx(0.75));
 	S3D_PolygonVertex(screen, float2fx(-0.75),float2fx(-1),float2fx(0.75));
+	
+	S3D_PolygonListFlush(screen, 1);
 }
 
 void Room_Menu_Draw(int screen)
@@ -99,6 +101,7 @@ void Room_Menu_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * z
 
 void Room_Menu_Init(void)
 {
+	Game_Pause(0);
 	rotation = 0;
 }
 

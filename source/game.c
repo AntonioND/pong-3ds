@@ -15,19 +15,28 @@
 
 //-------------------------------------------------------------------------------------------------------
 
-typedef enum {
-	GAME_INITIAL_DELAY,
-	GAME_NORMAL_PLAY,
-	GAME_GOAL_DELAY
-} _game_state_e;
+static int game_paused = 0;
+
+inline void Game_Pause(int pause)
+{
+	game_paused = pause;
+}
+
+inline int Game_IsPaused(void)
+{
+	return game_paused;
+}
+
+//-------------------------------------------------------------------------------------------------------
 
 static _game_state_e game_state_machine;
 static int game_state_machine_delay; // delay frames
 
 void Game_StateMachineReset(void)
 {
-	game_state_machine = GAME_INITIAL_DELAY;
-	game_state_machine_delay = 30;
+	Game_Pause(0);
+	game_state_machine = GAME_STARTING;
+	game_state_machine_delay = 60;
 }
 
 void Game_PlayerScoreStartDelay(void)
@@ -45,8 +54,12 @@ int Game_StateMachinePadMovementEnabled(void)
 		case GAME_INITIAL_DELAY:
 		case GAME_NORMAL_PLAY:
 			return 1;
+		
+		case GAME_STARTING:
+		case GAME_ENDING:
 		case GAME_GOAL_DELAY:
 			return 0;
+		
 		default:
 			return 0;
 	}
@@ -56,11 +69,15 @@ int Game_StateMachineBallMovementEnabled(void)
 {
 	switch(game_state_machine)
 	{
+		case GAME_STARTING:
+		case GAME_ENDING:
 		case GAME_INITIAL_DELAY:
 			return 0;
+		
 		case GAME_NORMAL_PLAY:
 		case GAME_GOAL_DELAY:
 			return 1;
+		
 		default:
 			return 0;
 	}
@@ -71,11 +88,14 @@ int Game_StateMachineBallAddScoreEnabled(void)
 	switch(game_state_machine)
 	{
 		case GAME_INITIAL_DELAY:
-			return 0;
-		case GAME_NORMAL_PLAY:
-			return 1;
+		case GAME_STARTING:
+		case GAME_ENDING:
 		case GAME_GOAL_DELAY:
 			return 0;
+		
+		case GAME_NORMAL_PLAY:
+			return 1;
+
 		default:
 			return 0;
 	}
@@ -98,20 +118,49 @@ void Game_UpdateStateMachine(void)
 	
 	switch(game_state_machine)
 	{
+		case GAME_STARTING:
+			game_state_machine = GAME_INITIAL_DELAY;
+			game_state_machine_delay = 30;
+			Ball_Reset();
+			Pad_ResetAll();
+			return;
 		case GAME_INITIAL_DELAY:
 			game_state_machine = GAME_NORMAL_PLAY;
 			return;
 		case GAME_NORMAL_PLAY:
 			return;
 		case GAME_GOAL_DELAY:
-			game_state_machine = GAME_INITIAL_DELAY;
-			game_state_machine_delay = 30;
-			Ball_Reset();
-			Pad_ResetAll();
+			if(Game_PlayerScoreGet(0) >= GAME_WIN_SCORE)
+			{
+				game_state_machine = GAME_ENDING;
+				game_state_machine_delay = 300;
+			}
+			else if(Game_PlayerScoreGet(1) >= GAME_WIN_SCORE)
+			{
+				game_state_machine = GAME_ENDING;
+				game_state_machine_delay = 300;
+			}
+			else
+			{
+				game_state_machine = GAME_INITIAL_DELAY;
+				game_state_machine_delay = 30;
+				Ball_Reset();
+				Pad_ResetAll();
+			}
 			return;
+		case GAME_ENDING:
+			Room_SetNumber(GAME_ROOM_MENU);
+			return;
+		
 		default:
 			return;
 	}
+}
+
+
+inline _game_state_e Game_StateMachineGet(void)
+{
+	return game_state_machine;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -125,6 +174,9 @@ _player_info_s PLAYER[2];
 void Game_PlayerResetAll(void)
 {
 	memset(&PLAYER,0,sizeof(PLAYER));
+	
+	PLAYER[0].score = 9;
+	PLAYER[1].score = 9;
 }
 
 void Game_PlayerScoreIncrease(int player)
@@ -157,6 +209,8 @@ void ClearColorInit(void)
 
 void ClearColorHandle(void)
 {
+	if(Game_IsPaused()) return;
+	
 	_clear_color.r += _clear_color.vr;
 	_clear_color.g += _clear_color.vg;
 	_clear_color.b += _clear_color.vb;
@@ -179,6 +233,8 @@ void Game_DrawScreenTop(int screen)
 
 	// 3D stuff
 	Room_Draw(screen);
+	
+	S3D_PolygonListFlush(screen, 1);
 	
 	//2D stuff
 	Draw2D_TopScreen(screen);

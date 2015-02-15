@@ -136,7 +136,6 @@ void Room_End(void)
 
 void Room_Handle(void)
 {
-	
 	switch(current_room)
 	{
 		// Playable rooms
