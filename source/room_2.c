@@ -1,74 +1,176 @@
 
 //--------------------------------------------------------------------------------------------------
 
-#include "../S3D/engine.h"
-#include "../game.h"
-#include "../rooms.h"
-#include "../pad.h"
-#include "../ball.h"
+#include <string.h>
+
+#include "S3D/engine.h"
+#include "game.h"
+#include "rooms.h"
+#include "pad.h"
+#include "ball.h"
+#include "utils.h"
 
 //--------------------------------------------------------------------------------------------------
 
-static inline int max(int a, int b)
-{
-	return a > b ? a : b;
-}
+typedef struct {
+	int h, vh, ah;
+} _bumper_s;
 
-static inline int min(int a, int b)
-{
-	return a < b ? a : b;
-}
+static _bumper_s Bumper[4][2];
+
+static int bumper_enabled = 0;
 
 //--------------------------------------------------------------------------------------------------
 
-static void _room_DrawRoom2(int screen)
+static void Bumper_Init(void)
 {
-	//Surface ...
+	memset(Bumper,0,sizeof(Bumper));
+	bumper_enabled = 0;
+}
+
+static void Bumper_Handle(void)
+{
+	if(bumper_enabled) return;
 	
-	S3D_PolygonBegin(screen, S3D_QUADS);
+	int ballxmin, ballxmax, ballymin, ballymax, ballzmin, ballzmax;
+	Ball_GetBounds(&ballxmin,&ballxmax,&ballymin,&ballymax,&ballzmin,&ballzmax);
+
+	int i,j;
+	for(i = 0; i < 2; i ++) for(j = 0; j < 4; j++)
+	{
+		if(ballymin < float2fx(-0.99))
+		{
+			if((fast_rand() & 31) == 0)
+			{
+				int xmin = float2fx(-7.0) + float2fx(3.5)*j + float2fx(0.1);
+				int zmin = float2fx(-1.25) + float2fx(3.5) + float2fx(3.5)*i + float2fx(0.1);
+				int xmax = xmin + float2fx(3.3);
+				int zmax = zmin + float2fx(3.3);
+				
+				if(_segments_overlap(xmin,xmax, ballxmin,ballxmax) && _segments_overlap(zmin,zmax, ballzmin,ballzmax))
+				{
+					Bumper[j][i].vh = float2fx(0.3);
+					Bumper[j][i].ah = -float2fx(0.015);
+					Ball_Bounce(float2fx(0.3),-float2fx(0.015));
+					bumper_enabled = 1;
+				}
+			}
+		}
+	}
+}
+
+static void Bumper_Gravity(void)
+{
+	if(bumper_enabled == 0) return;
 	
 	int i,j;
-	for(j = 0; j < 4; j++) for(i = 0; i < 4; i++)
+	for(i = 0; i < 2; i ++) for(j = 0; j < 4; j++)
 	{
-		S3D_PolygonColor(screen, max(255-((i+j)*40),0),0,0);
-		
-		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
-		
-		int xbase = float2fx(-6.75) + float2fx(3.5)*j - float2fx(0.1);
-		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
-		
-		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase);
-		S3D_PolygonVertex(screen, xbase, float2fx(-1), zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, xbase + float2fx(3.2), float2fx(-1), zbase);
+		if(Bumper[j][i].ah)
+		{
+			Bumper[j][i].h += Bumper[j][i].vh;
+			Bumper[j][i].vh += Bumper[j][i].ah;
+			
+			if(Bumper[j][i].h < 0)
+			{
+				Bumper[j][i].h = 0;
+				Bumper[j][i].vh = 0;
+				Bumper[j][i].ah = 0;
+				bumper_enabled = 0;
+			}
+		}
 	}
+}
 
-	S3D_PolygonListFlush(screen, 0);
+//--------------------------------------------------------------------------------------------------
 
-	// Borders ...
+static void _room_DrawRoom2_Borders(int screen)
+{
+	int i;
+
+	S3D_PolygonBegin(screen, S3D_QUADS);
 	
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < 7; i++)
 	{
-		S3D_PolygonColor(screen, 0,max(255-(i<<6),0),0);
+		S3D_PolygonColorAlpha(screen, 0,0,255,(i&1)?128:255);
 		
-		int zbase = float2fx(-1.0) + float2fx(3.5)*i - float2fx(0.1);
+		int zbase = float2fx(-1.25) + float2fx(2.0)*i;
+		
+		int ymax = (i&1) ? float2fx(2.5) : float2fx(3.0);
 		
 		S3D_PolygonNormal(screen, float2fx(1.0),float2fx(0.0),float2fx(0.0));
 		
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase);
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(2.6),zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase + float2fx(3.2));
-		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-0.6),zbase);
+		S3D_PolygonVertex(screen, float2fx(-7),ymax,zbase);
+		S3D_PolygonVertex(screen, float2fx(-7),ymax,zbase + float2fx(2.0));
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1.0),zbase + float2fx(2.0));
+		S3D_PolygonVertex(screen, float2fx(-7),float2fx(-1.0),zbase);
 		
 		S3D_PolygonNormal(screen, float2fx(-1.0),float2fx(0.0),float2fx(0.0));
 		
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase);
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(-0.6),zbase + float2fx(3.0));
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase + float2fx(3.0));
-		S3D_PolygonVertex(screen, float2fx(7),float2fx(2.6),zbase);
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(-1.0),zbase);
+		S3D_PolygonVertex(screen, float2fx(7),float2fx(-1.0),zbase + float2fx(2.0));
+		S3D_PolygonVertex(screen, float2fx(7),ymax,zbase + float2fx(2.0));
+		S3D_PolygonVertex(screen, float2fx(7),ymax,zbase);
 	}
+}
 
-	S3D_PolygonListFlush(screen, 1);
+static void _room_DrawRoom2_Floor(int screen)
+{
+	int j;
+
+	S3D_PolygonBegin(screen, S3D_QUADS);
+	
+	// SECOND: Surface, starting from the furthest polygons
+	
+	for(j = 0; j < 4; j++)
+	{
+		int xbase = float2fx(-7) + float2fx(3.5) * j;
+		
+		if(j&1) S3D_PolygonColor(screen, 64,64,128);
+		else S3D_PolygonColor(screen, 96,96,192);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), float2fx(-1.25) + float2fx(3.4));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.5), float2fx(-1), float2fx(-1.25) + float2fx(3.4));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.5), float2fx(-1), float2fx(-1.25));
+		
+		if(j&1) S3D_PolygonColor(screen, 96,96,192);
+		else S3D_PolygonColor(screen, 64,64,128);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), float2fx(12.75) - float2fx(3.4));
+		S3D_PolygonVertex(screen, xbase, float2fx(-1), float2fx(12.75));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.5), float2fx(-1), float2fx(12.75));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.5), float2fx(-1), float2fx(12.75) - float2fx(3.4));
+	}
+}
+
+
+static void _room_DrawRoom2_Bumpers(int screen)
+{
+	int i,j;
+
+	S3D_PolygonBegin(screen, S3D_QUADS);
+	
+	for(j = 0; j < 4; j++) for(i = 1; i >= 0; i--)
+	{
+		S3D_PolygonColorAlpha(screen, ((j^i)&1) ? 255 : 192,0,0, 128);
+		
+		S3D_PolygonNormal(screen, float2fx(0.0),float2fx(1.0),float2fx(0.0));
+		
+		int xbase = float2fx(-7.0) + float2fx(3.5)*j + float2fx(0.1);
+		int zbase = float2fx(-1.25) + float2fx(3.5) + float2fx(3.5)*i + float2fx(0.1);
+		
+		int ybase = Bumper[j][i].h + float2fx(-1);
+		
+		S3D_PolygonVertex(screen, xbase, ybase, zbase);
+		S3D_PolygonVertex(screen, xbase, ybase, zbase + float2fx(3.3));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.3), ybase, zbase + float2fx(3.3));
+		S3D_PolygonVertex(screen, xbase + float2fx(3.3), ybase, zbase);
+	}
 }
 
 void Room_2_Draw(int screen)
@@ -103,15 +205,23 @@ void Room_2_Draw(int screen)
 	
 	// Draw
 	
-	_room_DrawRoom2(screen); // Internal flush
+	_room_DrawRoom2_Borders(screen);
+	_room_DrawRoom2_Floor(screen);
+	S3D_PolygonListFlush(screen, 1);
+	
+	Pad_P2DrawShadows(screen); // Internal flush
+	Pad_P2Draw(screen); // IA
+	S3D_PolygonListFlush(screen, 1);
 	
 	Ball_DrawShadows(screen); // Internal flush
+	
+	_room_DrawRoom2_Bumpers(screen);
+	S3D_PolygonListFlush(screen, 1);
+	
 	Pad_P1DrawShadows(screen); // Internal flush
-	Pad_P2DrawShadows(screen); // Internal flush
-
-	Pad_P2Draw(screen); // IA
-	Ball_Draw(screen);
+	
 	Pad_P1Draw(screen); // Player
+	Ball_Draw(screen);
 	S3D_PolygonListFlush(screen, 1);
 }
 
@@ -146,6 +256,8 @@ void Room_2_Init(void)
 	Game_PlayerResetAll();
 	
 	Game_StateMachineReset();
+	
+	Bumper_Init();
 }
 
 void Room_2_End(void)
@@ -160,15 +272,18 @@ void Room_2_Handle(void)
 		Game_UpdateStateMachine();
 		Ball_Handle();
 		Pad_HandleAll();
+		
+		Bumper_Gravity();
+		
+		if(Game_StateMachineGet() == GAME_NORMAL_PLAY)
+			Bumper_Handle();
+		else if( (Game_StateMachineGet() == GAME_INITIAL_DELAY) || (Game_StateMachineGet() == GAME_STARTING) )
+			Bumper_Init();
 	}
 	
 	int keys = hidKeysDown();
 	if(keys & KEY_START) Room_SetNumber(GAME_ROOM_MENU);
 	if(keys & KEY_X) Game_Pause(!Game_IsPaused());
-	
-	
-	
-	if(keys & KEY_R) { Ball_Bounce(float2fx(0.3),-float2fx(0.015)); }
 }
 
 _3d_mode_e Room_2_3DMode(void)

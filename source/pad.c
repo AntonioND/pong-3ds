@@ -335,6 +335,8 @@ static inline int clamp(int min, int val, int max)
 	return val;
 }
 
+#define PAD_MAX_SEPARATION_RANGE (float2fx(3.5)) // separation from wall
+
 // margins are only valid if there is a collision in that axis
 static void _pad_UpdateCollisions(_pad_t * p, int pad_number, int * xmargin, int * ymargin, int * zmargin)
 {
@@ -345,11 +347,11 @@ static void _pad_UpdateCollisions(_pad_t * p, int pad_number, int * xmargin, int
 	
 	if(pad_number == 1) // Player 1
 	{
-		roomzmax = roomzmin + float2fx(3.0);
+		roomzmax = roomzmin + PAD_MAX_SEPARATION_RANGE;
 	}
 	else // Player 2 / AI
 	{
-		roomzmin = roomzmax - float2fx(3.0);
+		roomzmin = roomzmax - PAD_MAX_SEPARATION_RANGE;
 	}	
 	
 	int ballxmin, ballxmax, ballymin, ballymax, ballzmin, ballzmax;

@@ -1,11 +1,11 @@
 
 //--------------------------------------------------------------------------------------------------
 
-#include "../S3D/engine.h"
-#include "../game.h"
-#include "../rooms.h"
-#include "../pad.h"
-#include "../ball.h"
+#include "S3D/engine.h"
+#include "game.h"
+#include "rooms.h"
+#include "pad.h"
+#include "ball.h"
 
 //--------------------------------------------------------------------------------------------------
 

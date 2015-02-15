@@ -31,22 +31,22 @@ static void ProjectionMatricesConfigure(void)
 	// Screen is at 2.5 z
 	// Over screen is < 2.5 z
 
-#define TRANSL_DIV_FACTOR (4.0f)
-#define SHEAR_DIV_FACTOR  (2.0f)
+#define TRANSL_DIV_FACTOR (8.0f)
+#define SHEAR_DIV_FACTOR  (4.0f)
 
 	m44 p, t;
 	
 	float slider = CONFIG_3D_SLIDERSTATE;
 	int transl = float2fx(slider/TRANSL_DIV_FACTOR);
 	int shear = float2fx(slider/SHEAR_DIV_FACTOR);
-	
+
 	m44_CreateFrustum(&p, -float2fx(2.5)+shear, float2fx(2.5)+shear, -float2fx(1.5), float2fx(1.5), float2fx(5), float2fx(10));
-	m44_CreateTranslation(&t,-transl,0,0);
+	m44_CreateTranslation(&t,+transl,0,0);
 	m44_Multiply(&p,&t,&left_screen);
 	
 	if(slider == 0.0f) return;
 	m44_CreateFrustum(&p, -float2fx(2.5)-shear, float2fx(2.5)-shear, -float2fx(1.5), float2fx(1.5), float2fx(5), float2fx(10));
-	m44_CreateTranslation(&t,+transl,0,0);
+	m44_CreateTranslation(&t,-transl,0,0);
 	m44_Multiply(&p,&t,&right_screen);
 }
 

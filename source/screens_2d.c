@@ -224,6 +224,8 @@ void Draw2D_BottomScreen(void)
 {
 	u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 
+	S3D_FramebufferFill(buf,0x00000000,GFX_BOTTOM);
+	
 	switch(Room_GetNumber())
 	{
 		case GAME_ROOM_MENU:

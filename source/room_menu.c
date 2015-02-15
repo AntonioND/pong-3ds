@@ -1,11 +1,11 @@
 
 //--------------------------------------------------------------------------------------------------
 
-#include "../S3D/engine.h"
-#include "../game.h"
-#include "../rooms.h"
-#include "../pad.h"
-#include "../ball.h"
+#include "S3D/engine.h"
+#include "game.h"
+#include "rooms.h"
+#include "pad.h"
+#include "ball.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -55,34 +55,73 @@ static void __draw_ball(int screen, int r, int g, int b)
 
 void Room_Menu_Draw(int screen)
 {
-	//---------------------------------------------------
-	//                 Configuration
-	//---------------------------------------------------
+	{
+		//---------------------------------------------------
+		//                 Configuration
+		//---------------------------------------------------
+		
+		S3D_SetCulling(screen, 1,0);
+		
+		m44 m;
+		m44_CreateTranslation(&m,0,int2fx(0),int2fx(12));
+		S3D_ModelviewMatrixSet(screen, &m);	
+		m44_CreateRotationX(&m,-0x1800);
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		m44_CreateScale(&m,int2fx(2),int2fx(2),int2fx(2));
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		
+		S3D_LightAmbientColorSet(screen, 64,64,64);
+		
+		S3D_LightEnable(screen, S3D_LIGHT_N(0));
+		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
+		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
+		
+		//---------------------------------------------------
+		//                 Draw cube
+		//---------------------------------------------------
+		
+		m44_CreateRotationY(&m,rotation);
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		
+		__draw_ball(screen, 0,0,255);
+	}
 	
-	S3D_SetCulling(screen, 1,0);
+	{
+		//---------------------------------------------------
+		//                 Configuration
+		//---------------------------------------------------
+		
+		S3D_SetCulling(screen, 1,0);
+		
+		circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
+		hidCircleRead(&cp);
 	
-	m44 m;
-	m44_CreateTranslation(&m,0,int2fx(0),int2fx(12));
-	S3D_ModelviewMatrixSet(screen, &m);	
-	m44_CreateRotationX(&m,-0x1800);
-	S3D_ModelviewMatrixMultiply(screen, &m);
-	m44_CreateScale(&m,int2fx(2),int2fx(2),int2fx(2));
-	S3D_ModelviewMatrixMultiply(screen, &m);
-	
-	S3D_LightAmbientColorSet(screen, 64,64,64);
-	
-	S3D_LightEnable(screen, S3D_LIGHT_N(0));
-	S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
-	S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
-	
-	//---------------------------------------------------
-	//                 Draw cube
-	//---------------------------------------------------
-	
-	m44_CreateRotationY(&m,rotation);
-	S3D_ModelviewMatrixMultiply(screen, &m);
-	
-	__draw_ball(screen, 0,0,255);
+		m44 m;
+		m44_CreateTranslation(&m,0,int2fx(0), float2fx(2.5) + (cp.dy*float2fx(2.0))/0x9C);
+		S3D_ModelviewMatrixSet(screen, &m);	
+		
+		S3D_LightAmbientColorSet(screen, 64,64,64);
+		
+		S3D_LightEnable(screen, S3D_LIGHT_N(0));
+		S3D_LightDirectionalColorSet(screen, 0, 192,192,192);
+		S3D_LightDirectionalVectorSet(screen, 0, float2fx(-0.38),float2fx(-0.76),float2fx(0.53));
+		
+		//---------------------------------------------------
+		//                 Draw cube
+		//---------------------------------------------------
+		
+		m44_CreateRotationZ(&m,-rotation);
+		S3D_ModelviewMatrixMultiply(screen, &m);
+		
+		S3D_PolygonColor(screen, 255,0,0);
+		
+		S3D_PolygonBegin(screen, S3D_QUADS);
+			S3D_PolygonVertex(screen, float2fx(+0.05),float2fx(+0.05),0);
+			S3D_PolygonVertex(screen, float2fx(+0.05),float2fx(-0.05),0);
+			S3D_PolygonVertex(screen, float2fx(-0.05),float2fx(-0.05),0);
+			S3D_PolygonVertex(screen, float2fx(-0.05),float2fx(+0.05),0);
+		S3D_PolygonListFlush(screen, 1);
+	}
 }
 
 //--------------------------------------------------------------------------------------------------
