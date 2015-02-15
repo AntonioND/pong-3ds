@@ -36,7 +36,7 @@ void Game_StateMachineReset(void)
 {
 	Game_Pause(0);
 	game_state_machine = GAME_STARTING;
-	game_state_machine_delay = 60;
+	game_state_machine_delay = 120;
 }
 
 void Game_PlayerScoreStartDelay(void)
@@ -174,9 +174,6 @@ _player_info_s PLAYER[2];
 void Game_PlayerResetAll(void)
 {
 	memset(&PLAYER,0,sizeof(PLAYER));
-	
-	PLAYER[0].score = 9;
-	PLAYER[1].score = 9;
 }
 
 void Game_PlayerScoreIncrease(int player)

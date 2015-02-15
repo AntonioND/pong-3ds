@@ -72,7 +72,7 @@ static inline uint64_t xor128(void)
 
 inline void fast_srand(uint64_t seed)
 {
-    x = seed; // Some way to seed the RNG is needed, even in the paper is not specified...
+    x = seed; // Some way to seed the RNG is needed, even if in the paper it's not specified...
 }
 
 inline uint32_t fast_rand(void)

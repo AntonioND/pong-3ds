@@ -11,8 +11,6 @@
 
 //-------------------------------------------------------------------------------------------------------
 
-#include "bottom_screen_png_bin.h"
-
 #include "numbers_png_bin.h"
 #define NUMBERS_WIDTH (28)
 #define NUMBERS_HEIGHT (30)
@@ -71,6 +69,10 @@ static void draw_number(u8 * buf, int number, int x, int y)
 #define PLAYER_N_WINS_HEIGHT (68)
 #define PLAYER_N_WINS_PLAYER_OFFSET (183)
 
+#include "get_ready_png_bin.h"
+#define GET_READY_WIDTH (214)
+#define GET_READY_HEIGHT (91)
+
 void Draw2D_TopScreen(int screen)
 {
 	u8 * buf = S3D_BufferGet(screen);
@@ -91,8 +93,10 @@ draw_number(buf,3,200,120);
 			
 			if(Game_StateMachineGet() == GAME_STARTING)
 			{
-			#warning "TODO"
-draw_number(buf,7,200,120);
+				int xbase = (400-GET_READY_WIDTH)/2;
+				int ybase = (240-GET_READY_HEIGHT)/2;
+				_quad_blit_unsafe_32(buf,get_ready_png_bin,xbase,ybase,
+				                     GET_READY_WIDTH,GET_READY_HEIGHT);
 			}
 			
 			// Game result
@@ -152,6 +156,8 @@ draw_number(buf,7,200,120);
 
 //-------------------------------------------------------------------------------------------------------
 
+#include "bottom_screen_png_bin.h"
+
 void Draw2D_BottomScreen(void)
 {
 	u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
@@ -171,8 +177,9 @@ void Draw2D_BottomScreen(void)
 			break;
 		}
 		
-		case GAME_ROOM_1:
 		case GAME_ROOM_2:
+			Con_Print(buf,0,20,"A: Jump.");
+		case GAME_ROOM_1:
 		case GAME_ROOM_3:
 		{
 			//Con_Print(buf,0,170,"3D Slider: %f   ",CONFIG_3D_SLIDERSTATE);

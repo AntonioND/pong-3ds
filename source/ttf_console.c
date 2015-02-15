@@ -6,7 +6,7 @@
 
 //----------------------------------------------------------------------------------
 
-void _quad_blit_unsafe_ignorealpha_32(u8 * buf, const u32 * src, int x, int y, int w, int h)
+static void _quad_blit_unsafe_ignorealpha_32(u8 * buf, const u32 * src, int x, int y, int w, int h)
 {
 	u8 * linebuf = &(buf[(240*x+y)*3]);
 	
