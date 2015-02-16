@@ -59,6 +59,11 @@ static inline void _s3d_plot_unsafe(u8 * buf, u32 x, u32 y, int r, int g, int b)
 static inline void _s3d_plot_unsafe_alpha(u8 * buf, u32 x, u32 y, int r, int g, int b, int a)
 {
 	u8 * p = &(buf[(240*x+y)*3]);
+	if(a == 255)
+	{
+		*p++ = b; *p++ = g; *p = r;
+		return;
+	}
 	int one_minus_alpha = 255-a;
 	p[0] = ( (p[0] * one_minus_alpha) + b * a ) / 256;
 	p[1] = ( (p[1] * one_minus_alpha) + g * a ) / 256;
@@ -202,7 +207,7 @@ void _s3d_line_unsafe_alpha(u8 * buf, int x1, int y1, int x2, int y2, int r, int
 	px = x1;
 	py = y1;
 
-	_s3d_plot_unsafe(buf,px,py,r,g,b);
+	_s3d_plot_unsafe_alpha(buf,px,py,r,g,b,a);
 	
 	if(dxabs >= dyabs) // the line is more horizontal than vertical
 	{
@@ -695,6 +700,46 @@ void S3D_2D_QuadAllignedFill(u8 * buf, int x1, int y1, int x2, int y2, int r, in
 		for( ;y<=y2; y++) { *p++ = b; *p++ = g; *p++ = r; }
 	}
 }
+
+//----------------------
+
+void S3D_2D_QuadAllignedFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int r, int g, int b, int a)
+{
+	if(y1 > y2) swapints(&y1,&y2);
+	if(x1 > x2) swapints(&x1,&x2);
+	
+	//y1 < y2, x1 < x2
+	
+	if(y2 < 0) return;
+	else if(y2 >= 240) y2 = 240-1;
+	
+	if(x2 < 0) return;
+	else if(x2 >= 400) x2 = 400-1;
+	
+	if(y1 >= 240) return;
+	else if(y1 < 0) y1 = 0;
+	
+	if(x1 >= 400) return;
+	else if(x1 < 0) x1 = 0;
+	
+	u8 * linebuf = &(buf[240*x1*3]);
+	
+	int one_minus_alpha = 255-a;
+	
+	for(;x1<=x2;x1++,linebuf+=240*3)
+	{
+		int y = y1;
+		u8 * p = linebuf + y*3;
+		for( ;y<=y2; y++)
+		{
+			p[0] = ( (p[0] * one_minus_alpha) + b * a ) / 256;
+			p[1] = ( (p[1] * one_minus_alpha) + g * a ) / 256;
+			p[2] = ( (p[2] * one_minus_alpha) + r * a ) / 256;
+			p += 3;
+		}
+	}
+}
+
 
 //---------------------------------------------------------------------------------------
 
