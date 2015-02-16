@@ -29,8 +29,9 @@ static inline s32 fxsin(u32 theta) { return sin_lut[(theta>>7)&(SIN_LUT_SIZE-1)]
 static inline s32 fxcos(u32 theta) { return sin_lut[((theta>>7)+(SIN_LUT_SIZE/4))&(SIN_LUT_SIZE-1)]<<FIX_SHIFT_EXTRA; }
 
 #define FIX_SHIFT       (12+FIX_SHIFT_EXTRA)  // Don't modify this, modify FIX_SHIFT_EXTRA
-#define FIX_SCALE       ( 1<<FIX_SHIFT		)
-#define FIX_SCALEF      ( (float)FIX_SCALE	)
+#define FIX_SCALE       (1<<FIX_SHIFT)
+#define FIX_SCALEF      ((float)FIX_SCALE)
+#define FIX_MASK        (FIX_SCALE-1)
 
 // Convert an integer to fixed-point
 static inline s32 int2fx(int d) { return d<<FIX_SHIFT; }
@@ -40,6 +41,9 @@ static inline s32 float2fx(float f) { return (s32)(f*FIX_SCALEF); }
 
 // Convert a FIXED point value to an unsigned integer (orly?).
 static inline u32 fx2uint(s32 fx) { return fx>>FIX_SHIFT; }
+
+// Get the unsigned fractional part of a fixed point value (orly?).
+static inline u32 fx2ufrac(s32 fx) { return fx&FIX_MASK; }
 
 // Convert a FIXED point value to an signed integer.
 static inline int fx2int(s32 fx) { return fx/FIX_SCALE; }
