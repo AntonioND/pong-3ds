@@ -1,4 +1,5 @@
-Fonts:
+Fonts
+-----
 
 Polygon Power:
 - 16 : "Game paused"
@@ -6,6 +7,7 @@ Polygon Power:
 - 50 : "Get ready"
 - 60 : "Pong 3DS"
 
-
 Liberation Sans Bold:
-- 20 : "by AntonioND"
+- 20 : "by AntonioND", bottom screen medium text.
+- 16 : Bottom screen small text, console font.
+- 12 : Credits

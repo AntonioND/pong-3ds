@@ -1,6 +1,26 @@
 
 //-------------------------------------------------------------------------------------------------------
 
+/*
+    Pong 3DS. Just a pong for the Nintendo 3DS.
+    Copyright (C) 2015 Antonio Niño Díaz
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+//-------------------------------------------------------------------------------------------------------
+
 #include <3ds.h>
 
 #include "S3D/engine.h"
@@ -8,6 +28,7 @@
 #include "game.h"
 #include "rooms.h"
 #include "utils.h"
+#include "room_menu.h"
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -156,49 +177,36 @@ void Draw2D_TopScreen(int screen)
 
 //-------------------------------------------------------------------------------------------------------
 
-//#include "bottom_screen_png_bin.h"
+#include "bottom_screen_ingame_png_bin.h"
 
 void Draw2D_BottomScreen(void)
 {
 	u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-
-	S3D_FramebufferFill(buf,0x00000000,GFX_BOTTOM);
 	
 	switch(Room_GetNumber())
 	{
 		case GAME_ROOM_MENU:
 		{
-			//_quad_blit_unsafe_24(buf,bottom_screen_png_bin,0,0,320,240);
-			
-			Con_Print(buf,0,220-1,"(Antonio Niño Díaz)");
-			
-			Con_Print(buf,0,150,"FPS: %d %d ",Timing_GetFPS(0),Timing_GetFPS(1));
-			Con_Print(buf,0,130,"CPU: %d%% %d%% ",(int)Timing_GetCPUUsage(0),(int)Timing_GetCPUUsage(1));
-			
-			Con_Print(buf,0,40,"A,B,X: Start.");
-			Con_Print(buf,0,20,"Y: Screenshot.");
-			Con_Print(buf,0,0,"SELECT:  Exit.");
+			Room_Menu_Draw_Bottom();
 			break;
 		}
 		
-		case GAME_ROOM_2:
-			Con_Print(buf,0,60,"A: Jump.");
-			//Fall through
 		case GAME_ROOM_1:
+		case GAME_ROOM_2:
 		case GAME_ROOM_3:
 		{
-			//Con_Print(buf,0,170,"3D Slider: %f   ",CONFIG_3D_SLIDERSTATE);
-			Con_Print(buf,0,150,"FPS: %d %d ",Timing_GetFPS(0),Timing_GetFPS(1));
-			Con_Print(buf,0,130,"CPU: %d%% %d%% ",(int)Timing_GetCPUUsage(0),(int)Timing_GetCPUUsage(1));
-			
-			Con_Print(buf,0,40,"START: Return.");
-			Con_Print(buf,0,20,"Y: Screenshot.");
-			Con_Print(buf,0,0,"SELECT:  Exit.");
+			FastFramebufferCopy(bottom_screen_ingame_png_bin,buf,GFX_BOTTOM);			
 			break;
 		}
 		
 		default:
 			break;
+	}
+	
+	if( (hidKeysHeld() & (KEY_L|KEY_R)) == (KEY_L|KEY_R))
+	{
+		Con_Print(buf,210,100,"FPS: %d %d",Timing_GetFPS(0),Timing_GetFPS(1));
+		Con_Print(buf,210,80, "CPU: %d %d",(int)Timing_GetCPUUsage(0),(int)Timing_GetCPUUsage(1));
 	}
 }
 

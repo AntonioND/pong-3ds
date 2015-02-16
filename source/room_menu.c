@@ -1,5 +1,25 @@
 
-//--------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+
+/*
+    Pong 3DS. Just a pong for the Nintendo 3DS.
+    Copyright (C) 2015 Antonio Niño Díaz
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+//-------------------------------------------------------------------------------------------------------
 
 #include "S3D/engine.h"
 #include "game.h"
@@ -224,7 +244,7 @@ static void Draw_3D_Cube_Near(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
-#define NUM_QUADS (200)
+#define NUM_QUADS (180) // 200 is too much
 
 typedef struct {
 	int x,y,z; // position
@@ -377,6 +397,46 @@ void Room_Menu_Draw(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
+#include "bottom_screen_menu_png_bin.h"
+#include "bottom_screen_credits_png_bin.h"
+
+static int selected_option = 0;
+static int credits = 0;
+
+void Room_Menu_Draw_Bottom(void)
+{
+	u8 * buf = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+	
+	if(credits)
+	{
+		FastFramebufferCopy(bottom_screen_credits_png_bin,buf,GFX_BOTTOM);
+	}
+	else
+	{
+		FastFramebufferCopy(bottom_screen_menu_png_bin,buf,GFX_BOTTOM);
+	
+		switch(selected_option)
+		{
+			case 1:
+				S3D_2D_QuadAllignedFillAlpha(buf,  16,240-16-1,  151,240-55-1,  255,0,0, 128);
+				break;
+			case 2:
+				S3D_2D_QuadAllignedFillAlpha(buf,  168,240-16-1,  303,240-55-1,  255,0,0, 128);
+				break;
+			case 3:
+				S3D_2D_QuadAllignedFillAlpha(buf,   16,240-72-1,  151,240-111-1,  255,0,0, 128);
+				break;
+			case 4:
+				S3D_2D_QuadAllignedFillAlpha(buf,  168,240-72-1,  303,240-111-1,  255,0,0, 128);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Room_Menu_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax)
 {
 	if(xmin) *xmin = 0;
@@ -393,6 +453,8 @@ void Room_Menu_Init(void)
 {
 	Game_Pause(0);
 	CubeQuads_Init();
+	selected_option = 0;
+	credits = 0;
 }
 
 void Room_Menu_End(void)
@@ -403,11 +465,64 @@ void Room_Menu_End(void)
 void Room_Menu_Handle(void)
 {
 	CubeQuads_Handle();
-
-	int keys = hidKeysHeld();	
-	if(keys & KEY_A) Room_SetNumber(GAME_ROOM_1);
-	if(keys & KEY_B) Room_SetNumber(GAME_ROOM_2);
-	if(keys & KEY_X) Room_SetNumber(GAME_ROOM_3);
+	
+	if(credits)
+	{
+		int keys = hidKeysUp();
+		if(keys & KEY_TOUCH)
+			credits = 0;
+	}
+	else
+	{
+		int keys = hidKeysHeld();
+		if(keys & KEY_TOUCH)
+		{
+			touchPosition tp;
+			hidTouchRead(&tp);
+			
+			selected_option = 0;
+			
+			if( (tp.px>=16) && (tp.px<=151) )
+			{
+				if( (tp.py>=16) && (tp.py<=55) )
+					selected_option = 1;
+				else if( (tp.py>=72) && (tp.py<=111) )
+					selected_option = 3;
+			}
+			else if( (tp.px>=168) && (tp.px<=303) )
+			{
+				if( (tp.py>=16) && (tp.py<=55) )
+					selected_option = 2;
+				else if( (tp.py>=72) && (tp.py<=111) )
+					selected_option = 4;
+			}
+		}
+		
+		keys = hidKeysUp();
+		if(keys & KEY_TOUCH)
+		{
+			switch(selected_option)
+			{
+				case 1:
+					Room_SetNumber(GAME_ROOM_1);
+					break;
+				case 2:
+					Room_SetNumber(GAME_ROOM_2);
+					break;
+				case 3:
+					Room_SetNumber(GAME_ROOM_3);
+					break;
+				case 4:
+					credits = 1;
+					break;
+				default:
+					break;
+			}
+			
+			selected_option = 0;
+		}
+	}
+	
 }
 
 _3d_mode_e Room_Menu_3DMode(void)
