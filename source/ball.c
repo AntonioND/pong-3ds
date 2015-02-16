@@ -577,7 +577,7 @@ void Ball_Handle(void)
 				//bounce = 1;
 			}
 		}
-		else if(BALL.collisions & COLLISION_Y_MAX)
+		else if(BALL.collisions & COLLISION_Y_MAX) // this shouldn't happen
 		{
 			if(BALL.vy > 0)
 			{
@@ -586,7 +586,7 @@ void Ball_Handle(void)
 			}
 		}
 	}
-	else
+	else // this shouldn't happen
 	{
 		if(BALL.collisions & COLLISION_Y_MIN)
 		{

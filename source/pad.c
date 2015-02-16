@@ -543,11 +543,13 @@ void Pad_HandleAll(void)
 			{
 				cp.dx = cp.dy = 0;
 			}
-			
-			if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
+			else
 			{
-				if(hidKeysDown() & KEY_A)
-					Pad_P1Bounce(float2fx(0.3),-float2fx(0.015));
+				if(Room_3DMode() == GAME_MODE_2D_BOUNCE)
+				{
+					if(hidKeysDown() & KEY_A)
+						Pad_P1Bounce(float2fx(0.3),-float2fx(0.015));
+				}
 			}
 			
 			if( (cp.dx*cp.dx + cp.dy*cp.dy) > (0x20*0x20) )

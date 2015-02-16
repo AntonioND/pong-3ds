@@ -121,6 +121,42 @@ static void _quad_blit_unsafe_real_alpha_32(u8 * buf, const u8 * src, int x, int
 
 //--------------------------------------------------------------------------------------------------
 
+static void HSV2RGB(int h, int s, int v, int * r, int * g, int * b) // h,s,v: fixed point 0.0 to 1.0 | | | r,b,g: 0..255
+{
+	if(s == 0)
+	{
+		int c = fx2int(v * 255);
+		*r = c;
+		*g = c;
+		*b = c;
+	}
+	else
+	{
+		int vH = fx2ufrac(h) * 6;
+		int vHI = vH - fx2ufrac(vH);
+		int sector = fx2int(vH);
+		
+		int v0 = fx2int( v*255 );
+		int v1 = fx2int( fxmul(v,int2fx(1)-s) * 255 );
+		int v2 = fx2int( fxmul(v,int2fx(1)-fxmul(s,vH-vHI)) * 255 );
+		int v3 = fx2int( fxmul(v,int2fx(1)-fxmul(s,int2fx(1)-(vH-vHI))) * 255 );
+		
+		switch(sector)
+		{
+			case 0:  *r = v0; *g = v3; *b = v1; break;
+			case 1:  *r = v2; *g = v0; *b = v1; break;
+			case 2:  *r = v1; *g = v0; *b = v3; break;
+			case 3:  *r = v1; *g = v2; *b = v0; break;
+			case 4:  *r = v3; *g = v1; *b = v0; break;
+			case 5:  *r = v0; *g = v1; *b = v2; break;
+			
+			default: *r = 0;  *g = 0;  *b = 0;  break;
+		}
+	}
+}
+
+//--------------------------------------------------------------------------------------------------
+
 #include "pong_3ds_png_bin.h"
 #define PONG_3DS_WIDTH (354)
 #define PONG_3DS_HEIGHT (48)
@@ -134,7 +170,6 @@ static void Draw_2D_Signs(int screen)
 	u8 * buf = S3D_BufferGet(screen);
 
 	// Pong 3DS
-	
 	{
 		int xbase = (400-PONG_3DS_WIDTH)/2;
 		int ybase = (240-PONG_3DS_HEIGHT) - xbase;
@@ -143,7 +178,6 @@ static void Draw_2D_Signs(int screen)
 	}
 	
 	// By AntonioND
-	
 	{
 		int xbase = 400-BY_ANTONIOND_WIDTH-10;
 		int ybase = 10;
@@ -171,7 +205,11 @@ static inline void _draw_3d_cube(int screen)
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	m44_CreateRotationX(&m,cube_rotation_x);
 	S3D_ModelviewMatrixMultiply(screen, &m);
-	_draw_cube(screen, float2fx(0.2),float2fx(0.2),float2fx(0.2), 0,cube_anim_frame&127,255);
+	
+	int r,g,b;
+	HSV2RGB(cube_anim_frame<<3,int2fx(1),int2fx(1),&r,&g,&b);
+	
+	_draw_cube(screen, float2fx(0.2),float2fx(0.2),float2fx(0.2), r,g,b);
 }
 
 static void Draw_3D_Cube_Far(int screen)

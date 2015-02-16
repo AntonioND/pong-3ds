@@ -222,11 +222,80 @@ void ClearColorHandle(void)
 	else if(_clear_color.b < 0) { _clear_color.b = 0; _clear_color.vb = -_clear_color.vb; }
 }
 
+/*
+static void HSV2RGB(int h, int s, int v, int * r, int * g, int * b) // h,s,v: fixed point 0.0 to 1.0 | | | r,b,g: 0..255
+{
+	if(s == 0)
+	{
+		int c = fx2int(v * 255);
+		*r = c;
+		*g = c;
+		*b = c;
+	}
+	else
+	{
+		int vH = fx2ufrac(h) * 6;
+		int vHI = vH - fx2ufrac(vH);
+		int sector = fx2int(vH);
+		
+		int v0 = fx2int( v*255 );
+		int v1 = fx2int( fxmul(v,int2fx(1)-s) * 255 );
+		int v2 = fx2int( fxmul(v,int2fx(1)-fxmul(s,vH-vHI)) * 255 );
+		int v3 = fx2int( fxmul(v,int2fx(1)-fxmul(s,int2fx(1)-(vH-vHI))) * 255 );
+		
+		switch(sector)
+		{
+			case 0:  *r = v0; *g = v3; *b = v1; break;
+			case 1:  *r = v2; *g = v0; *b = v1; break;
+			case 2:  *r = v1; *g = v0; *b = v3; break;
+			case 3:  *r = v1; *g = v2; *b = v0; break;
+			case 4:  *r = v3; *g = v1; *b = v0; break;
+			case 5:  *r = v0; *g = v1; *b = v2; break;
+			
+			default: *r = 0;  *g = 0;  *b = 0;  break;
+		}
+	}
+}
+
+struct {
+	int r,g,b;
+	int vr,vg,vb;
+} _clear_color;
+
+void ClearColorInit(void)
+{
+	_clear_color.r = _clear_color.g = _clear_color.b = 64;
+	_clear_color.vr = (fast_rand() & ((int2fx(1)>>6)-1)) + (int2fx(1)>>8);
+	_clear_color.vg = (fast_rand() & ((int2fx(1)>>6)-1)) + (int2fx(1)>>8);
+	_clear_color.vb = (fast_rand() & ((int2fx(1)>>6)-1)) + (int2fx(1)>>8);
+	if(fast_rand() & 1) _clear_color.vr = -_clear_color.vr;
+	if(fast_rand() & 1) _clear_color.vg = -_clear_color.vg;
+	if(fast_rand() & 1) _clear_color.vb = -_clear_color.vb;
+}
+
+void ClearColorHandle(void)
+{
+	if(Game_IsPaused()) return;
+	
+	_clear_color.r += _clear_color.vr;
+	_clear_color.g += _clear_color.vg;
+	_clear_color.b += _clear_color.vb;
+	
+	if(_clear_color.g > float2fx(1.0)) { _clear_color.g = float2fx(1.0); _clear_color.vg = -_clear_color.vg; }
+	else if(_clear_color.g < float2fx(0.5)) { _clear_color.g = float2fx(0.5); _clear_color.vg = -_clear_color.vg; }
+	
+	if(_clear_color.b > float2fx(1.0)) { _clear_color.b = float2fx(1.0); _clear_color.vb = -_clear_color.vb; }
+	else if(_clear_color.b < float2fx(0.5)) { _clear_color.b = float2fx(0.5); _clear_color.vb = -_clear_color.vb; }
+}
+*/
 //-------------------------------------------------------------------------------------------------------
 
 void Game_DrawScreenTop(int screen)
 {
 	S3D_FramebuffersClearTopScreen(screen, _clear_color.r,_clear_color.g,_clear_color.b);
+	//int r,g,b;
+	//HSV2RGB(_clear_color.r,_clear_color.g,_clear_color.b,&r,&g,&b);
+	//S3D_FramebuffersClearTopScreen(screen, r,g,b);
 
 	// 3D stuff
 	Room_Draw(screen);
