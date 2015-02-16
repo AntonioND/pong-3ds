@@ -733,7 +733,7 @@ void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, i
 			{
 				int ymin = min(min(y1,y2),min(y3,y4));
 				int ymax = max(max(y1,y2),max(y3,y4));
-				_s3d_vertical_line(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b);
+				if( (u32)x1 < 400 ) _s3d_vertical_line(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b);
 			}
 			else // 1 = 2 = 3 : 4
 			{
@@ -768,7 +768,7 @@ void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, i
 				for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
 					_s3d_vertical_line(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b);
 				
-				_s3d_vertical_line(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b);
+				if( (u32)sx < 400 ) _s3d_vertical_line(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b);
 			}
 			else  // 1 = 2 : 3 : 4
 			{
@@ -995,7 +995,7 @@ void S3D_2D_QuadFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int 
 			{
 				int ymin = min(min(y1,y2),min(y3,y4));
 				int ymax = max(max(y1,y2),max(y3,y4));
-				_s3d_vertical_line_alpha(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b,a);
+				if( (u32)x1 < 400 ) _s3d_vertical_line_alpha(linebuf, x1,fx2int(ymin),fx2int(ymax), r,g,b,a);
 			}
 			else // 1 = 2 = 3 : 4
 			{
@@ -1030,7 +1030,7 @@ void S3D_2D_QuadFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int 
 				for( ;sx<x4; sx++,sy+=dymin,ey+=dymax,linebuf+=240*3) if( (u32)sx < 400 )
 					_s3d_vertical_line_alpha(linebuf, sx,fx2int(sy),fx2int(ey), r,g,b,a);
 				
-				_s3d_vertical_line_alpha(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b,a);
+				if( (u32)sx < 400 ) _s3d_vertical_line_alpha(linebuf, x4,fx2int(y3),fx2int(y4), r,g,b,a);
 			}
 			else  // 1 = 2 : 3 : 4
 			{
