@@ -38,6 +38,7 @@ Thanks to:
 - mtheall for ftbrony.
 - Andreas Nylin for the font Polygon Power.
 - JuDelCo, NightFox and icesoul for putting up with me during the developement of this game.
+- DrPetter for sfxr.
 - Claudio Matsuoka and Hipolito Carraro Jr for Extended Module Player Lite.
 
 Music (http://modarchive.org/):
@@ -46,8 +47,8 @@ Music (http://modarchive.org/):
 - 'Roots' by Nightbeat
 - 'Secret Message' by Frequent/Ephidrena
 
-# License
----------
+License
+-------
 
 Pong 3DS. Just a pong for the Nintendo 3DS.
 Copyright (C) 2015 Antonio Niño Díaz

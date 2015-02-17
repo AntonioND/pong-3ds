@@ -486,6 +486,8 @@ void Room_Menu_Handle(void)
 			credits ++;
 			if(credits == 4)
 				credits = 0;
+				
+			Sound_PlaySfx(SFX_SELECT_REF);
 		}
 	}
 	else
@@ -521,15 +523,19 @@ void Room_Menu_Handle(void)
 			{
 				case 1:
 					Room_SetNumber(GAME_ROOM_1);
+					Sound_PlaySfx(SFX_SELECT_REF);
 					break;
 				case 2:
 					Room_SetNumber(GAME_ROOM_2);
+					Sound_PlaySfx(SFX_SELECT_REF);
 					break;
 				case 3:
 					Room_SetNumber(GAME_ROOM_3);
+					Sound_PlaySfx(SFX_SELECT_REF);
 					break;
 				case 4:
 					credits = 1;
+					Sound_PlaySfx(SFX_SELECT_REF);
 					break;
 				default:
 					break;

@@ -35,4 +35,9 @@ void Sound_End(void);
 
 //--------------------------------------------------------------------------------------------------
 
+int Sound_LoadSfx(int ref, const void * sfx_data, const unsigned int sfx_size); // returns 0 if OK
+int Sound_PlaySfx(int ref); // volume: 0 ~ 0xFFFF. returns 0 if OK
+
+//--------------------------------------------------------------------------------------------------
+
 #endif //__SOUND__

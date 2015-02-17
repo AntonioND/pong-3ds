@@ -30,6 +30,7 @@
 #include "rooms.h"
 #include "pad.h"
 #include "utils.h"
+#include "sound.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -355,6 +356,8 @@ inline void Ball_Bounce(int speed, int acc)
 	{
 		BALL.ay = acc;
 		BALL.vy = speed;
+		
+		Sound_PlaySfx(SFX_JUMP_REF);
 	}
 }
 
@@ -542,6 +545,7 @@ void Ball_Handle(void)
 	_ball_UpdateCollisions(&xm,&ym,&zm);
 	
 	int bounce = 0;
+	int bounce_sound = 0;
 	
 	if(BALL.collisions & COLLISION_X_MIN)
 	{
@@ -594,7 +598,7 @@ void Ball_Handle(void)
 					BALL.vy = 0;
 					BALL.ay = 0;
 				}
-				//bounce = 1;
+				bounce_sound = 1;
 			}
 		}
 		else if(BALL.collisions & COLLISION_Y_MAX) // this shouldn't happen
@@ -602,7 +606,6 @@ void Ball_Handle(void)
 			if(BALL.vy > 0)
 			{
 				BALL.y -= ym + BALL.vy; BALL.vy = -BALL.vy;
-				//bounce = 1;
 			}
 		}
 	}
@@ -659,6 +662,8 @@ void Ball_Handle(void)
 			BALL.vy = fxmul(BALL.vy,v);
 			BALL.vz = fxmul(BALL.vz,v);
 		}
+		
+		bounce_sound = 1;
 	}
 	
 	if(weird_bounce)
@@ -678,6 +683,8 @@ void Ball_Handle(void)
 		
 		_ball_SetZSpeedMinMax();
 	}
+	
+	if(bounce_sound) Sound_PlaySfx(SFX_BOUNCE_REF);
 	
 	BALL.vx += BALL.ax; BALL.vy += BALL.ay; BALL.vz += BALL.az;
 }

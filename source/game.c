@@ -31,6 +31,7 @@
 #include "pad.h"
 #include "ball.h"
 #include "rooms.h"
+#include "sound.h"
 #include "screens_2d.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -264,8 +265,16 @@ void Game_DrawScreenBottom(void)
 
 //-------------------------------------------------------------------------------------------------------
 
+#include "bounce_raw_bin.h"
+#include "jump_raw_bin.h"
+#include "select_raw_bin.h"
+
 void Game_Init(void)
 {
+	Sound_LoadSfx(SFX_BOUNCE_REF,bounce_raw_bin,bounce_raw_bin_size);
+	Sound_LoadSfx(SFX_JUMP_REF,jump_raw_bin,jump_raw_bin_size);
+	Sound_LoadSfx(SFX_SELECT_REF,select_raw_bin,select_raw_bin_size);
+
 	ClearColorInit();
 	
 	Room_SetNumber(GAME_ROOM_MENU);

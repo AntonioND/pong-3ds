@@ -31,6 +31,10 @@
 
 //-------------------------------------------------------------------------------------------------------
 
+#define SOUND_VOLUME_MAX (0x8000) // doesn't affect PCM samples, only IMA-ADPCM
+
+//-------------------------------------------------------------------------------------------------------
+
 #define SAMPLERATE 44000
 #define BUFFERSIZE ((((SAMPLERATE / 60) + 3) & ~3) * 2 * 6)
 
@@ -40,10 +44,84 @@ static xmp_context ctx;
 static u64 sound_tick, now;
 static u8 * audioBuffer, * lastPosition, * bufferEnd;
 static u64 ticks_per_sample;
-static int channel = -1;
+static int song_channel = -1;
 
 static int module_initialised = 0;
 static int sound_inited = 0;
+
+//-------------------------------------------------------------------------------------------------------
+
+#define MAX_SFX (20)
+
+typedef struct {
+	u8 * ptr;
+	u32 size;
+	int ref;
+} _sfx_data_s;
+
+static _sfx_data_s SFX[MAX_SFX];
+
+int Sound_LoadSfx(int ref, const void * sfx_data, const unsigned int sfx_size)
+{
+	if(sound_inited == 0) return 1;
+	
+	int i;
+	for(i = 0; i < MAX_SFX; i++)
+	{
+		if(SFX[i].ptr == NULL)
+			break;
+	}
+	
+	if(i == MAX_SFX) return 2; // too many sfx
+	
+	u8 * b = (u8*)linearAlloc(sfx_size);
+	if(b == NULL) return 3; // couldn't allocate
+	
+	SFX[i].ptr = b;
+	SFX[i].size = sfx_size;
+	SFX[i].ref = ref;
+	
+	memcpy(b,sfx_data,sfx_size);
+	GSPGPU_FlushDataCache(NULL,b,sfx_size);
+	
+	return 0;
+}
+
+int Sound_PlaySfx(int ref)
+{
+	if(sound_inited == 0) return 1;
+	
+	int chn = -1;
+	
+	int i;
+	for(i = 0; i < 32; i++) if(csndChannels & BIT(i)) if(i != song_channel)
+	{
+		u8 playing;
+		if(csndIsPlaying(i,&playing) == 0)
+		{
+			if(playing == 0)
+			{
+				chn = i;
+				break;
+			}
+		}
+	}
+	
+	if(chn == -1) return 2; // not enough channels...
+	
+	for(i = 0; i < MAX_SFX; i++)
+	{
+		if(SFX[i].ref == ref)
+			break;
+	}
+	
+	if(i == MAX_SFX) return 3; // couldn't find reference
+	
+	csndPlaySound(chn,SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, SAMPLERATE,
+				(u32*)SFX[i].ptr, (u32*)SFX[i].ptr, SFX[i].size);
+	
+	return 0;
+}
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -68,6 +146,8 @@ void Sound_Init(void)
 	memset(audioBuffer,0,BUFFERSIZE);
 	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
 	
+	memset(SFX,0,sizeof(SFX));
+	
     ticks_per_sample = _CSND_convertsamplerate(SAMPLERATE) * 4;
 
     ctx = xmp_create_context();
@@ -80,6 +160,8 @@ void Sound_Init(void)
 		linearFree(audioBuffer);
 		csndExit();
 	}
+	
+	song_channel = -1;
 }
 
 void Sound_Play(const void * song_data, const unsigned int song_size)
@@ -105,16 +187,16 @@ void Sound_Play(const void * song_data, const unsigned int song_size)
 			int i;
 			for(i = 0; i < 32; i++) if(csndChannels & BIT(i))
 			{
-				channel = i;
+				song_channel = i;
 				break;
 			}
 
-			csndPlaySound(channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
+			csndPlaySound(song_channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
 				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 
 			sound_tick = svcGetSystemTick();
 
-			CSND_SetVol(channel, 0xFFFF,0xFFFF);
+			CSND_SetVol(song_channel, SOUND_VOLUME_MAX,SOUND_VOLUME_MAX);
 		}
 		else
 		{
@@ -134,7 +216,7 @@ void Sound_ResetHandler(void)
 	
 	lastPosition = audioBuffer;
 	
-	csndPlaySound(channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
+	csndPlaySound(song_channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
 				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 	
 	sound_tick = svcGetSystemTick();
@@ -178,7 +260,7 @@ void Sound_Stop(void)
 	
 	if(module_initialised == 0) return;
 	
-	CSND_SetVol(channel, 0,0);
+	CSND_SetVol(song_channel, 0,0);
 	
 	memset(audioBuffer,0,BUFFERSIZE);
 	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
@@ -188,6 +270,8 @@ void Sound_Stop(void)
 	xmp_release_module(ctx);
 	
 	module_initialised = 0;
+	
+	song_channel = -1;
 }
 
 void Sound_End(void)
@@ -198,8 +282,18 @@ void Sound_End(void)
 	
 	linearFree(audioBuffer);
 	
+	int i;
+	for(i = 0; i < MAX_SFX; i++) // free SFX
+	{
+		if(SFX[i].ptr) linearFree(SFX[i].ptr);
+	}
+	
 	xmp_free_context(ctx);
-
+	
+	for(i = 0; i < 32; i++) // Mute all channels
+		if(csndChannels & BIT(i))
+			CSND_SetVol(i, 0,0);
+	
     csndExit();
 	
 	sound_inited = 0;
