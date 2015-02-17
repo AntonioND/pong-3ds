@@ -36,11 +36,11 @@
 
 #define MAX_CORES (2)
 
-int frame_count[MAX_CORES] = { 0, 0 };
-u64 last_ticks[MAX_CORES] = { 0, 0 };
-int _FPS[MAX_CORES] = { 0, 0 };
-u64 cpu_last_ticks[MAX_CORES] = { 0, 0 };
-float _CPU[MAX_CORES] = { 0, 0 };
+static int frame_count[MAX_CORES] = { 0, 0 };
+static u64 last_ticks[MAX_CORES] = { 0, 0 };
+static int _FPS[MAX_CORES] = { 0, 0 };
+static u64 cpu_last_ticks[MAX_CORES] = { 0, 0 };
+static float _CPU[MAX_CORES] = { 0, 0 };
 
 void Timing_Start(int cpu_core)
 {

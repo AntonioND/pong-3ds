@@ -30,6 +30,7 @@
 #include "utils.h"
 #include "game.h"
 #include "ttf_console.h"
+#include "sound.h"
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -229,6 +230,9 @@ int main(int argc, char **argv) // Running in CPU 0
 	
 	if(Thread_Init() == 0)
 	{
+		Sound_Init();
+		Sound_Play();
+		
 		Game_Init();
 		
 		Timing_Start(0);
@@ -246,6 +250,8 @@ int main(int argc, char **argv) // Running in CPU 0
 			
 			DrawScreens();
 			
+			Sound_Handle();
+			
 			if(hidKeysDown() & KEY_Y)
 			{
 				PNGScreenshot_Top(); // AFTER DRAWING SCREENS!!
@@ -261,6 +267,9 @@ int main(int argc, char **argv) // Running in CPU 0
 		}
 		
 		Game_End();
+		
+		Sound_Stop();
+		Sound_End();
 		
 		Thread_End();
 	}

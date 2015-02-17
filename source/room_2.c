@@ -73,6 +73,7 @@ static void Bumper_Handle(void)
 					Bumper[j][i].ah = -float2fx(0.015);
 					Ball_Bounce(float2fx(0.3),-float2fx(0.015));
 					bumper_enabled = 1;
+					return; // only one bumper enabled
 				}
 			}
 		}

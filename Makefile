@@ -28,9 +28,13 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/S3D png png/libpng-1.6.9 png/zlib-1.2.8
+SOURCES		:=	source source/S3D png \
+				png/libpng-1.6.9 png/zlib-1.2.8 \
+				libxmp-lite-4.3.5/src libxmp-lite-4.3.5/src/loaders
 DATA		:=	data
-INCLUDES	:=	source source/S3D png png/libpng-1.6.9 png/zlib-1.2.8
+INCLUDES	:=	source source/S3D png \
+				png/libpng-1.6.9 png/zlib-1.2.8 \
+				libxmp-lite-4.3.5/include libxmp-lite-4.3.5/src libxmp-lite-4.3.5/src/loaders
 
 APP_TITLE	:=	Pong 3DS
 APP_DESCRIPTION	:=	3D pong game with software rendering.
@@ -45,7 +49,8 @@ CFLAGS	:=	-g -Wall -O3 -mword-relocations \
 			-fomit-frame-pointer -ffast-math \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS \
+			-DLIBXMP_CORE_PLAYER
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 

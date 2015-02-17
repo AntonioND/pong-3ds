@@ -244,7 +244,7 @@ static void Draw_3D_Cube_Near(int screen)
 
 //--------------------------------------------------------------------------------------------------
 
-#define NUM_QUADS (180) // 200 is too much
+#define NUM_QUADS (150)
 
 typedef struct {
 	int x,y,z; // position
@@ -322,10 +322,10 @@ static void Draw_2D_Quads_Near(int screen)
 			
 			S3D_PolygonColor(screen, q->r,q->g,q->b);
 			
-			S3D_PolygonVertex(screen, float2fx(+0.05),float2fx(+0.05),0);
-			S3D_PolygonVertex(screen, float2fx(+0.05),float2fx(-0.05),0);
-			S3D_PolygonVertex(screen, float2fx(-0.05),float2fx(-0.05),0);
-			S3D_PolygonVertex(screen, float2fx(-0.05),float2fx(+0.05),0);
+			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(+0.075),0);
+			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(-0.075),0);
+			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(-0.075),0);
+			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(+0.075),0);
 		}
 	}
 }
