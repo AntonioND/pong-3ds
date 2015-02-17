@@ -156,8 +156,8 @@ int Thread_Init(void) // Start thread in CPU 1
 	int disablecores = 1; // Run on the other CPU only
 	u32 prio = 0x18; // 0x18 ... 0x3F. Lower is higher. main() is 0x30
 	u32 arg = 0;
-	
-	s32 val = svcCreateThread(&SecondaryThreadHandle, SecondaryThreadFunction, arg,
+
+	s32 val = svcCreateThread(&SecondaryThreadHandle, (ThreadFunc)SecondaryThreadFunction, arg,
 					(u32*)&(SecondaryThreadStack[STACK_SIZE/sizeof(u64)]), prio, disablecores);
 	if(val)
 	{
