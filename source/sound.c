@@ -21,9 +21,13 @@
 
 //-------------------------------------------------------------------------------------------------------
 
+#include <string.h>
+
 #include <xmp.h>
 
 #include <3ds.h>
+
+#include "sound.h"
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -33,54 +37,66 @@
 //-------------------------------------------------------------------------------------------------------
 
 static xmp_context ctx;
-static struct xmp_module_info mi;
-static struct xmp_frame_info fi;
-static u64 sound_tick = 0, now;
-static u8 * audioBuffer;
-static u8 * lastPosition, * bufferEnd;
+static u64 sound_tick, now;
+static u8 * audioBuffer, * lastPosition, * bufferEnd;
 static u64 ticks_per_sample;
-static int module_initialised = 0, module_loaded = 0;
 static int channel = -1;
+
+static int module_initialised = 0;
+static int sound_inited = 0;
 
 //-------------------------------------------------------------------------------------------------------
 
-static inline u32 CSND_convertsamplerate(u32 samplerate)
+static inline u32 _CSND_convertsamplerate(u32 samplerate)
 {
 	return (u32)(6.7027964E+07f / ((float)samplerate));
 }
 
 void Sound_Init(void)
 {
-	csndInit();
+	if(sound_inited) return;
+	
+	if(csndInit()) // error
+		return;
 	
 	audioBuffer = (u8*)linearAlloc(BUFFERSIZE);
-
-    lastPosition = NULL, bufferEnd = NULL;
-
-    ticks_per_sample = CSND_convertsamplerate(SAMPLERATE) * 4;
+	if(audioBuffer == NULL)
+	{
+		csndExit();
+		return;
+	}
+	memset(audioBuffer,0,BUFFERSIZE);
+	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	
+    ticks_per_sample = _CSND_convertsamplerate(SAMPLERATE) * 4;
 
     ctx = xmp_create_context();
+	if(ctx)
+	{
+		sound_inited = 1;
+	}
+	else
+	{
+		linearFree(audioBuffer);
+		csndExit();
+	}
 }
 
-#include "song_xm_bin.h"
-
-void Sound_Play(void)
+void Sound_Play(const void * song_data, const unsigned int song_size)
 {
-	module_initialised = 0;
-	module_loaded = 0;
+	if(sound_inited == 0) return;
 	
-	if(xmp_load_module_from_memory(ctx,(void*)song_xm_bin,song_xm_bin_size) == 0)
-	{
-		module_loaded = 1;
-		
-		if(xmp_start_player(ctx, SAMPLERATE, XMP_FORMAT_MONO ) == 0)
+	if(module_initialised) Sound_Stop();
+	
+	if(xmp_load_module_from_memory(ctx,(void*)song_data,song_size) == 0)
+	{	
+		if(xmp_start_player(ctx, SAMPLERATE, XMP_FORMAT_MONO) == 0)
         {
 			module_initialised = 1;
 
-			xmp_get_module_info(ctx, &mi);
-
 			xmp_play_buffer(ctx,audioBuffer,BUFFERSIZE,0);
-
+			
+			memset(audioBuffer,0,BUFFERSIZE);
 			GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
 
 			lastPosition = audioBuffer;
@@ -94,72 +110,99 @@ void Sound_Play(void)
 			}
 
 			csndPlaySound(channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
-				(u32*)audioBuffer, (u32*)audioBuffer,
-				BUFFERSIZE);
+				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 
 			sound_tick = svcGetSystemTick();
+
+			CSND_SetVol(channel, 0xFFFF,0xFFFF);
+		}
+		else
+		{
+			xmp_release_module(ctx);
 		}
 	}
 }
 
+void Sound_ResetHandler(void)
+{
+	if(sound_inited == 0) return;
+	
+	if(module_initialised == 0) return;
+	
+	memset(audioBuffer,0,BUFFERSIZE);
+	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	
+	lastPosition = audioBuffer;
+	
+	csndPlaySound(channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
+				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
+	
+	sound_tick = svcGetSystemTick();
+}
+
 void Sound_Handle(void)
 {
-	if(module_initialised)
+	if(sound_inited == 0) return;
+	
+	if(module_initialised == 0) return;
+
+	now = svcGetSystemTick();
+
+	s64 elapsed = now - sound_tick;
+
+	u64 fill_bytes = 2 * (elapsed / ticks_per_sample);
+
+	sound_tick = now - (elapsed % ticks_per_sample);
+
+	if( (lastPosition + fill_bytes) > bufferEnd )
 	{
-		now = svcGetSystemTick();
+		int size = bufferEnd - lastPosition;
+		xmp_play_buffer(ctx,lastPosition,size,0);
+		GSPGPU_FlushDataCache(NULL,lastPosition,size);
+		lastPosition = audioBuffer;
+		fill_bytes -= size;
+	}
 
-		s64 elapsed = now - sound_tick;
-
-		u64 fill_bytes = 2 * (elapsed / ticks_per_sample);
-
-		sound_tick = now - (elapsed % ticks_per_sample);
-
-		if (lastPosition + fill_bytes > bufferEnd)
-		{
-			int size = bufferEnd - lastPosition;
-			xmp_play_buffer(ctx,lastPosition,size,0);
-			GSPGPU_FlushDataCache(NULL,lastPosition,size);
-			lastPosition = audioBuffer;
-			fill_bytes -= size;
-		}
-
-		if (fill_bytes)
-		{
-			xmp_play_buffer(ctx,lastPosition,fill_bytes,0);
-			GSPGPU_FlushDataCache(NULL,lastPosition,fill_bytes);
-			lastPosition += fill_bytes;
-			if (lastPosition == bufferEnd) lastPosition = audioBuffer;
-		}
-
-		xmp_get_frame_info(ctx, &fi);
+	if(fill_bytes)
+	{
+		xmp_play_buffer(ctx,lastPosition,fill_bytes,0);
+		GSPGPU_FlushDataCache(NULL,lastPosition,fill_bytes);
+		lastPosition += fill_bytes;
+		if (lastPosition == bufferEnd) lastPosition = audioBuffer;
 	}
 }
 
 void Sound_Stop(void)
 {
-	if(module_loaded)
-	{
-		xmp_release_module(ctx);
-		module_loaded = 0;
-		
-		if(module_initialised)
-		{
-			module_initialised = 0;
-			
-			CSND_SetVol(channel, 0,0);
-			CSND_SetPlayState(channel,0);
-			xmp_end_player(ctx);
-		}
-	}
+	if(sound_inited == 0) return;
+	
+	if(module_initialised == 0) return;
+	
+	CSND_SetVol(channel, 0,0);
+	
+	memset(audioBuffer,0,BUFFERSIZE);
+	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	
+	xmp_end_player(ctx);
+	
+	xmp_release_module(ctx);
+	
+	module_initialised = 0;
 }
 
 void Sound_End(void)
 {
+	if(sound_inited == 0) return;
+	
+	if(module_initialised) Sound_Stop();
+	
 	linearFree(audioBuffer);
 	
 	xmp_free_context(ctx);
 
     csndExit();
+	
+	sound_inited = 0;
 }
 
 //-------------------------------------------------------------------------------------------------------

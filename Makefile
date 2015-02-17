@@ -39,6 +39,7 @@ INCLUDES	:=	source source/S3D png \
 APP_TITLE	:=	Pong 3DS
 APP_DESCRIPTION	:=	3D pong game with software rendering.
 APP_AUTHOR	:=	AntonioND
+ICON		:=	pong-3ds.png
 
 #---------------------------------------------------------------------------------
 # options for code generation

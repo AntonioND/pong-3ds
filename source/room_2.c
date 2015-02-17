@@ -29,6 +29,7 @@
 #include "pad.h"
 #include "ball.h"
 #include "utils.h"
+#include "sound.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -110,10 +111,11 @@ static void _room_DrawRoom2_Borders(int screen)
 	int i;
 
 	S3D_PolygonBegin(screen, S3D_QUADS);
-	
+		
 	for(i = 0; i < 7; i++)
 	{
-		S3D_PolygonColorAlpha(screen, 0,0,255,(i&1)?128:255);
+		//S3D_PolygonColorAlpha(screen, 0,0,255,(i&1)?128:255);
+		S3D_PolygonColor(screen, 0,0,(i&1)?128:255);
 		
 		int zbase = float2fx(-1.25) + float2fx(2.0)*i;
 		
@@ -260,6 +262,8 @@ void Room_2_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin
 
 //--------------------------------------------------------------------------------------------------
 
+#include "essentials_intact_mod_bin.h"
+
 void Room_2_Init(void)
 {
 	Ball_Init();
@@ -279,11 +283,13 @@ void Room_2_Init(void)
 	Game_StateMachineReset();
 	
 	Bumper_Init();
+	
+	Sound_Play(essentials_intact_mod_bin,essentials_intact_mod_bin_size);
 }
 
 void Room_2_End(void)
 {
-
+	Sound_Stop();
 }
 
 void Room_2_Handle(void)

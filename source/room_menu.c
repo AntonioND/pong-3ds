@@ -27,6 +27,7 @@
 #include "pad.h"
 #include "ball.h"
 #include "utils.h"
+#include "sound.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -227,7 +228,7 @@ static inline void _draw_3d_cube(int screen)
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
 	int r,g,b;
-	HSV2RGB(cube_anim_frame<<3,int2fx(1),int2fx(1),&r,&g,&b);
+	HSV2RGB(cube_anim_frame*9,int2fx(1),int2fx(1),&r,&g,&b);
 	
 	_draw_cube(screen, float2fx(0.2),float2fx(0.2),float2fx(0.2), r,g,b);
 }
@@ -295,10 +296,10 @@ static void Draw_2D_Quads_Far(int screen)
 			
 			S3D_PolygonColor(screen, q->r,q->g,q->b);
 			
-			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(+0.075),0);
-			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(-0.075),0);
-			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(-0.075),0);
-			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(+0.075),0);
+			S3D_PolygonVertex(screen, float2fx(+0.1),float2fx(+0.1),0);
+			S3D_PolygonVertex(screen, float2fx(+0.1),float2fx(-0.1),0);
+			S3D_PolygonVertex(screen, float2fx(-0.1),float2fx(-0.1),0);
+			S3D_PolygonVertex(screen, float2fx(-0.1),float2fx(+0.1),0);
 		}
 	}
 }
@@ -322,10 +323,10 @@ static void Draw_2D_Quads_Near(int screen)
 			
 			S3D_PolygonColor(screen, q->r,q->g,q->b);
 			
-			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(+0.075),0);
-			S3D_PolygonVertex(screen, float2fx(+0.075),float2fx(-0.075),0);
-			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(-0.075),0);
-			S3D_PolygonVertex(screen, float2fx(-0.075),float2fx(+0.075),0);
+			S3D_PolygonVertex(screen, float2fx(+0.1),float2fx(+0.1),0);
+			S3D_PolygonVertex(screen, float2fx(+0.1),float2fx(-0.1),0);
+			S3D_PolygonVertex(screen, float2fx(-0.1),float2fx(-0.1),0);
+			S3D_PolygonVertex(screen, float2fx(-0.1),float2fx(+0.1),0);
 		}
 	}
 }
@@ -334,9 +335,9 @@ static void Draw_2D_Quads_Near(int screen)
 
 static void CubeQuads_Handle(void)
 {
-	cube_x = fxmul(fxsin(1*(cube_anim_frame<<7)),float2fx(0.35));
-	cube_y = fxmul(fxsin(3*(cube_anim_frame<<7)),float2fx(0.25));
-	cube_z = fxmul(fxcos(7*(cube_anim_frame<<7)),float2fx(1.0));
+	cube_x = fxmul(fxsin(3*(cube_anim_frame<<6)),float2fx(0.35));
+	cube_y = fxmul(fxsin(5*(cube_anim_frame<<6)),float2fx(0.25));
+	cube_z = fxmul(fxcos(8*(cube_anim_frame<<6)),float2fx(1.0));
 
 	cube_rotation_z += 0x100;
 	cube_rotation_y -= 0x200;
@@ -398,7 +399,9 @@ void Room_Menu_Draw(int screen)
 //--------------------------------------------------------------------------------------------------
 
 #include "bottom_screen_menu_png_bin.h"
-#include "bottom_screen_credits_png_bin.h"
+#include "bottom_screen_credits_1_png_bin.h"
+#include "bottom_screen_credits_2_png_bin.h"
+#include "bottom_screen_credits_3_png_bin.h"
 
 static int selected_option = 0;
 static int credits = 0;
@@ -409,7 +412,12 @@ void Room_Menu_Draw_Bottom(void)
 	
 	if(credits)
 	{
-		FastFramebufferCopy(bottom_screen_credits_png_bin,buf,GFX_BOTTOM);
+		if(credits == 1)
+			FastFramebufferCopy(bottom_screen_credits_1_png_bin,buf,GFX_BOTTOM);
+		else if(credits == 2)
+			FastFramebufferCopy(bottom_screen_credits_2_png_bin,buf,GFX_BOTTOM);
+		else if(credits == 3)
+			FastFramebufferCopy(bottom_screen_credits_3_png_bin,buf,GFX_BOTTOM);
 	}
 	else
 	{
@@ -449,17 +457,21 @@ void Room_Menu_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * z
 
 //--------------------------------------------------------------------------------------------------
 
+#include "kaos_och_dekadens_mod_bin.h"
+
 void Room_Menu_Init(void)
 {
 	Game_Pause(0);
 	CubeQuads_Init();
 	selected_option = 0;
 	credits = 0;
+	
+	Sound_Play(kaos_och_dekadens_mod_bin,kaos_och_dekadens_mod_bin_size);
 }
 
 void Room_Menu_End(void)
 {
-
+	Sound_Stop();
 }
 
 void Room_Menu_Handle(void)
@@ -470,7 +482,11 @@ void Room_Menu_Handle(void)
 	{
 		int keys = hidKeysUp();
 		if(keys & KEY_TOUCH)
-			credits = 0;
+		{
+			credits ++;
+			if(credits == 4)
+				credits = 0;
+		}
 	}
 	else
 	{

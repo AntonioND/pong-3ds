@@ -129,6 +129,8 @@ void SecondaryThreadFunction(u32 arg)
 			Game_DrawScreenTop(screen);
 		}
 		
+		Sound_Handle();
+		
 		Timing_EndFrame(1);
 		
 		//----------------------------------------
@@ -231,7 +233,6 @@ int main(int argc, char **argv) // Running in CPU 0
 	if(Thread_Init() == 0)
 	{
 		Sound_Init();
-		Sound_Play();
 		
 		Game_Init();
 		
@@ -250,12 +251,11 @@ int main(int argc, char **argv) // Running in CPU 0
 			
 			DrawScreens();
 			
-			Sound_Handle();
-			
 			if(hidKeysDown() & KEY_Y)
 			{
 				PNGScreenshot_Top(); // AFTER DRAWING SCREENS!!
 				//PNGScreenshot_Bottom();
+				Sound_ResetHandler();
 			}
 			
 			gfxFlushBuffers();

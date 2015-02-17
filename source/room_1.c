@@ -26,6 +26,7 @@
 #include "rooms.h"
 #include "pad.h"
 #include "ball.h"
+#include "sound.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -151,6 +152,8 @@ void Room_1_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin
 
 //--------------------------------------------------------------------------------------------------
 
+#include "roots_mod_bin.h"
+
 void Room_1_Init(void)
 {
 	Ball_Init();
@@ -168,11 +171,13 @@ void Room_1_Init(void)
 	Game_PlayerResetAll();
 	
 	Game_StateMachineReset();
+	
+	Sound_Play(roots_mod_bin,roots_mod_bin_size);
 }
 
 void Room_1_End(void)
 {
-
+	Sound_Stop();
 }
 
 void Room_1_Handle(void)

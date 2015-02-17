@@ -1,7 +1,5 @@
-# Pong 3DS V0.X
+# Pong 3DS v1.0
 A 3D pong game for the Nintendo 3DS with software rendering. By AntonioND (Antonio Niño Díaz)
-
-VERSION 1.0 ALMOST READY!
 
 [https://github.com/AntonioND/pong-3ds](https://github.com/AntonioND/pong-3ds)
 
@@ -11,7 +9,7 @@ This is just a 3D pong, inspired by my old Pong 3DS for Nintendo DS: [http://ant
 
 This was a test to see if I could manage to setup a correct perspective for stereoscopic 3D, but I decided to make a simple game out of it.
 
-I haven't used hardware accelerated graphics because I couldn't manage to compile any shader assembler (except from Picasso, but it's a bit outdated). I originally made this 3D software engine for GBA, so there are still a few files from Tonc's library for GBA.
+I haven't used hardware accelerated graphics because I couldn't manage to compile any shader assembler (except from Picasso, but it's a bit outdated). I originally made this 3D software engine for GBA, so there are still a few files from Tonc's library for GBA. Anyway, this game always runs at 60 FPS. :)
 
 If anyone cares, the 3D engine can draw lines, triangles, quads, line strips, triangle strips and quad strips, all of them With alpha blending. Quads are drawn using a function used just for them to draw them faster, not by drawing two triangles. It supports directional lighting (up to 32 lights, limited to 2 because why more) and ambient lighting. It can sort polygons with painter's algorithm (no buffer-Z). It doesn't support textured polygons.
 
@@ -30,7 +28,8 @@ This game is licensed under the GPL Version 3.
 ![](screenshot_3.png)
 ![](screenshot_4.png)
 
-# Thanks to:
+Thanks to:
+----------
 
 - smea for Ninjhax.
 - smea, yellows8, plutoo, fincs and mtheall for ctrulib.
@@ -39,8 +38,16 @@ This game is licensed under the GPL Version 3.
 - mtheall for ftbrony.
 - Andreas Nylin for the font Polygon Power.
 - JuDelCo, NightFox and icesoul for putting up with me during the developement of this game.
+- Claudio Matsuoka and Hipolito Carraro Jr for Extended Module Player Lite.
+
+Music (http://modarchive.org/):
+- 'Kaos och Dekadens' by Nightbeat
+- 'Essentials Intact' by Nightbeat
+- 'Roots' by Nightbeat
+- 'Secret Message' by Frequent/Ephidrena
 
 # License
+---------
 
 Pong 3DS. Just a pong for the Nintendo 3DS.
 Copyright (C) 2015 Antonio Niño Díaz

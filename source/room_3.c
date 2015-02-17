@@ -26,6 +26,7 @@
 #include "rooms.h"
 #include "pad.h"
 #include "ball.h"
+#include "sound.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -67,6 +68,21 @@ static void _room_DrawRoom3(int screen)
 		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(-6.0), zbase);
 	}
 	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	for(j = 0; j < 2; j++)
+	{
+		int alpha = 255 >> (j&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int xbase = float2fx(-7.0) + float2fx(7.0)*j;
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(-7.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase, float2fx(-6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(-6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(-7.0), float2fx(-1.25));
+	}
+	
 	//------
 	
 	S3D_PolygonColor(screen, 0,0,255);
@@ -87,6 +103,21 @@ static void _room_DrawRoom3(int screen)
 		S3D_PolygonVertex(screen, xbase, float2fx(+6.0), zbase);
 	}
 	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	for(j = 0; j < 2; j++)
+	{
+		int alpha = 255 >> ((1-j)&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int xbase = float2fx(-7.0) + float2fx(7.0)*j;
+		
+		S3D_PolygonVertex(screen, xbase, float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase, float2fx(7.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, xbase + float2fx(7.0), float2fx(7.0), float2fx(-1.25));
+	}
+	
 	//------
 	
 	S3D_PolygonColor(screen, 0,255,0);
@@ -104,9 +135,24 @@ static void _room_DrawRoom3(int screen)
 		S3D_PolygonVertex(screen, float2fx(-7.0), ybase + float2fx(6.0), zbase);
 		S3D_PolygonVertex(screen, float2fx(-7.0), ybase + float2fx(6.0), zbase + float2fx(7.0));
 		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, zbase + float2fx(7.0));
-		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, zbase);	
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, zbase);
 	}
 	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	for(j = 0; j < 2; j++)
+	{
+		int alpha = 255 >> ((1-j)&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int ybase = float2fx(-6.0) + float2fx(6.0)*j;
+		
+		S3D_PolygonVertex(screen, float2fx(-8.0), ybase, float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(-8.0), ybase + float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase + float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(-7.0), ybase, float2fx(-1.25));
+	}
+
 	//------
 	
 	S3D_PolygonColor(screen, 0,255,0);
@@ -124,8 +170,48 @@ static void _room_DrawRoom3(int screen)
 		S3D_PolygonVertex(screen, float2fx(+7.0), ybase, zbase);
 		S3D_PolygonVertex(screen, float2fx(+7.0), ybase, zbase + float2fx(7.0));
 		S3D_PolygonVertex(screen, float2fx(+7.0), ybase + float2fx(6.0), zbase + float2fx(7.0));
-		S3D_PolygonVertex(screen, float2fx(+7.0), ybase + float2fx(6.0), zbase);	
+		S3D_PolygonVertex(screen, float2fx(+7.0), ybase + float2fx(6.0), zbase);
 	}
+	
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	for(j = 0; j < 2; j++)
+	{
+		int alpha = 255 >> (j&1);
+		S3D_PolygonAlpha(screen, alpha);
+		
+		int ybase = float2fx(-6.0) + float2fx(6.0)*j;
+		
+		S3D_PolygonVertex(screen, float2fx(7.0), ybase, float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(7.0), ybase + float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(8.0), ybase + float2fx(6.0), float2fx(-1.25));
+		S3D_PolygonVertex(screen, float2fx(8.0), ybase, float2fx(-1.25));
+	}
+	
+	//------
+	
+	S3D_PolygonColorAlpha(screen, 255,255,255, 255);
+	S3D_PolygonNormal(screen, float2fx(0.0),float2fx(0.0),float2fx(-1.0));
+	
+	S3D_PolygonVertex(screen, float2fx(7.0), float2fx(6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(7.0), float2fx(7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(8.0), float2fx(7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(8.0), float2fx(6.0), float2fx(-1.25));
+	
+	S3D_PolygonVertex(screen, float2fx(7.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(7.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(8.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(8.0), float2fx(-7.0), float2fx(-1.25));
+	
+	S3D_PolygonVertex(screen, float2fx(-8.0), float2fx(6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-8.0), float2fx(7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(6.0), float2fx(-1.25));
+	
+	S3D_PolygonVertex(screen, float2fx(-8.0), float2fx(-7.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-8.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-6.0), float2fx(-1.25));
+	S3D_PolygonVertex(screen, float2fx(-7.0), float2fx(-7.0), float2fx(-1.25));
 	
 	//------
 	
@@ -139,7 +225,7 @@ void Room_3_Draw(int screen)
 	S3D_SetCulling(screen, 1,0);
 	
 	m44 m;
-	m44_CreateTranslation(&m,0,int2fx(0),int2fx(10));
+	m44_CreateTranslation(&m,0,0,float2fx(10.5));
 	S3D_ModelviewMatrixSet(screen, &m);	
 	S3D_ModelviewMatrixMultiply(screen, &m);
 	
@@ -193,6 +279,8 @@ void Room_3_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin
 
 //--------------------------------------------------------------------------------------------------
 
+#include "secret_message_mod_bin.h"
+
 void Room_3_Init(void)
 {
 	Ball_Init();
@@ -210,11 +298,13 @@ void Room_3_Init(void)
 	Game_PlayerResetAll();
 	
 	Game_StateMachineReset();
+
+	Sound_Play(secret_message_mod_bin,secret_message_mod_bin_size);
 }
 
 void Room_3_End(void)
 {
-
+	Sound_Stop();
 }
 
 void Room_3_Handle(void)
