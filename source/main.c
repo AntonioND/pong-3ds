@@ -208,13 +208,14 @@ void SetMaxCpuTimeLimit(void)
 	//Try to get as much as CPU time as possible (?)
 
 	aptOpenSession();
-	u32 i, percent;
-	for(i = 100; i > 1; i--)
-	{
-		APT_SetAppCpuTimeLimit(NULL,i);
-		APT_GetAppCpuTimeLimit(NULL, &percent);
-		if(i == percent) break;
-	}
+	APT_SetAppCpuTimeLimit(NULL,80);
+//	u32 i, percent;
+//	for(i = 100; i > 1; i--)
+//	{
+//		APT_SetAppCpuTimeLimit(NULL,i);
+//		APT_GetAppCpuTimeLimit(NULL, &percent);
+//		if(i == percent) break;
+//	}
 	aptCloseSession();
 }
 

@@ -516,6 +516,22 @@ void Room_Menu_Handle(void)
 			}
 		}
 		
+		if(keys & KEY_L)
+		{
+			Room_SetNumber(GAME_ROOM_1);
+			Sound_PlaySfx(SFX_SELECT_REF);
+		}
+		else if(keys & KEY_R)
+		{
+			Room_SetNumber(GAME_ROOM_2);
+			Sound_PlaySfx(SFX_SELECT_REF);
+		}
+		else if(keys & KEY_A)
+		{
+			Room_SetNumber(GAME_ROOM_3);
+			Sound_PlaySfx(SFX_SELECT_REF);
+		}
+		
 		keys = hidKeysUp();
 		if(keys & KEY_TOUCH)
 		{
