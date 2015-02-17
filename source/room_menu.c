@@ -516,17 +516,17 @@ void Room_Menu_Handle(void)
 			}
 		}
 		
-		if(keys & KEY_L)
+		if(keys & KEY_DLEFT)
 		{
 			Room_SetNumber(GAME_ROOM_1);
 			Sound_PlaySfx(SFX_SELECT_REF);
 		}
-		else if(keys & KEY_R)
+		else if(keys & KEY_DRIGHT)
 		{
 			Room_SetNumber(GAME_ROOM_2);
 			Sound_PlaySfx(SFX_SELECT_REF);
 		}
-		else if(keys & KEY_A)
+		else if(keys & KEY_DUP)
 		{
 			Room_SetNumber(GAME_ROOM_3);
 			Sound_PlaySfx(SFX_SELECT_REF);
