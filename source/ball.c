@@ -635,6 +635,7 @@ void Ball_Handle(void)
 		{
 			BALL.z += zm - BALL.vz; BALL.vz = -BALL.vz;
 			weird_bounce = 1;
+			bounce_sound = 1;
 		}
 	}
 	else if(BALL.collisions & COLLISION_Z_MAX)
@@ -643,6 +644,7 @@ void Ball_Handle(void)
 		{
 			BALL.z -= zm + BALL.vz; BALL.vz = -BALL.vz;
 			weird_bounce = 1;
+			bounce_sound = 1;
 		}
 	}
 	
