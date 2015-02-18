@@ -129,7 +129,6 @@ void S3D_PolygonNormal(int screen, s32 x, s32 y, s32 z)
 {
 	v4 temp_l = { x, y, z, 0};
 	v4 l;
-	_s3d_global_matrix_update(screen);
 	
 	m44_v4_Multiply(&MODELVIEW[screen],&temp_l,&l);
 	v4_Normalize(&l);
