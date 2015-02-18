@@ -1,4 +1,4 @@
-# Pong 3DS v1.0
+# Pong 3DS v1.0.1
 A 3D pong game for the Nintendo 3DS with software rendering. By AntonioND (Antonio Niño Díaz)
 
 [https://github.com/AntonioND/pong-3ds](https://github.com/AntonioND/pong-3ds)
