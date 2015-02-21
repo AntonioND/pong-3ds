@@ -513,13 +513,20 @@ void Pad_HandleAll(void)
 		
 		//----------------------
 		// Player input
+		
+		circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
+		hidCircleRead(&cp);
+		cp.dx = clamp(-0x90,cp.dx,0x90);
+		cp.dy = clamp(-0x90,cp.dy,0x90);
+		
+		int keys = hidKeysHeld();
+		if(keys & KEY_DLEFT) cp.dx = -0x90;
+		else if(keys & KEY_DRIGHT) cp.dx = +0x90;
+		if(keys & KEY_DUP) cp.dy = +0x90;
+		else if(keys & KEY_DDOWN) cp.dy = -0x90;
+		
 		if(Room_3DMode() == GAME_MODE_3D)
 		{
-			circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
-			hidCircleRead(&cp);
-			cp.dx = clamp(-0x90,cp.dx,0x90);
-			cp.dy = clamp(-0x90,cp.dy,0x90);
-			
 			if(!Game_StateMachinePadMovementEnabled())
 			{
 				cp.dx = cp.dy = 0;
@@ -555,11 +562,6 @@ void Pad_HandleAll(void)
 		}
 		else
 		{
-			circlePosition cp; // dx,dy (-0x9C ~ 0x9C)
-			hidCircleRead(&cp);
-			cp.dx = clamp(-0x90,cp.dx,0x90);
-			cp.dy = clamp(-0x90,cp.dy,0x90);
-			
 			if(!Game_StateMachinePadMovementEnabled())
 			{
 				cp.dx = cp.dy = 0;

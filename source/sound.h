@@ -28,7 +28,8 @@
 
 void Sound_Init(void);
 void Sound_Play(const void * song_data, const unsigned int song_size);
-void Sound_ResetHandler(void); // call this when game logic has needed too much time to finish a frame
+void Sound_Pause(void);
+void Sound_Resume(void);
 void Sound_Handle(void);
 void Sound_Stop(void);
 void Sound_End(void);

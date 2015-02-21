@@ -254,9 +254,10 @@ int main(int argc, char **argv) // Running in CPU 0
 			
 			if(hidKeysDown() & KEY_Y)
 			{
+				Sound_Pause();
 				PNGScreenshot_Top(); // AFTER DRAWING SCREENS!!
 				//PNGScreenshot_Bottom();
-				Sound_ResetHandler();
+				Sound_Resume();
 			}
 			
 			gfxFlushBuffers();

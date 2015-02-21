@@ -48,6 +48,7 @@ static int song_channel = -1;
 
 static int module_initialised = 0;
 static int sound_inited = 0;
+static int sound_paused = 0;
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -162,6 +163,8 @@ void Sound_Init(void)
 	}
 	
 	song_channel = -1;
+	
+	sound_paused = 0;
 }
 
 void Sound_Play(const void * song_data, const unsigned int song_size)
@@ -197,6 +200,8 @@ void Sound_Play(const void * song_data, const unsigned int song_size)
 			sound_tick = svcGetSystemTick();
 
 			CSND_SetVol(song_channel, SOUND_VOLUME_MAX,SOUND_VOLUME_MAX);
+			
+			sound_paused = 0;
 		}
 		else
 		{
@@ -205,7 +210,7 @@ void Sound_Play(const void * song_data, const unsigned int song_size)
 	}
 }
 
-void Sound_ResetHandler(void)
+void Sound_Resume(void)
 {
 	if(sound_inited == 0) return;
 	
@@ -220,6 +225,16 @@ void Sound_ResetHandler(void)
 				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 	
 	sound_tick = svcGetSystemTick();
+	
+	sound_paused = 0;
+}
+
+void Sound_Pause(void)
+{
+	sound_paused = 1;
+	
+	memset(audioBuffer,0,BUFFERSIZE);
+	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
 }
 
 void Sound_Handle(void)
@@ -227,7 +242,9 @@ void Sound_Handle(void)
 	if(sound_inited == 0) return;
 	
 	if(module_initialised == 0) return;
-
+	
+	if(sound_paused) return;
+	
 	now = svcGetSystemTick();
 
 	s64 elapsed = now - sound_tick;
