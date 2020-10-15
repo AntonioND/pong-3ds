@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,24 +16,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __ROOM__
 #define __ROOM__
 
-//--------------------------------------------------------------------------------------------------
-
 typedef enum {
-	GAME_ROOM_MENU,
-	GAME_ROOM_1,
-	GAME_ROOM_2,
-	GAME_ROOM_3
+    GAME_ROOM_MENU,
+    GAME_ROOM_1,
+    GAME_ROOM_2,
+    GAME_ROOM_3
 } _game_room_e;
 
 typedef enum {
-	GAME_MODE_2D,
-	GAME_MODE_2D_BOUNCE,
-	GAME_MODE_3D
+    GAME_MODE_2D,
+    GAME_MODE_2D_BOUNCE,
+    GAME_MODE_3D
 } _3d_mode_e;
 
 //--------------------------------------------------------------------------------------------------
@@ -54,7 +47,5 @@ void Room_Init(void);
 void Room_End(void);
 
 void Room_Handle(void);
-
-//--------------------------------------------------------------------------------------------------
 
 #endif //__ROOM__

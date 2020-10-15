@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,16 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __PAD__
 #define __PAD__
 
-//--------------------------------------------------------------------------------------------------
-
 #include "game.h"
-
-//--------------------------------------------------------------------------------------------------
 
 void Pad_P1SetDimensions(int x, int y, int z); // Player (z min)
 void Pad_P2SetDimensions(int x, int y, int z); // AI (z max)
@@ -53,7 +44,5 @@ void Pad_HandleAll(void);
 
 void Pad_P1Bounce(int speed, int acc);
 void Pad_P2Bounce(int speed, int acc);
-
-//--------------------------------------------------------------------------------------------------
 
 #endif //__PAD__

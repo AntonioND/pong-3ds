@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,12 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __UTILS__
 #define __UTILS__
-
-//----------------------------------------------------------------------------------
 
 #include <3ds.h>
 
@@ -52,7 +45,5 @@ uint32_t fast_rand(void);
 
 void PNGScreenshot_Top(void);
 void PNGScreenshot_Bottom(void);
-
-//----------------------------------------------------------------------------------
 
 #endif //__UTILS__

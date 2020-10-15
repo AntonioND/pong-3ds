@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,12 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __S3D_POLYGON__
 #define __S3D_POLYGON__
-
-//----------------------------------------------------------------------------------
 
 #include <3ds.h>
 
@@ -44,15 +37,15 @@ void S3D_FramebuffersClearTopScreen(int screen, int r, int g, int b);
 //--------------------------------------------------------------------------------------------------
 
 typedef enum {
-	S3D_DOTS,
-	S3D_LINES,
-	S3D_TRIANGLES,
-	S3D_QUADS,
-	S3D_LINE_STRIP,
-	S3D_TRIANGLE_STRIP,
-	S3D_QUAD_STRIP,
-	
-	S3D_PRIMITIVE_NUMBER
+    S3D_DOTS,
+    S3D_LINES,
+    S3D_TRIANGLES,
+    S3D_QUADS,
+    S3D_LINE_STRIP,
+    S3D_TRIANGLE_STRIP,
+    S3D_QUAD_STRIP,
+
+    S3D_PRIMITIVE_NUMBER
 } s3d_primitive;
 
 void S3D_PolygonBegin(int screen, s3d_primitive type);
@@ -87,7 +80,4 @@ void S3D_PolygonListClear(int screen);
 
 void S3D_PolygonListFlush(int screen, int perform_z_sort);
 
-//--------------------------------------------------------------------------------------------------
-
 #endif //__S3D_POLYGON__
-

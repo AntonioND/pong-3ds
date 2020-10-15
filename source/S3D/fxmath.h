@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,12 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __S3D_FXMATH__
 #define __S3D_FXMATH__
-
-//----------------------------------------------------------------------------
 
 #include <3ds.h>
 
@@ -34,7 +27,7 @@
 
 #define SIN_LUT_SIZE 512 // Don't change this without changing the lut itself.
 
-extern const s16 sin_lut[SIN_LUT_SIZE];	// .12f
+extern const s16 sin_lut[SIN_LUT_SIZE];    // .12f
 
 #define FIX_SHIFT_EXTRA 0 // Positive (odd) values only!
 
@@ -102,7 +95,7 @@ typedef s32 v4[4];
 
 static inline s32 v4_DotProduct(v4 * v1, v4 * v2)
 {
-	return fxmul64(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul64(ptr_V4(v1,1),ptr_V4(v2,1)) + 
+    return fxmul64(ptr_V4(v1,0),ptr_V4(v2,0)) + fxmul64(ptr_V4(v1,1),ptr_V4(v2,1)) +
            fxmul64(ptr_V4(v1,2),ptr_V4(v2,2)) + fxmul64(ptr_V4(v1,3),ptr_V4(v2,3));
 }
 
@@ -117,15 +110,19 @@ typedef s32 m44[16];
 #define M44(m,r,c) (m[((r)<<2)+(c)])
 #define ptr_M44(m,r,c) ((*m)[((r)<<2)+(c)])
 #define M44SET(m, a00,a01,a02,a03, a10,a11,a12,a13, a20,a21,a22,a23, a30,a31,a32,a33) \
-				{ 	m[0]=(a00); m[1]=(a01); m[2]=(a02); m[3]=(a03); \
-					m[4]=(a10); m[5]=(a11); m[6]=(a12); m[7]=(a13); \
-					m[8]=(a20); m[9]=(a21); m[10]=(a22); m[11]=(a23); \
-					m[12]=(a30); m[13]=(a31); m[14]=(a32); m[15]=(a33);   }
+    { \
+        m[0]=(a00); m[1]=(a01); m[2]=(a02); m[3]=(a03); \
+        m[4]=(a10); m[5]=(a11); m[6]=(a12); m[7]=(a13); \
+        m[8]=(a20); m[9]=(a21); m[10]=(a22); m[11]=(a23); \
+        m[12]=(a30); m[13]=(a31); m[14]=(a32); m[15]=(a33); \
+    }
 #define ptr_M44SET(m, a00,a01,a02,a03, a10,a11,a12,a13, a20,a21,a22,a23, a30,a31,a32,a33) \
-				{ 	(*m)[0]=(a00); (*m)[1]=(a01); (*m)[2]=(a02); (*m)[3]=(a03); \
-					(*m)[4]=(a10); (*m)[5]=(a11); (*m)[6]=(a12); (*m)[7]=(a13); \
-					(*m)[8]=(a20); (*m)[9]=(a21); (*m)[10]=(a22); (*m)[11]=(a23); \
-					(*m)[12]=(a30); (*m)[13]=(a31); (*m)[14]=(a32); (*m)[15]=(a33);   }
+    { \
+        (*m)[0]=(a00); (*m)[1]=(a01); (*m)[2]=(a02); (*m)[3]=(a03); \
+        (*m)[4]=(a10); (*m)[5]=(a11); (*m)[6]=(a12); (*m)[7]=(a13); \
+        (*m)[8]=(a20); (*m)[9]=(a21); (*m)[10]=(a22); (*m)[11]=(a23); \
+        (*m)[12]=(a30); (*m)[13]=(a31); (*m)[14]=(a32); (*m)[15]=(a33); \
+    }
 
 void m44_Copy(m44 * src, m44 * dest);
 
@@ -153,7 +150,5 @@ void m44_CreateRotationAxis(m44 * m, s32 angle, s32 x, s32 y, s32 z); //axis mus
 void m44_CreateScale(m44 * m, s32 x, s32 y, s32 z);
 
 void m44_CreateTranslation(m44 * m, s32 x, s32 y, s32 z);
-
-//----------------------------------------------------------------------------
 
 #endif //__S3D_FXMATH__

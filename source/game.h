@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,12 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __GAME__
 #define __GAME__
-
-//--------------------------------------------------------------------------------------------------
 
 #include <3ds.h>
 
@@ -46,11 +39,11 @@ int Game_IsPaused(void);
 //--------------------------------------------------------------------------------------------------
 
 typedef enum {
-	GAME_STARTING,
-	GAME_INITIAL_DELAY,
-	GAME_NORMAL_PLAY,
-	GAME_GOAL_DELAY,
-	GAME_ENDING
+    GAME_STARTING,
+    GAME_INITIAL_DELAY,
+    GAME_NORMAL_PLAY,
+    GAME_GOAL_DELAY,
+    GAME_ENDING
 } _game_state_e;
 
 //--------------------------------------------------------------------------------------------------
@@ -98,21 +91,19 @@ void Game_End(void);
 // returns how much the segments overlap
 static inline s32 _segments_overlap(s32 amin, s32 amax, s32 bmin, s32 bmax)
 {
-	if(amin < bmin)
-	{
-		if(amax < bmin) return 0;
-		else if(amax < bmax) return amax - bmin;
-		else return bmax - bmin;
-	}
-	else
-	{
-		if(bmax < amin) return 0;
-		else if(bmax < amax) return bmax - amin;
-		else return amax - amin;
-	}
+    if(amin < bmin)
+    {
+        if(amax < bmin) return 0;
+        else if(amax < bmax) return amax - bmin;
+        else return bmax - bmin;
+    }
+    else
+    {
+        if(bmax < amin) return 0;
+        else if(bmax < amax) return bmax - amin;
+        else return amax - amin;
+    }
 }
-
-//--------------------------------------------------------------------------------------------------
 
 #endif //__GAME__
 

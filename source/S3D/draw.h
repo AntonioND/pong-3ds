@@ -1,6 +1,3 @@
-
-//-------------------------------------------------------------------------------------------------------
-
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
     Copyright (C) 2015 Antonio Niño Díaz
@@ -19,12 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//-------------------------------------------------------------------------------------------------------
-
 #ifndef __S3D_DRAW__
 #define __S3D_DRAW__
-
-//----------------------------------------------------------------------------------
 
 #include <3ds.h>
 
@@ -53,7 +46,4 @@ void S3D_2D_QuadAllignedFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int 
 void S3D_2D_QuadFill(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b);
 void S3D_2D_QuadFillAlpha(u8 * buf, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int r, int g, int b, int a);
 
-//--------------------------------------------------------------------------------------------------
-
 #endif //__S3D_DRAW__
-
