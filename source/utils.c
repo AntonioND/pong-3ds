@@ -89,8 +89,6 @@ uint32_t fast_rand(void)
 
 // -----------------------------------------------------------------------------
 
-#define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080) //this should be in ctrulib...
-
 void PNGScreenshot_Top(void)
 {
     u32 *dst = malloc(400 * 240 * sizeof(u32));
@@ -100,7 +98,7 @@ void PNGScreenshot_Top(void)
         u64 time = osGetTime();
         int i, j;
 
-        if (CONFIG_3D_SLIDERSTATE == 0.0f)
+        if (osGet3DSliderState() == 0.0f)
         {
             u8 *src = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
             for (i = 0; i < 400; i++)
