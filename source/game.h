@@ -40,8 +40,8 @@
 
 //--------------------------------------------------------------------------------------------------
 
-inline void Game_Pause(int pause);
-inline int Game_IsPaused(void);
+void Game_Pause(int pause);
+int Game_IsPaused(void);
 
 //--------------------------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ int Game_StateMachinePadMovementEnabled(void);
 int Game_StateMachineBallMovementEnabled(void);
 int Game_StateMachineBallAddScoreEnabled(void);
 
-inline _game_state_e Game_StateMachineGet(void);
+_game_state_e Game_StateMachineGet(void);
 
 //--------------------------------------------------------------------------------------------------
 

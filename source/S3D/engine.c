@@ -74,7 +74,7 @@ void S3D_ModelviewMatrixMultiply(int screen, m44 * m)
 
 //----------------------------------------------------------------------------
 
-inline void _s3d_global_matrix_update(int screen)
+void _s3d_global_matrix_update(int screen)
 {
 	if(global_updated[screen]) return;
 	global_updated[screen] = 1;

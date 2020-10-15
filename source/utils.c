@@ -90,12 +90,12 @@ static inline uint64_t xor128(void)
     return ( w=(w^(w>>19))^(t^(t>>8)) );
 }
 
-inline void fast_srand(uint64_t seed)
+void fast_srand(uint64_t seed)
 {
     x = seed; // Some way to seed the RNG is needed, even if in the paper it's not specified...
 }
 
-inline uint32_t fast_rand(void)
+uint32_t fast_rand(void)
 {
     return xor128()&FAST_RAND_MAX;
 }

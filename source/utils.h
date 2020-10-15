@@ -45,8 +45,8 @@ float Timing_GetCPUUsage(int cpu_core);
 
 #define FAST_RAND_MAX (0x7FFF)
 
-inline void fast_srand(uint64_t seed);
-inline uint32_t fast_rand(void);
+void fast_srand(uint64_t seed);
+uint32_t fast_rand(void);
 
 //----------------------------------------------------------------------------------
 

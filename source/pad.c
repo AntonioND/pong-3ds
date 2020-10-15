@@ -319,7 +319,7 @@ void Pad_ResetAll(void)
 
 //--------------------------------------------------------------------------------------------------
 
-inline void Pad_P1Bounce(int speed, int acc)
+void Pad_P1Bounce(int speed, int acc)
 {
 	if(PAD1.ay == 0)
 	{
@@ -328,7 +328,7 @@ inline void Pad_P1Bounce(int speed, int acc)
 	}
 }
 
-inline void Pad_P2Bounce(int speed, int acc)
+void Pad_P2Bounce(int speed, int acc)
 {
 	if(PAD2.ay == 0)
 	{

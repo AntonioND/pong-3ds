@@ -350,7 +350,7 @@ void Ball_Reset(void)
 
 //--------------------------------------------------------------------------------------------------
 
-inline void Ball_Bounce(int speed, int acc)
+void Ball_Bounce(int speed, int acc)
 {
 	if(BALL.ay == 0)
 	{

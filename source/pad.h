@@ -51,8 +51,8 @@ void Pad_InitAll(void);
 void Pad_ResetAll(void);
 void Pad_HandleAll(void);
 
-inline void Pad_P1Bounce(int speed, int acc);
-inline void Pad_P2Bounce(int speed, int acc);
+void Pad_P1Bounce(int speed, int acc);
+void Pad_P2Bounce(int speed, int acc);
 
 //--------------------------------------------------------------------------------------------------
 

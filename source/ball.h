@@ -49,7 +49,7 @@ void Ball_Init(void);
 void Ball_Reset(void);
 void Ball_Handle(void);
 
-inline void Ball_Bounce(int speed, int acc);
+void Ball_Bounce(int speed, int acc);
 
 //--------------------------------------------------------------------------------------------------
 

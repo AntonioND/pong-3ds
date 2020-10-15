@@ -37,7 +37,7 @@
 //In engine.c
 extern m44 S3D_GLOBAL_MATRIX[2];
 extern m44 PROJECTION[2], MODELVIEW[2];
-inline void _s3d_global_matrix_update(int screen);
+void _s3d_global_matrix_update(int screen);
 
 //--------------------------------------------------------------------------------------------------
 

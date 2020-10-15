@@ -38,12 +38,12 @@
 
 static int game_paused = 0;
 
-inline void Game_Pause(int pause)
+void Game_Pause(int pause)
 {
 	game_paused = pause;
 }
 
-inline int Game_IsPaused(void)
+int Game_IsPaused(void)
 {
 	return game_paused;
 }
@@ -179,7 +179,7 @@ void Game_UpdateStateMachine(void)
 }
 
 
-inline _game_state_e Game_StateMachineGet(void)
+_game_state_e Game_StateMachineGet(void)
 {
 	return game_state_machine;
 }

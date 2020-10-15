@@ -83,7 +83,7 @@ int Sound_LoadSfx(int ref, const void * sfx_data, const unsigned int sfx_size)
 	SFX[i].ref = ref;
 	
 	memcpy(b,sfx_data,sfx_size);
-	GSPGPU_FlushDataCache(NULL,b,sfx_size);
+	GSPGPU_FlushDataCache(b,sfx_size);
 	
 	return 0;
 }
@@ -119,6 +119,7 @@ int Sound_PlaySfx(int ref)
 	if(i == MAX_SFX) return 3; // couldn't find reference
 	
 	csndPlaySound(chn,SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, SAMPLERATE,
+                      1.0, 0.0,
 				(u32*)SFX[i].ptr, (u32*)SFX[i].ptr, SFX[i].size);
 	
 	return 0;
@@ -145,7 +146,7 @@ void Sound_Init(void)
 		return;
 	}
 	memset(audioBuffer,0,BUFFERSIZE);
-	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	GSPGPU_FlushDataCache(audioBuffer,BUFFERSIZE);
 	
 	memset(SFX,0,sizeof(SFX));
 	
@@ -182,7 +183,7 @@ void Sound_Play(const void * song_data, const unsigned int song_size)
 			xmp_play_buffer(ctx,audioBuffer,BUFFERSIZE,0);
 			
 			memset(audioBuffer,0,BUFFERSIZE);
-			GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+			GSPGPU_FlushDataCache(audioBuffer,BUFFERSIZE);
 
 			lastPosition = audioBuffer;
 			bufferEnd = audioBuffer + BUFFERSIZE;
@@ -195,6 +196,7 @@ void Sound_Play(const void * song_data, const unsigned int song_size)
 			}
 
 			csndPlaySound(song_channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
+                      1.0, 0.0,
 				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 
 			sound_tick = svcGetSystemTick();
@@ -217,11 +219,12 @@ void Sound_Resume(void)
 	if(module_initialised == 0) return;
 	
 	memset(audioBuffer,0,BUFFERSIZE);
-	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	GSPGPU_FlushDataCache(audioBuffer,BUFFERSIZE);
 	
 	lastPosition = audioBuffer;
 	
 	csndPlaySound(song_channel,SOUND_FORMAT_16BIT | SOUND_REPEAT, SAMPLERATE,
+                      1.0, 0.0,
 				(u32*)audioBuffer, (u32*)audioBuffer, BUFFERSIZE);
 	
 	sound_tick = svcGetSystemTick();
@@ -234,7 +237,7 @@ void Sound_Pause(void)
 	sound_paused = 1;
 	
 	memset(audioBuffer,0,BUFFERSIZE);
-	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	GSPGPU_FlushDataCache(audioBuffer,BUFFERSIZE);
 }
 
 void Sound_Handle(void)
@@ -257,7 +260,7 @@ void Sound_Handle(void)
 	{
 		int size = bufferEnd - lastPosition;
 		xmp_play_buffer(ctx,lastPosition,size,0);
-		GSPGPU_FlushDataCache(NULL,lastPosition,size);
+		GSPGPU_FlushDataCache(lastPosition,size);
 		lastPosition = audioBuffer;
 		fill_bytes -= size;
 	}
@@ -265,7 +268,7 @@ void Sound_Handle(void)
 	if(fill_bytes)
 	{
 		xmp_play_buffer(ctx,lastPosition,fill_bytes,0);
-		GSPGPU_FlushDataCache(NULL,lastPosition,fill_bytes);
+		GSPGPU_FlushDataCache(lastPosition,fill_bytes);
 		lastPosition += fill_bytes;
 		if (lastPosition == bufferEnd) lastPosition = audioBuffer;
 	}
@@ -280,7 +283,7 @@ void Sound_Stop(void)
 	CSND_SetVol(song_channel, 0,0);
 	
 	memset(audioBuffer,0,BUFFERSIZE);
-	GSPGPU_FlushDataCache(NULL,audioBuffer,BUFFERSIZE);
+	GSPGPU_FlushDataCache(audioBuffer,BUFFERSIZE);
 	
 	xmp_end_player(ctx);
 	
