@@ -4,8 +4,8 @@
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
-#ifndef __PAD__
-#define __PAD__
+#ifndef PAD_H__
+#define PAD_H__
 
 #include "game.h"
 
@@ -20,11 +20,13 @@ void Pad_P2Draw(int screen);
 void Pad_P1DrawShadows(int screen);
 void Pad_P2DrawShadows(int screen);
 
-void Pad_P1GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax); // Player
-void Pad_P2GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax); // AI
+void Pad_P1GetBounds(int *xmin, int *xmax, int *ymin, int *ymax,
+                     int *zmin, int *zmax); // Player
+void Pad_P2GetBounds(int *xmin, int *xmax, int *ymin, int *ymax,
+                     int *zmin, int *zmax); // AI
 
-void Pad_P1GetPosition(int * x, int * y, int * z);
-void Pad_P2GetPosition(int * x, int * y, int * z);
+void Pad_P1GetPosition(int *x, int *y, int *z);
+void Pad_P2GetPosition(int *x, int *y, int *z);
 
 void Pad_InitAll(void);
 void Pad_ResetAll(void);
@@ -33,4 +35,4 @@ void Pad_HandleAll(void);
 void Pad_P1Bounce(int speed, int acc);
 void Pad_P2Bounce(int speed, int acc);
 
-#endif //__PAD__
+#endif // PAD_H__

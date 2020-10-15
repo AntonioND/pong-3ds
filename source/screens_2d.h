@@ -4,10 +4,10 @@
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
-#ifndef __SCREENS_2D__
-#define __SCREENS_2D__
+#ifndef SCREENS_2D_H__
+#define SCREENS_2D_H__
 
 void Draw2D_TopScreen(int screen);
 void Draw2D_BottomScreen(void);
 
-#endif //__SCREENS_2D__
+#endif // SCREENS_2D_H__

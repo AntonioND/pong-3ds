@@ -7,14 +7,16 @@
 #ifndef __ROOM__
 #define __ROOM__
 
-typedef enum {
+typedef enum
+{
     GAME_ROOM_MENU,
     GAME_ROOM_1,
     GAME_ROOM_2,
     GAME_ROOM_3
 } _game_room_e;
 
-typedef enum {
+typedef enum
+{
     GAME_MODE_2D,
     GAME_MODE_2D_BOUNCE,
     GAME_MODE_3D
@@ -29,7 +31,7 @@ void Room_Draw(int screen);
 
 _3d_mode_e Room_3DMode(void);
 
-void Room_GetBounds(int * xmin, int * xmax, int * ymin, int * ymax, int * zmin, int * zmax);
+void Room_GetBounds(int *xmin, int *xmax, int *ymin, int *ymax, int *zmin, int *zmax);
 
 void Room_Init(void);
 void Room_End(void);

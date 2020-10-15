@@ -4,26 +4,22 @@
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
-#ifndef __S3D_ENGINE__
-#define __S3D_ENGINE__
+#ifndef S3D_ENGINE_H__
+#define S3D_ENGINE_H__
 
-//----------------------------------------------------------------------------
-//-                      Software 3D engine. Main file.                      -
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// -                      Software 3D engine. Main file.                      -
+// ----------------------------------------------------------------------------
 
-#include "fxmath.h"
 #include "draw.h"
+#include "fxmath.h"
 #include "polygon.h"
 
-//----------------------------------------------------------------------------
+void S3D_ProjectionMatrixSet(int screen, m44 *m);
 
-void S3D_ProjectionMatrixSet(int screen, m44 * m);
-
-//----------------------------------------------------------------------------
-
-void S3D_ModelviewMatrixSet(int screen, m44 * m);
-void S3D_ModelviewMatrixMultiply(int screen, m44 * m);
+void S3D_ModelviewMatrixSet(int screen, m44 *m);
+void S3D_ModelviewMatrixMultiply(int screen, m44 *m);
 void S3D_ModelviewMatrixPush(int screen);
 void S3D_ModelviewMatrixPop(int screen);
 
-#endif //__S3D_ENGINE__
+#endif // S3D_ENGINE_H__

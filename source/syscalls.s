@@ -10,5 +10,5 @@
 .global __svcGetCurrentProcessorNumber
 .type __svcGetCurrentProcessorNumber, %function
 __svcGetCurrentProcessorNumber:
-	svc 0x11
-	bx   lr
+    svc     0x11
+    bx      lr

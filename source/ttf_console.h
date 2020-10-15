@@ -4,13 +4,13 @@
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
-#ifndef __TTF_CONSOLE__
-#define __TTF_CONSOLE__
-
-#include <3ds.h>
+#ifndef TTF_CONSOLE_H__
+#define TTF_CONSOLE_H__
 
 #include <stdarg.h>
 
-void Con_Print(u8 * buf, int x, int y, const char * format, ...);
+#include <3ds.h>
 
-#endif // __TTF_CONSOLE__
+void Con_Print(u8 *buf, int x, int y, const char *format, ...);
+
+#endif // TTF_CONSOLE_H__
