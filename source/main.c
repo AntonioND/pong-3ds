@@ -34,10 +34,6 @@
 
 //-------------------------------------------------------------------------------------------------------
 
-#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080) //this should be in ctrulib...
-
-//-------------------------------------------------------------------------------------------------------
-
 static int SecondaryThreadExit = 0;
 
 static Handle SecondaryThreadHandle, MutexThreadDrawing, MutexSyncFrame;
@@ -57,7 +53,7 @@ static void ProjectionMatricesConfigure(void)
 
 	m44 p, t;
 	
-	float slider = CONFIG_3D_SLIDERSTATE;
+	float slider = osGet3DSliderState();
 	int transl = float2fx(slider/TRANSL_DIV_FACTOR);
 	int shear = float2fx(slider/SHEAR_DIV_FACTOR);
 
@@ -120,7 +116,7 @@ void SecondaryThreadFunction(u32 arg)
 		
 		Timing_StartFrame(1);
 		
-		float slider = CONFIG_3D_SLIDERSTATE;
+		float slider = osGet3DSliderState();
 		if(slider > 0.0f)
 		{
 			int screen = 1;
