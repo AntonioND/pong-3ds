@@ -216,7 +216,6 @@ void SetMaxCpuTimeLimit(void)
 
 int main(int argc, char **argv) // Running in CPU 0
 {
-    aptInit();
     gfxInitDefault();
     gfxSet3D(true); // Enable stereoscopic 3D
 
@@ -271,6 +270,6 @@ int main(int argc, char **argv) // Running in CPU 0
     }
 
     gfxExit();
-    aptExit();
+
     return 0;
 }
