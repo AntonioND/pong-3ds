@@ -104,11 +104,10 @@ void SecondaryThreadFunction(u32 arg)
 
     while (SecondaryThreadExit == 0)
     {
-        while (LightEvent_TryWait(&StartDrawingEvent) == 0)
-        {
-            if (SecondaryThreadExit)
-                return;
-        }
+        LightEvent_Wait(&StartDrawingEvent);
+
+        if (SecondaryThreadExit)
+            break;
 
         // ----------------------------------------
 
@@ -163,7 +162,9 @@ void Thread_Init(void)
 
 void Thread_End(void)
 {
+    // Tell the secondary thread to exit and release it from the wait loop
     SecondaryThreadExit = 1;
+    LightEvent_Signal(&StartDrawingEvent);
 
     // This will hang the CPU if the secondary thread can't exit, but I prefer
     // the game to hang than returning to the loader with the secondary thread
