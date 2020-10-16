@@ -3,7 +3,7 @@
 
 /*
     Pong 3DS. Just a pong for the Nintendo 3DS.
-    Copyright (C) 2015 Antonio Niño Díaz
+    Copyright (C) 2015 Antonio NiÃ±o DÃ­az
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

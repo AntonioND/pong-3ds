@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// Copyright (C) 2015, 2020 Antonio Niño Díaz
+// Copyright (C) 2015, 2020 Antonio NiÃ±o DÃ­az
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
@@ -21,7 +21,7 @@ extern const s16 sin_lut[SIN_LUT_SIZE]; // .12f
 
 #define FX_2PI (0x10000) // For fxsin() and fxcos()
 
-// Look-up a sine value (2·PI = 0x10000)
+// Look-up a sine value (2Â·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f sine value
 static inline s32 fxsin(u32 theta)
@@ -29,7 +29,7 @@ static inline s32 fxsin(u32 theta)
     return sin_lut[(theta >> 7) & (SIN_LUT_SIZE - 1)] << FIX_SHIFT_EXTRA;
 }
 
-// Look-up a cosine value (2·PI = 0x10000)
+// Look-up a cosine value (2Â·PI = 0x10000)
 // \param theta Angle in [0,FFFFh] range
 // \return .12f cosine value
 static inline s32 fxcos(u32 theta)

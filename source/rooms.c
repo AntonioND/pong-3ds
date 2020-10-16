@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// Copyright (C) 2015, 2020 Antonio Niño Díaz
+// Copyright (C) 2015, 2020 Antonio NiÃ±o DÃ­az
 //
 // Pong 3DS. Just a pong for the Nintendo 3DS.
 
