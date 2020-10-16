@@ -177,17 +177,17 @@ void Thread_End(void)
 
 void SetMaxCpuTimeLimit(void)
 {
-    // Try to get as much as CPU time as possible (?)
+    // Try to get as much as CPU time as possible. This loops sets the limit to
+    // 80% as far as I've seen.
 
-    APT_SetAppCpuTimeLimit(80);
-    // u32 i, percent;
-    // for (i = 100; i > 1; i--)
-    // {
-    //     APT_SetAppCpuTimeLimit(NULL, i);
-    //     APT_GetAppCpuTimeLimit(NULL, &percent);
-    //     if (i == percent)
-    //         break;
-    // }
+    u32 i, percent;
+    for (i = 100; i > 1; i--)
+    {
+        APT_SetAppCpuTimeLimit(i);
+        APT_GetAppCpuTimeLimit(&percent);
+        if (i == percent)
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------
