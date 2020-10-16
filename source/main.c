@@ -21,7 +21,7 @@ static int SecondaryThreadExit = 0;
 
 static Thread SecondaryThreadHandle;
 
-static LightLock MutexThreadDrawing, MutexSyncFrame;
+static LightEvent StartDrawingEvent, SyncFrameEvent;
 
 // -----------------------------------------------------------------------------
 
@@ -79,8 +79,7 @@ static void DrawScreens(void)
     // ----------------------------------------
 
     // Don't wait forever in main() thread
-    LightLock_Lock(&MutexSyncFrame);
-    LightLock_Unlock(&MutexThreadDrawing);
+    LightEvent_Signal(&StartDrawingEvent);
 
     // ----------------------------------------
 
@@ -93,9 +92,8 @@ static void DrawScreens(void)
 
     // ----------------------------------------
 
-    // Don't wait forever in main() thread
-    LightLock_Lock(&MutexThreadDrawing);
-    LightLock_Unlock(&MutexSyncFrame);
+    // Wait up to one second in case the secondary thread has died
+    LightEvent_WaitTimeout(&SyncFrameEvent, 1000 * 1000);
 }
 
 // -----------------------------------------------------------------------------
@@ -106,10 +104,11 @@ void SecondaryThreadFunction(u32 arg)
 
     while (SecondaryThreadExit == 0)
     {
-        LightLock_Lock(&MutexThreadDrawing);
-
-        if (SecondaryThreadExit)
-            break;
+        while (LightEvent_TryWait(&StartDrawingEvent) == 0)
+        {
+            if (SecondaryThreadExit)
+                return;
+        }
 
         // ----------------------------------------
 
@@ -123,20 +122,15 @@ void SecondaryThreadFunction(u32 arg)
 
         // ----------------------------------------
 
-        LightLock_Unlock(&MutexThreadDrawing);
-
-        LightLock_Lock(&MutexSyncFrame);
-        LightLock_Unlock(&MutexSyncFrame);
+        LightEvent_Signal(&SyncFrameEvent);
     }
 }
 
 // Start secondary thread in a secondary CPU (CPU1 in Old 3DS, CPU2 in New 3DS)
 void Thread_Init(void)
 {
-    LightLock_Init (&MutexThreadDrawing);
-    LightLock_Lock (&MutexThreadDrawing); // Initially locked
-
-    LightLock_Init (&MutexSyncFrame);     // Initially released
+    LightEvent_Init(&StartDrawingEvent, RESET_ONESHOT);
+    LightEvent_Init(&SyncFrameEvent, RESET_ONESHOT);
 
     void *arg = NULL;
     size_t stack_size = 0x2000;
@@ -170,8 +164,6 @@ void Thread_Init(void)
 void Thread_End(void)
 {
     SecondaryThreadExit = 1;
-
-    LightLock_Unlock(&MutexThreadDrawing);
 
     // This will hang the CPU if the secondary thread can't exit, but I prefer
     // the game to hang than returning to the loader with the secondary thread
