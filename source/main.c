@@ -19,7 +19,9 @@
 
 static int SecondaryThreadExit = 0;
 
-static Handle SecondaryThreadHandle, MutexThreadDrawing, MutexSyncFrame;
+static Thread SecondaryThreadHandle;
+
+static Handle MutexThreadDrawing, MutexSyncFrame;
 
 // -----------------------------------------------------------------------------
 
@@ -137,29 +139,42 @@ void SecondaryThreadFunction(u32 arg)
     svcExitThread();
 }
 
-#define STACK_SIZE (0x2000)
-// u64 to align the address
-static u64 SecondaryThreadStack[STACK_SIZE / sizeof(u64)];
-
-int Thread_Init(void) // Start thread in CPU 1
+// Start secondary thread in a secondary CPU (CPU1 in Old 3DS, CPU2 in New 3DS)
+int Thread_Init(void)
 {
-    int disablecores = 1; // Run on the other CPU only
-    u32 prio = 0x18;      // 0x18 ... 0x3F. Lower is higher. main() is 0x30
-    u32 arg = 0;
+    void *arg = NULL;
+    size_t stack_size = 0x2000;
 
-    s32 val = svcCreateThread(&SecondaryThreadHandle,
-                              (ThreadFunc)SecondaryThreadFunction, arg,
-                              (u32 *)&(SecondaryThreadStack[STACK_SIZE / sizeof(u64)]),
-                              prio, disablecores);
-    if (val)
+    // The priority of child threads must be higher (aka the value is lower)
+    // than that of the main thread, otherwise there is thread starvation due to
+    // stdio being locked.
+    s32 prio = 0;
+    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
+
+    // For the secondary thread use CPU1 in Old 3DS and CPU2 in New 3DS.
+    int affinity;
+    bool is_new_3ds = false;
+    APT_CheckNew3DS(&is_new_3ds);
+    if (is_new_3ds)
     {
-        return 1;
+        affinity = 2;
     }
+    else
+    {
+        affinity = 1;
+    }
+
+    SecondaryThreadHandle = threadCreate((ThreadFunc)SecondaryThreadFunction,
+                                         arg, stack_size, prio - 1, affinity,
+                                         false);
+
+    // TODO: Check that the CPU ID is the right one with svcGetProcessorID()?
+
+    uint32_t val;
 
     val = svcCreateMutex(&MutexThreadDrawing, true); // Initially locked
     if (val)
     {
-        svcCloseHandle(SecondaryThreadHandle);
         return 1;
     }
 
@@ -167,7 +182,6 @@ int Thread_Init(void) // Start thread in CPU 1
     if (val)
     {
         svcCloseHandle(MutexThreadDrawing);
-        svcCloseHandle(SecondaryThreadHandle);
         return 1;
     }
 
@@ -181,18 +195,14 @@ void Thread_End(void)
     svcReleaseMutex(MutexThreadDrawing);
     svcReleaseMutex(MutexSyncFrame);
 
-    while (1)
-    {
-        // This will hang the CPU if the secondary thread can't exit, but I
-        // prefer the game to hang than returning to the loader with the
-        // secondary thread running in the background.
-        if (svcWaitSynchronization(SecondaryThreadHandle, U64_MAX) == 0)
-            break;
-    }
+    // This will hang the CPU if the secondary thread can't exit, but I prefer
+    // the game to hang than returning to the loader with the secondary thread
+    // running in the background.
+    threadJoin(SecondaryThreadHandle, U64_MAX);
+    threadFree(SecondaryThreadHandle);
 
     svcCloseHandle(MutexThreadDrawing);
     svcCloseHandle(MutexSyncFrame);
-    svcCloseHandle(SecondaryThreadHandle);
 }
 
 // -----------------------------------------------------------------------------
