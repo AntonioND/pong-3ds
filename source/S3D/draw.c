@@ -9,6 +9,11 @@
 #include "draw.h"
 #include "fxmath.h"
 
+#include "private.h"
+
+// In engine.c
+extern s3d_state S3D[2];
+
 static inline int abs(int x)
 {
     return x < 0 ? -x : x;
