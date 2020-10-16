@@ -21,7 +21,7 @@ static int SecondaryThreadExit = 0;
 
 static Thread SecondaryThreadHandle;
 
-static Handle MutexThreadDrawing, MutexSyncFrame;
+static LightLock MutexThreadDrawing, MutexSyncFrame;
 
 // -----------------------------------------------------------------------------
 
@@ -56,6 +56,18 @@ static void ProjectionMatricesConfigure(void)
     m44_Multiply(&p, &t, &right_screen);
 }
 
+// -----------------------------------------------------------------------------
+
+static void DrawScreenTop(int screen)
+{
+    if (screen == 1 && osGet3DSliderState() <= 0.0f)
+        return;
+
+    S3D_ProjectionMatrixSet(screen, screen ? &right_screen : &left_screen);
+    S3D_PolygonListClear(screen);
+    Game_DrawScreenTop(screen);
+}
+
 static void DrawScreens(void)
 {
     S3D_BuffersSetup();
@@ -67,15 +79,12 @@ static void DrawScreens(void)
     // ----------------------------------------
 
     // Don't wait forever in main() thread
-    svcWaitSynchronization(MutexSyncFrame, U64_MAX);
-    svcReleaseMutex(MutexThreadDrawing);
+    LightLock_Lock(&MutexSyncFrame);
+    LightLock_Unlock(&MutexThreadDrawing);
 
     // ----------------------------------------
 
-    int screen = 0;
-    S3D_ProjectionMatrixSet(screen, &left_screen);
-    S3D_PolygonListClear(screen);
-    Game_DrawScreenTop(screen);
+    DrawScreenTop(0);
 
     // ----------------------------------------
 
@@ -85,8 +94,8 @@ static void DrawScreens(void)
     // ----------------------------------------
 
     // Don't wait forever in main() thread
-    svcWaitSynchronization(MutexThreadDrawing, U64_MAX);
-    svcReleaseMutex(MutexSyncFrame);
+    LightLock_Lock(&MutexThreadDrawing);
+    LightLock_Unlock(&MutexSyncFrame);
 }
 
 // -----------------------------------------------------------------------------
@@ -97,11 +106,7 @@ void SecondaryThreadFunction(u32 arg)
 
     while (SecondaryThreadExit == 0)
     {
-        while (SecondaryThreadExit == 0)
-        {
-            if (svcWaitSynchronization(MutexThreadDrawing, U64_MAX) == 0)
-                break;
-        }
+        LightLock_Lock(&MutexThreadDrawing);
 
         if (SecondaryThreadExit)
             break;
@@ -110,14 +115,7 @@ void SecondaryThreadFunction(u32 arg)
 
         Timing_StartFrame(1);
 
-        float slider = osGet3DSliderState();
-        if (slider > 0.0f)
-        {
-            int screen = 1;
-            S3D_ProjectionMatrixSet(screen, &right_screen);
-            S3D_PolygonListClear(screen);
-            Game_DrawScreenTop(screen);
-        }
+        DrawScreenTop(1);
 
         Sound_Handle();
 
@@ -125,23 +123,21 @@ void SecondaryThreadFunction(u32 arg)
 
         // ----------------------------------------
 
-        svcReleaseMutex(MutexThreadDrawing);
+        LightLock_Unlock(&MutexThreadDrawing);
 
-        while (SecondaryThreadExit == 0)
-        {
-            if (svcWaitSynchronization(MutexSyncFrame, U64_MAX) == 0)
-                break;
-        }
-
-        svcReleaseMutex(MutexSyncFrame);
+        LightLock_Lock(&MutexSyncFrame);
+        LightLock_Unlock(&MutexSyncFrame);
     }
-
-    svcExitThread();
 }
 
 // Start secondary thread in a secondary CPU (CPU1 in Old 3DS, CPU2 in New 3DS)
-int Thread_Init(void)
+void Thread_Init(void)
 {
+    LightLock_Init (&MutexThreadDrawing);
+    LightLock_Lock (&MutexThreadDrawing); // Initially locked
+
+    LightLock_Init (&MutexSyncFrame);     // Initially released
+
     void *arg = NULL;
     size_t stack_size = 0x2000;
 
@@ -169,40 +165,19 @@ int Thread_Init(void)
                                          false);
 
     // TODO: Check that the CPU ID is the right one with svcGetProcessorID()?
-
-    uint32_t val;
-
-    val = svcCreateMutex(&MutexThreadDrawing, true); // Initially locked
-    if (val)
-    {
-        return 1;
-    }
-
-    val = svcCreateMutex(&MutexSyncFrame, false); // Initially released
-    if (val)
-    {
-        svcCloseHandle(MutexThreadDrawing);
-        return 1;
-    }
-
-    return 0;
 }
 
 void Thread_End(void)
 {
     SecondaryThreadExit = 1;
 
-    svcReleaseMutex(MutexThreadDrawing);
-    svcReleaseMutex(MutexSyncFrame);
+    LightLock_Unlock(&MutexThreadDrawing);
 
     // This will hang the CPU if the secondary thread can't exit, but I prefer
     // the game to hang than returning to the loader with the secondary thread
     // running in the background.
     threadJoin(SecondaryThreadHandle, U64_MAX);
     threadFree(SecondaryThreadHandle);
-
-    svcCloseHandle(MutexThreadDrawing);
-    svcCloseHandle(MutexSyncFrame);
 }
 
 // -----------------------------------------------------------------------------
@@ -233,51 +208,50 @@ int main(int argc, char **argv) // Running in CPU 0
 
     fast_srand(svcGetSystemTick());
 
-    if (Thread_Init() == 0)
+    Thread_Init();
+
+    Sound_Init();
+
+    Game_Init();
+
+    Timing_Start(0);
+
+    // Main loop
+    while (aptMainLoop())
     {
-        Sound_Init();
+        Timing_StartFrame(0);
 
-        Game_Init();
+        hidScanInput(); // Once per frame
 
-        Timing_Start(0);
+        if (hidKeysHeld() & KEY_SELECT)
+            break; // Break in order to return to hbmenu
 
-        // Main loop
-        while (aptMainLoop())
+        Game_Handle();
+
+        DrawScreens();
+
+        if (hidKeysDown() & KEY_Y)
         {
-            Timing_StartFrame(0);
-
-            hidScanInput(); // Once per frame
-
-            if (hidKeysHeld() & KEY_SELECT)
-                break; // Break in order to return to hbmenu
-
-            Game_Handle();
-
-            DrawScreens();
-
-            if (hidKeysDown() & KEY_Y)
-            {
-                Sound_Pause();
-                PNGScreenshot_Top(); // Do this after drawing screens!
-                //PNGScreenshot_Bottom();
-                Sound_Resume();
-            }
-
-            gfxFlushBuffers();
-            gfxSwapBuffers();
-
-            Timing_EndFrame(0);
-
-            gspWaitForVBlank();
+            Sound_Pause();
+            PNGScreenshot_Top(); // Do this after drawing screens!
+            //PNGScreenshot_Bottom();
+            Sound_Resume();
         }
 
-        Game_End();
+        gfxFlushBuffers();
+        gfxSwapBuffers();
 
-        Sound_Stop();
-        Sound_End();
+        Timing_EndFrame(0);
 
-        Thread_End();
+        gspWaitForVBlank();
     }
+
+    Game_End();
+
+    Sound_Stop();
+    Sound_End();
+
+    Thread_End();
 
     gfxExit();
 

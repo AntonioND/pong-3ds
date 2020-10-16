@@ -33,12 +33,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/S3D png \
-			libxmp-lite-4.3.5/src libxmp-lite-4.3.5/src/loaders
+SOURCES		:=	source source/S3D png
 DATA		:=	data
-INCLUDES	:=	source source/S3D png \
-			libxmp-lite-4.3.5/include \
-			libxmp-lite-4.3.5/src libxmp-lite-4.3.5/src/loaders
+INCLUDES	:=	source source/S3D png
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
@@ -59,14 +56,16 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS \
-			-DLIBXMP_CORE_PLAYER
+			-DLIBXMP_CORE_PLAYER \
+			`$(PORTLIBS)/bin/$(PREFIX)pkg-config --cflags libpng libxmp`
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map) \
+			-Wl,--gc-sections
 
-LIBS	:= -lctru -lm -lpng -lz
+LIBS	:= `$(PORTLIBS)/bin/$(PREFIX)pkg-config --libs libpng libxmp` -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
