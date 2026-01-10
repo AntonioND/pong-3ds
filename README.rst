@@ -2,7 +2,7 @@ Pong 3DS v1.0.2
 ===============
 
 A 3D pong game for the Nintendo 3DS with software rendering. By AntonioND
-(Antonio Niño Díaz)
+(Antonio NiÃ±o DÃ­az)
 
 https://github.com/AntonioND/pong-3ds
 
@@ -15,21 +15,23 @@ www.skylyrac.net/old-site/pong3ds.html
 This was a test to see if I could manage to setup a correct perspective for
 stereoscopic 3D, but I decided to make a simple game out of it.
 
-I haven't used hardware accelerated graphics because I couldn't manage to
-compile any shader assembler (except from Picasso, but it's a bit outdated). I
-originally made this 3D software engine for GBA, so there are still a few files
-from Tonc's library for GBA. Anyway, this game always runs at 60 FPS. :)
+This game was written before there was any convenient way to use
+hardware-accelerated 3D on the 3DS.
 
-If anyone cares, the 3D engine can draw lines, triangles, quads, line strips,
-triangle strips and quad strips, all of them With alpha blending. Quads are
-drawn using a function used just for them to draw them faster, not by drawing
-two triangles. It supports directional lighting (up to 32 lights, limited to 2
-because why more) and ambient lighting. It can sort polygons with painter's
-algorithm (no buffer-Z). It doesn't support textured polygons.
+I originally made this 3D software engine for GBA, so there are still a bits of
+code from from Tonc's library for GBA. Anyway, this game always runs at 60 FPS,
+so it's not too bad. :)
 
-Oh, the 3D slider actually does something when you change its position. The
-engine renders each top screen in a separate core when working in 3D mode to
-make it run always at the same FPS.
+The 3D engine can draw lines, triangles, quads, line strips, triangle strips and
+quad strips, all of them With alpha blending. Quads are drawn using a function
+used just for them to draw them faster, not by drawing two triangles. It
+supports directional lighting (up to 32 lights, limited to 2 because why more)
+and ambient lighting. It can sort polygons with painter's algorithm (no
+buffer-Z). It doesn't support textured polygons.
+
+The 3D slider actually works when you change its position. The engine renders
+each top screen in a separate core when working in 3D mode to make it run always
+at the same FPS.
 
 Press Y to take a screenshot in PNG format (2 files in 3D mode, 1 in 2D mode) or
 SELECT to exit. Use the joystick to move the pad, and A to jump in the 2.5D
@@ -50,9 +52,23 @@ This game is licensed under the GPL Version 3.
 
 .. image:: screenshot_4.png
 
+Build instructions
+------------------
+
+Install devkitPro with the following packages:
+
+.. code::
+    3ds-pkg-config 3ds-libpng 3ds-libxmp 3ds-dev
+
+In Linux, if using the devkitPro instalation scripts, this can be done with:
+
+.. code:: bash
+    sudo dkp-pacman -S 3ds-pkg-config 3ds-libpng
+
 Thanks to:
 ----------
 
+- Everyone that has contributed to https://3ds.hacks.guide/ in any way.
 - smea for Ninjhax.
 - smea, yellows8, plutoo, fincs and mtheall for ctrulib.
 - smea, mtheall, GEMISIS, Fluto and Arkhandar for hbmenu.
@@ -75,7 +91,7 @@ License
 -------
 
 Pong 3DS. Just a pong for the Nintendo 3DS.
-Copyright (C) 2015 Antonio Niño Díaz
+Copyright (C) 2015 Antonio NiÃ±o DÃ­az
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
