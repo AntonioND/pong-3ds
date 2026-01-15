@@ -1,5 +1,4 @@
-Pong 3DS v1.0.2
-===============
+# Pong 3DS v1.0.2
 
 A 3D pong game for the Nintendo 3DS with software rendering. By AntonioND
 (Antonio Niño Díaz)
@@ -44,29 +43,29 @@ Holding L and R at the same time will show the FPS and the CPU usage.
 
 This game is licensed under the GPL Version 3.
 
-.. image:: screenshot_1.png
+![](screenshot_1.png)
 
-.. image:: screenshot_2.png
+![](screenshot_2.png)
 
-.. image:: screenshot_3.png
+![](screenshot_3.png)
 
-.. image:: screenshot_4.png
+![](screenshot_4.png)
 
-Build instructions
-------------------
+## Build instructions
 
 Install devkitPro with the following packages:
 
-.. code::
-    3ds-pkg-config 3ds-libpng 3ds-libxmp 3ds-dev
+```
+3ds-pkg-config 3ds-libpng 3ds-libxmp 3ds-dev
+```
 
 In Linux, if using the devkitPro instalation scripts, this can be done with:
 
-.. code:: bash
-    sudo dkp-pacman -S 3ds-pkg-config 3ds-libpng
+```
+sudo dkp-pacman -S 3ds-pkg-config 3ds-libpng
+```
 
-Thanks to:
-----------
+## Thanks to
 
 - Everyone that has contributed to https://3ds.hacks.guide/ in any way.
 - smea for Ninjhax.
@@ -87,8 +86,7 @@ Music (http://modarchive.org/):
 - 'Roots' by Nightbeat
 - 'Secret Message' by Frequent/Ephidrena
 
-License
--------
+## License
 
 Pong 3DS. Just a pong for the Nintendo 3DS.
 Copyright (C) 2015 Antonio Niño Díaz
